@@ -80,7 +80,7 @@ sætter selv et kodeord.
 ## 2. Sådan poster du et opslag
 
 1. Gå til `https://teb-tistrup.dk/admin/` og log ind.
-2. Klik på *Indlæg* i venstre side.
+2. Klik på **Indlæg** i venstre side.
 3. Klik *Edit* (panelet viser én fil med en liste af opslag).
 4. Klik *Add Opslag*.
 5. Udfyld:
@@ -103,13 +103,13 @@ Opslaget vises automatisk:
 
 ## 3. Sådan retter du andre ting
 
-| Hvad du vil rette                                   | Vælg collection         |
-|-----------------------------------------------------|-------------------------|
-| Navne, telefonnumre, roller på bestyrelsen          | **Bestyrelse**          |
-| Repræsentanter i andre råd                          | **Repræsentanter**      |
-| Formandens kontaktinfo, CVR                         | **Kontaktinfo**         |
-| De tre tal i hero på forsiden (501, 46, 122)        | **Forside-tal**         |
-| Tekst, layout eller struktur på selve sidernes HTML | (bed en udvikler)       |
+| Hvad du vil rette                                   | Vælg → derefter          |
+|-----------------------------------------------------|--------------------------|
+| Navne, telefonnumre, roller på bestyrelsen          | **Foreningen → Bestyrelse**     |
+| Repræsentanter i andre råd                          | **Foreningen → Repræsentanter** |
+| Formandens kontaktinfo, CVR                         | **Foreningen → Kontaktinfo**    |
+| De tre tal i hero på forsiden (501, 46, 122)        | **Tal og fakta → Forsidens tal**|
+| Tekst, layout eller struktur på selve sidernes HTML | (bed en udvikler)        |
 
 For "Bestyrelse" og "Repræsentanter" — tilføj/slet rækker ved at klikke
 *Add* eller papirkurv-ikonet, og træk rækker for at omarrangere.

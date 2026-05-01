@@ -23,11 +23,14 @@ publish_mode: editorial_workflow
 locale: 'da'
 
 # ----------------------------------------------------------------------
-# Collections – hvad redaktørerne kan rette
+# Collections – tre logiske grupper:
+#   1. Indlæg     – nyhedsfeed
+#   2. Foreningen – bestyrelse, repræsentanter, kontaktinfo
+#   3. Forside    – indhold der vises på forsiden
 # ----------------------------------------------------------------------
 collections:
 
-  # ---------------- Indlæg / opslag (foreningens nyhedsfeed) ----------------
+  # =================== 1. Indlæg ===================
   - name: "indlaeg"
     label: "Indlæg"
     label_singular: "Opslag"
@@ -51,15 +54,18 @@ collections:
               - { label: "Resumé", name: "summary", widget: "text", required: false, hint: "1-2 linjer der vises på forsiden." }
               - { label: "Tekst", name: "body", widget: "markdown", hint: "Selve opslaget. Du kan formatere med fed/kursiv, lister, links og billeder." }
 
-  # ---------------- Bestyrelsen ----------------
-  - name: "bestyrelse"
-    label: "Bestyrelse"
-    label_singular: "Bestyrelsesmedlem"
-    description: "Navne, roller og kontaktinfo på bestyrelsen, suppleanter og revisorer."
+  # =================== 2. Foreningen ===================
+  # Bestyrelse, repræsentanter og kontaktinfo. Alle tre filer
+  # vises på siden 'Om foreningen' og i footeren.
+  - name: "foreningen"
+    label: "Foreningen"
+    description: "Bestyrelse, repræsentanter og kontaktinfo. Vises på 'Om foreningen' og i footeren."
     files:
+
+      # ----- Bestyrelse -----
       - file: "site/data/bestyrelsen.json"
         name: "bestyrelsen"
-        label: "Bestyrelse 2026"
+        label: "Bestyrelse"
         format: "json"
         fields:
           - label: "Overskrift"
@@ -88,11 +94,7 @@ collections:
             widget: "list"
             field: { label: "Navn", name: "name", widget: "string" }
 
-  # ---------------- Repræsentanter ----------------
-  - name: "repraesentanter"
-    label: "Repræsentanter"
-    description: "Hvem foreningen sender til andre råd og udvalg."
-    files:
+      # ----- Repræsentanter -----
       - file: "site/data/repraesentanter.json"
         name: "repraesentanter"
         label: "Repræsentanter"
@@ -106,11 +108,7 @@ collections:
               - { label: "Råd / udvalg", name: "body", widget: "string", hint: "fx HHST-Udvikling, Varde Handelsråd" }
               - { label: "Personer", name: "persons", widget: "string", hint: "fx 'Mette Bergstedt' eller 'Lars Lindblad (til 2027), Jens Bach Mortensen (til 2026)'" }
 
-  # ---------------- Kontaktinfo ----------------
-  - name: "kontakt"
-    label: "Kontaktinfo"
-    description: "Formand, CVR og generel kontaktinfo (vises i footer + kontakt-side)."
-    files:
+      # ----- Kontaktinfo -----
       - file: "site/data/kontakt.json"
         name: "kontakt"
         label: "Kontaktinfo"
@@ -123,22 +121,25 @@ collections:
           - { label: "CVR", name: "cvr", widget: "string" }
           - { label: "Postnr. og by", name: "by", widget: "string", default: "6862 Tistrup, Danmark" }
 
-  # ---------------- Forsidens nøgletal ----------------
-  - name: "forside"
-    label: "Forside – nøgletal"
-    description: "De tre tal der vises i hero-billedet (borgere, virksomheder, antal år)."
+  # =================== 3. Tal og fakta ===================
+  # De tal der vises på forsiden. Klar til at vokse hvis vi senere
+  # vil gøre flere fakta-felter redigerbare.
+  - name: "tal"
+    label: "Tal og fakta"
+    description: "De tre tal der vises i hero-billedet på forsiden."
     files:
       - file: "site/data/forside.json"
-        name: "forside"
-        label: "Forside-tal"
+        name: "forside_tal"
+        label: "Forsidens tal"
         format: "json"
         fields:
           - { label: "Antal borgere", name: "borgere", widget: "string", default: "501" }
           - { label: "Antal virksomheder", name: "virksomheder", widget: "string", default: "46" }
           - { label: "Antal år i byens tjeneste", name: "aar", widget: "string", default: "122" }
 
-  # NB: Vi har bevidst IKKE en collection til at redigere rå HTML-filer.
-  # Decap CMS understøtter ikke ren HTML-fil-redigering pålideligt
-  # (filerne har ikke det frontmatter Decap forventer). Hvis I skal
-  # ændre layout, struktur eller HTML på en side, så bed en udvikler
-  # om det — det er trygt at gøre via GitHub eller et lokalt repo.
+# ----------------------------------------------------------------------
+# NB: Vi har bevidst IKKE en collection til at redigere rå HTML-filer.
+# Decap CMS understøtter ikke ren HTML-fil-redigering pålideligt
+# (filerne har ikke det frontmatter Decap forventer). Hvis I skal
+# ændre layout, struktur eller HTML på en side, så bed en udvikler
+# om det.
