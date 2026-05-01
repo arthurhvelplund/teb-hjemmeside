@@ -7,14 +7,18 @@
 <link rel="icon" href="../images/teb-trolde-haandtegnet.png">
 
 <!-- Netlify Identity – widget der håndterer login/invitationer.
-     Skal indlæses FØR Decap-scriptet for at sætte det op korrekt. -->
+     Skal indlæses FØR CMS-scriptet for at sætte det op korrekt. -->
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
 
-<!-- Decap CMS – det administrative panel for hjemmesiden.
-     Hele admin-oplevelsen renderes af scriptet nedenfor og styres af config.yml. -->
-<script src="https://unpkg.com/decap-cms@^3.8.0/dist/decap-cms.js"></script>
+<!-- Sveltia CMS – community-fork af Decap CMS med bedre mobil/tablet-
+     support og en mere moderne UI. Bruger samme config.yml-format og
+     samme Git Gateway-backend som Decap, så det er et drop-in-replacement.
+     Hvis I vil tilbage til Decap: byt scripts'et ud med den linje der
+     ligger i kommentaren herunder. -->
+<script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+<!-- <script src="https://unpkg.com/decap-cms@^3.8.0/dist/decap-cms.js"></script> -->
 
 <!-- Hjælper Identity-widget'en med at vise et login-modal hvis en redaktør
      besøger /admin/ uden at være logget ind. Også klassikeren der håndterer

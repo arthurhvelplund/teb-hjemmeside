@@ -7,6 +7,17 @@
 <meta name="description" content="For byen, for erhvervet, for fællesskabet. Tistrup Erhvervs- og Borgerforening siden 1904.">
 <link rel="stylesheet" href="css/style.css">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
+<script>
+  // Hvis Netlify Identity sender en redaktør hertil via invitations- eller
+  // recovery-link, så send dem videre til /admin/ hvor Identity-widget'en
+  // ligger og kan håndtere flowet.
+  (function () {
+    var h = window.location.hash || "";
+    if (h.indexOf("invite_token=") !== -1 || h.indexOf("recovery_token=") !== -1) {
+      window.location.replace("/admin/" + h);
+    }
+  })();
+</script>
 </head>
 <body>
 
