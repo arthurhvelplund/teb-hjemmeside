@@ -137,40 +137,8 @@ collections:
           - { label: "Antal virksomheder", name: "virksomheder", widget: "string", default: "46" }
           - { label: "Antal år i byens tjeneste", name: "aar", widget: "string", default: "122" }
 
-  # ---------------- Sider (rå redigering) ----------------
-  # Avancerede ændringer i ren tekst på siderne. Brug kun hvis du ved hvad
-  # du gør – ellers spørg en udvikler.
-  - name: "pages"
-    label: "Sider (avanceret)"
-    description: "Råtekst-redigering af de enkelte sider. Brug kun hvis du ved hvad du gør – ellers spørg en udvikler."
-    files:
-      - file: "site/index.html"
-        name: "forside_html"
-        label: "Forside (index.html)"
-        fields:
-          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
-      - file: "site/om-tistrup.html"
-        name: "om_tistrup_html"
-        label: "Om Tistrup"
-        fields:
-          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
-      - file: "site/om-foreningen.html"
-        name: "om_foreningen_html"
-        label: "Om foreningen"
-        fields:
-          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
-      - file: "site/bliv-medlem.html"
-        name: "bliv_medlem_html"
-        label: "Bliv medlem"
-        fields:
-          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
-      - file: "site/kontakt.html"
-        name: "kontakt_html"
-        label: "Kontakt"
-        fields:
-          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
-      - file: "site/nyt.html"
-        name: "nyt_html"
-        label: "Nyt"
-        fields:
-          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
+  # NB: Vi har bevidst IKKE en collection til at redigere rå HTML-filer.
+  # Decap CMS understøtter ikke ren HTML-fil-redigering pålideligt
+  # (filerne har ikke det frontmatter Decap forventer). Hvis I skal
+  # ændre layout, struktur eller HTML på en side, så bed en udvikler
+  # om det — det er trygt at gøre via GitHub eller et lokalt repo.

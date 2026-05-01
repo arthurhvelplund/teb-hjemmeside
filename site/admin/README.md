@@ -109,7 +109,7 @@ Opslaget vises automatisk:
 | Repræsentanter i andre råd                          | **Repræsentanter**      |
 | Formandens kontaktinfo, CVR                         | **Kontaktinfo**         |
 | De tre tal i hero på forsiden (501, 46, 122)        | **Forside-tal**         |
-| Råtekst på en hel side (avanceret)                  | **Sider (avanceret)**   |
+| Tekst, layout eller struktur på selve sidernes HTML | (bed en udvikler)       |
 
 For "Bestyrelse" og "Repræsentanter" — tilføj/slet rækker ved at klikke
 *Add* eller papirkurv-ikonet, og træk rækker for at omarrangere.
