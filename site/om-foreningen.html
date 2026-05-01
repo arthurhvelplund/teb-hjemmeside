@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Om foreningen – TEB</title>
+<meta name="description" content="Tistrup Erhvervs- og Borgerforening arbejder for byens udvikling inden for erhverv, kultur, fritid, teknik, miljø og social. Stiftet 1904.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="images/teb-trolde-haandtegnet.png">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo-link" aria-label="Tistrup Erhvervs- og Borgerforening – forsiden">
+      <img class="logo-mark" src="images/teb-trolde-haandtegnet.png" alt="">
+      <span class="logo-word">
+        <strong>TEB</strong>
+        <em>Tistrup Erhvervs- og Borgerforening</em>
+      </span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+    <nav class="nav" id="primary-nav" aria-label="Hovedmenu">
+      <a href="index.html">Forside</a>
+      <a href="nyt.html">Nyt</a>
+      <a href="om-tistrup.html">Om Tistrup</a>
+      <a href="om-foreningen.html" class="active">Om foreningen</a>
+      <a href="bliv-medlem.html">Bliv medlem</a>
+      <a href="kontakt.html">Kontakt</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <span class="eyebrow">Stiftet 1904</span>
+        <h1>En forening<br>for byen, <em>bygget</em><br>af byen.</h1>
+        <p class="lead">Tistrup Erhvervs- og Borgerforening arbejder for Tistrup By og oplands interesser – gennem fællesskab, frivillighed og samarbejde.</p>
+      </div>
+      <div class="hero-image">
+        <img src="images/frivillige-frokost.png" alt="Frivillige spiser frokost sammen i Læringshytten">
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap-narrow">
+      <span class="eyebrow">Formål</span>
+      <h2 class="mt-0">Hvad vi er til for.</h2>
+      <div class="factbox">
+        "…at varetage og fremme Tistrup By og oplands interesser på enhver hensigtsmæssig måde, med de midler der står til foreningens rådighed, og således styrke sammenholdet."
+      </div>
+      <p>Vi formidler samarbejde mellem lokalområdets interessegrupper og arbejder for udvikling inden for <strong>erhverv, kultur, fritid, teknik, miljø og det sociale område</strong>.</p>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <span class="eyebrow">Det daglige</span>
+      <h2 class="mt-0">Hvad vi laver.</h2>
+
+      <p style="max-width:58ch;">Foreningen ejer og passer på store dele af det fælles Tistrup. Her er nogle af de ting, der fylder året rundt:</p>
+
+      <ol class="big-list" style="margin-top:2rem;">
+        <li>
+          <div>
+            <strong>Tistrup Anlæg</strong>
+            <p>Søen, plantagen, stierne, legepladserne og Læringshytten. Byens grønne hjerte, som vi vedligeholder året rundt.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>By-skoven</strong>
+            <p>Legeplads, shelter og stier. Vi passer bøgeskoven, fælder træer hvor nødvendigt, og planter nyt.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Stadionanlægget</strong>
+            <p>15,72 ha på Agerkrog og Snorup, udlejet til Tistrup Boldklub, Tennisklub og Spejderne.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Arrangementer</strong>
+            <p>Midsommerfest, Jul i Tistrup, valgaften, netværksmøder, Fredagsbobler.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Velkomstpakker</strong>
+            <p>Vi byder nye borgere velkommen med en pakke og et besøg.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Repræsentation</strong>
+            <p>Vi sidder med ved bordet i HHST-udviklingsråd, Hodde-Tistrup Udviklingsplan 2026–2030 og Varde Handelsråd.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <span class="eyebrow">Bestyrelsen 2026</span>
+      <h2 class="mt-0">Syv mennesker, valgt af byen.</h2>
+      <p style="max-width:58ch;">Bestyrelsen består af 7 medlemmer valgt blandt medlemmerne. Den blev konstitueret efter generalforsamlingen 26. marts 2026.</p>
+
+      <!-- Bestyrelsen indlæses dynamisk fra /data/bestyrelsen.json
+           via js/data-loader.js. Redigeres via admin-panelet. -->
+      <div class="board-grid" id="bestyrelse-mount">
+        <noscript><p>Aktivér JavaScript for at se bestyrelsen, eller se vedtægter og referater i dokumenterne nedenfor.</p></noscript>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2.5rem;">
+        <div>
+          <h3 style="margin-top:0;">Revisorer</h3>
+          <p id="revisorer-mount"></p>
+        </div>
+        <div>
+          <h3 style="margin-top:0;">Repræsentanter</h3>
+          <p id="repraesentanter-mount"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap-narrow">
+      <span class="eyebrow">Dokumenter</span>
+      <h2 class="mt-0">Læs selv.</h2>
+      <p>Alt det, generalforsamlingen har godkendt, ligger åbent her.</p>
+      <div class="downloads">
+        <ul>
+          <li>
+            <div>
+              <div class="doc-title">Vedtægter</div>
+              <div class="doc-meta">Senest vedtaget 8. juni 2021 · PDF</div>
+            </div>
+            <a class="btn btn-ghost" href="downloads/vedtaegter-2021.pdf" target="_blank" rel="noopener">Åbn PDF</a>
+          </li>
+          <li>
+            <div>
+              <div class="doc-title">Årsberetning 2025/2026</div>
+              <div class="doc-meta">Fremlagt 26. marts 2026 · PDF</div>
+            </div>
+            <a class="btn btn-ghost" href="downloads/aarsberetning-2025-2026.pdf" target="_blank" rel="noopener">Åbn PDF</a>
+          </li>
+          <li>
+            <div>
+              <div class="doc-title">Godkendt regnskab 2025/2026</div>
+              <div class="doc-meta">Revideret og underskrevet · PDF</div>
+            </div>
+            <a class="btn btn-ghost" href="downloads/regnskab-2025-2026.pdf" target="_blank" rel="noopener">Åbn PDF</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap-narrow">
+      <span class="eyebrow">Hvert år i marts</span>
+      <h2 class="mt-0">Generalforsamling.</h2>
+      <p>Ordinær generalforsamling afholdes hvert år i <strong>marts måned</strong> og indkaldes med mindst 14 dages varsel via Facebook, Tistrup Nyt og opslag i byen.</p>
+      <p>Dagsorden følger vedtægternes §4: valg af dirigent, formandens beretning, regnskab, indkomne forslag, valg af bestyrelse og suppleanter, valg af revisorer og eventuelt.</p>
+      <p>Alle medlemmer er velkomne – og der er kaffe efter mødet.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="footer-mark">Tistrup Erhvervs-<br>og <em>Borgerforening</em></p>
+  </div>
+  <div class="footer-inner">
+    <div>
+      <h3>Foreningen</h3>
+      <p style="font-size:0.96rem;line-height:1.55;margin:0;">Stiftet 1904. Fusioneret med Tistrup Erhvervsråd i 2008.<br>CVR 31&nbsp;94&nbsp;02&nbsp;22<br>6862 Tistrup, Danmark</p>
+    </div>
+    <div>
+      <h3>Kontakt</h3>
+      <ul>
+        <li>Arthur Hvelplund<br><span style="font-size:0.85rem;opacity:0.7;">Formand</span></li>
+        <li><a href="tel:+4529228559">29 22 85 59</a></li>
+        <li><a href="mailto:afhvelplund@gmail.com">afhvelplund@gmail.com</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>På siden</h3>
+      <ul>
+        <li><a href="om-tistrup.html">Om Tistrup</a></li>
+        <li><a href="om-foreningen.html">Om foreningen</a></li>
+        <li><a href="bliv-medlem.html">Bliv medlem</a></li>
+        <li><a href="kontakt.html">Kontakt</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Eksternt</h3>
+      <ul>
+        <li><a href="https://tistrupnyt.dk/" target="_blank" rel="noopener">Tistrup Nyt</a></li>
+        <li><a href="https://www.facebook.com/groups/1628780513814332" target="_blank" rel="noopener">Facebook-gruppen</a></li>
+        <li><a href="https://hthallen.dk/" target="_blank" rel="noopener">Hodde-Tistrup Hallen</a></li>
+        <li><a href="https://www.vardekommune.dk/tistrup" target="_blank" rel="noopener">Varde Kommune</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Tistrup Erhvervs- og Borgerforening</span>
+    <span>Byen i midten af det hele.</span>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/data-loader.js"></script>
+</body>
+</html>

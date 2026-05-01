@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bliv medlem – TEB</title>
+<meta name="description" content="Bliv medlem af Tistrup Erhvervs- og Borgerforening. Kontingent 500 kr. pr. husstand og 1.500 kr. for erhverv.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="images/teb-trolde-haandtegnet.png">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo-link" aria-label="Tistrup Erhvervs- og Borgerforening – forsiden">
+      <img class="logo-mark" src="images/teb-trolde-haandtegnet.png" alt="">
+      <span class="logo-word">
+        <strong>TEB</strong>
+        <em>Tistrup Erhvervs- og Borgerforening</em>
+      </span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+    <nav class="nav" id="primary-nav" aria-label="Hovedmenu">
+      <a href="index.html">Forside</a>
+      <a href="nyt.html">Nyt</a>
+      <a href="om-tistrup.html">Om Tistrup</a>
+      <a href="om-foreningen.html">Om foreningen</a>
+      <a href="bliv-medlem.html" class="active">Bliv medlem</a>
+      <a href="kontakt.html">Kontakt</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <span class="eyebrow">Støt byen</span>
+        <h1>Hver krone<br><em>bliver i</em> Tistrup.</h1>
+        <p class="lead">Bliv medlem af Tistrup Erhvervs- og Borgerforening. For 500 kr. om året pr. husstand hjælper du med at vedligeholde anlægget, lyse byen op til jul og holde Midsommerfest i gang.</p>
+        <div class="btn-row">
+          <a class="btn" href="#indmeldelse">Meld dig ind</a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="images/sandkasse-indvielse.jpg" alt="Børn klipper snor til indvielsen af Tistrup Strand">
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="facts">
+        <div class="fact"><span class="num">500 kr.</span><span class="label">Pr. husstand / år</span></div>
+        <div class="fact"><span class="num">1.500 kr.</span><span class="label">Erhverv pr. år</span></div>
+        <div class="fact"><span class="num">501</span><span class="label">Private medlemmer</span></div>
+        <div class="fact"><span class="num">46</span><span class="label">Erhvervsmedlemmer</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="feature">
+        <div class="feature-text">
+          <span class="eyebrow">Hvor går pengene hen?</span>
+          <h2>Byens fælles ejendom — passet af byens egne.</h2>
+          <p>Vi er en frivillig forening. Intet går til lønninger. Hver eneste krone bliver i Tistrup:</p>
+          <ul style="line-height:1.9;padding-left:1.2em;">
+            <li>Vedligehold af <strong>Tistrup Anlæg</strong>, søen, stierne og legepladserne</li>
+            <li>Pleje af <strong>By-skoven</strong></li>
+            <li><strong>Julelys</strong> og juletræ på torvet</li>
+            <li><strong>Midsommerfest</strong>, valgaftener og øvrige arrangementer</li>
+            <li>Velkomstpakker til nye borgere</li>
+            <li>Samarbejde om <strong>Udviklingsplanen 2026–2030</strong></li>
+          </ul>
+        </div>
+        <div class="feature-img">
+          <img src="images/midsommerfest.jpg" alt="Midsommerfest samler byen">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="pullquote">Vi er en forening der ejer en by, fordi byen ejer os.</p>
+
+  <section id="indmeldelse" class="band section">
+    <div class="wrap-narrow">
+      <span class="eyebrow">Meld dig ind</span>
+      <h2 class="mt-0">Udfyld formularen.</h2>
+      <p>Vi sender dig indbetalingsoplysninger og en kort velkomst.</p>
+
+      <form class="form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <input type="hidden" name="_subject" value="Ny indmeldelse – TEB">
+        <div>
+          <label for="navn">Navn</label>
+          <input id="navn" name="navn" type="text" required autocomplete="name">
+        </div>
+        <div>
+          <label for="adresse">Adresse</label>
+          <input id="adresse" name="adresse" type="text" required autocomplete="street-address">
+        </div>
+        <div>
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" required autocomplete="email">
+        </div>
+        <div>
+          <label for="tlf">Telefon (valgfri)</label>
+          <input id="tlf" name="tlf" type="tel" autocomplete="tel">
+        </div>
+        <div>
+          <label for="medlemstype">Medlemstype</label>
+          <select id="medlemstype" name="medlemstype" required>
+            <option value="Husstand (500 kr./år)">Husstand — 500 kr./år</option>
+            <option value="Erhverv (1.500 kr./år)">Erhverv — 1.500 kr./år</option>
+          </select>
+        </div>
+        <div>
+          <label for="besked">Besked (valgfri)</label>
+          <textarea id="besked" name="besked" placeholder="Er der noget vi skal vide?"></textarea>
+        </div>
+        <div>
+          <button type="submit" class="btn">Send indmeldelse</button>
+        </div>
+      </form>
+
+      <p style="margin-top:1.5rem;color:var(--muted);text-align:center;">Du kan også sende os en mail på <a href="mailto:afhvelplund@gmail.com">afhvelplund@gmail.com</a> eller ringe til formanden på <a href="tel:+4529228559">29 22 85 59</a>.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap-narrow">
+      <span class="eyebrow">Ofte stillede spørgsmål</span>
+      <h2 class="mt-0">Det spørger folk mest om.</h2>
+
+      <h3>Hvem kan blive medlem?</h3>
+      <p>Alle privatpersoner, firmaer og selskaber med adresse i Tistrup og opland.</p>
+
+      <h3>Hvordan betales kontingentet?</h3>
+      <p>Når du har meldt dig ind, modtager du oplysninger om betaling. Typisk sker det via MobilePay eller bankoverførsel én gang om året.</p>
+
+      <h3>Hvor længe er jeg medlem?</h3>
+      <p>Medlemskabet følger regnskabsåret (1. februar – 31. januar). Du kan til enhver tid melde dig ud ved at skrive til os.</p>
+
+      <h3>Kan jeg stille op til bestyrelsen?</h3>
+      <p>Ja – alle medlemmer kan stille op. Generalforsamlingen holdes hvert år i marts, og her vælges bestyrelsen.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="footer-mark">Tistrup Erhvervs-<br>og <em>Borgerforening</em></p>
+  </div>
+  <div class="footer-inner">
+    <div>
+      <h3>Foreningen</h3>
+      <p style="font-size:0.96rem;line-height:1.55;margin:0;">Stiftet 1904. Fusioneret med Tistrup Erhvervsråd i 2008.<br>CVR 31&nbsp;94&nbsp;02&nbsp;22<br>6862 Tistrup, Danmark</p>
+    </div>
+    <div>
+      <h3>Kontakt</h3>
+      <ul>
+        <li>Arthur Hvelplund<br><span style="font-size:0.85rem;opacity:0.7;">Formand</span></li>
+        <li><a href="tel:+4529228559">29 22 85 59</a></li>
+        <li><a href="mailto:afhvelplund@gmail.com">afhvelplund@gmail.com</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>På siden</h3>
+      <ul>
+        <li><a href="om-tistrup.html">Om Tistrup</a></li>
+        <li><a href="om-foreningen.html">Om foreningen</a></li>
+        <li><a href="bliv-medlem.html">Bliv medlem</a></li>
+        <li><a href="kontakt.html">Kontakt</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Eksternt</h3>
+      <ul>
+        <li><a href="https://tistrupnyt.dk/" target="_blank" rel="noopener">Tistrup Nyt</a></li>
+        <li><a href="https://www.facebook.com/groups/1628780513814332" target="_blank" rel="noopener">Facebook-gruppen</a></li>
+        <li><a href="https://hthallen.dk/" target="_blank" rel="noopener">Hodde-Tistrup Hallen</a></li>
+        <li><a href="https://www.vardekommune.dk/tistrup" target="_blank" rel="noopener">Varde Kommune</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Tistrup Erhvervs- og Borgerforening</span>
+    <span>Byen i midten af det hele.</span>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

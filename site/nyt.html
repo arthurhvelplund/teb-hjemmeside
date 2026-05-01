@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nyt – TEB</title>
+<meta name="description" content="Seneste opslag og nyt fra Tistrup Erhvervs- og Borgerforening.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="images/teb-trolde-haandtegnet.png">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo-link" aria-label="Tistrup Erhvervs- og Borgerforening – forsiden">
+      <img class="logo-mark" src="images/teb-trolde-haandtegnet.png" alt="">
+      <span class="logo-word">
+        <strong>TEB</strong>
+        <em>Tistrup Erhvervs- og Borgerforening</em>
+      </span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+    <nav class="nav" id="primary-nav" aria-label="Hovedmenu">
+      <a href="index.html">Forside</a>
+      <a href="nyt.html" class="active">Nyt</a>
+      <a href="om-tistrup.html">Om Tistrup</a>
+      <a href="om-foreningen.html">Om foreningen</a>
+      <a href="bliv-medlem.html">Bliv medlem</a>
+      <a href="kontakt.html">Kontakt</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <span class="eyebrow">Nyt fra foreningen</span>
+        <h1>Hvad sker der<br>i <em>Tistrup</em>.</h1>
+        <p class="lead">Opslag fra bestyrelsen, kommende arrangementer og nyt fra byen. Her finder du alt det vi vil dele med jer på den lange bane.</p>
+      </div>
+      <div class="hero-image">
+        <img src="images/torvet-optraeden.png" alt="Optræden på Tistrup Torv">
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap-narrow">
+      <!-- Indlæses fra /data/indlaeg.json via js/data-loader.js -->
+      <div id="nyt-feed-mount"></div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap text-center">
+      <span class="eyebrow">Vil du gerne høre mere?</span>
+      <h2 class="mt-0" style="max-width:24ch;margin-left:auto;margin-right:auto;">Følg også foreningen på Facebook.</h2>
+      <p style="max-width:50ch;margin:0 auto 2rem;color:var(--muted);">I gruppen <strong>Vores Tistrup Hodde</strong> deler vi mindre opslag og hverdagsting fra byen.</p>
+      <div class="btn-row" style="justify-content:center;">
+        <a class="btn" href="https://www.facebook.com/groups/1628780513814332" target="_blank" rel="noopener">Åbn Facebook-gruppen</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="footer-mark">Tistrup Erhvervs-<br>og <em>Borgerforening</em></p>
+  </div>
+  <div class="footer-inner">
+    <div>
+      <h3>Foreningen</h3>
+      <p style="font-size:0.96rem;line-height:1.55;margin:0;">Stiftet 1904. Fusioneret med Tistrup Erhvervsråd i 2008.<br>CVR 31&nbsp;94&nbsp;02&nbsp;22<br>6862 Tistrup, Danmark</p>
+    </div>
+    <div>
+      <h3>Kontakt</h3>
+      <ul>
+        <li>Arthur Hvelplund<br><span style="font-size:0.85rem;opacity:0.7;">Formand</span></li>
+        <li><a href="tel:+4529228559">29 22 85 59</a></li>
+        <li><a href="mailto:afhvelplund@gmail.com">afhvelplund@gmail.com</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>På siden</h3>
+      <ul>
+        <li><a href="om-tistrup.html">Om Tistrup</a></li>
+        <li><a href="om-foreningen.html">Om foreningen</a></li>
+        <li><a href="bliv-medlem.html">Bliv medlem</a></li>
+        <li><a href="kontakt.html">Kontakt</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Eksternt</h3>
+      <ul>
+        <li><a href="https://tistrupnyt.dk/" target="_blank" rel="noopener">Tistrup Nyt</a></li>
+        <li><a href="https://www.facebook.com/groups/1628780513814332" target="_blank" rel="noopener">Facebook-gruppen</a></li>
+        <li><a href="https://hthallen.dk/" target="_blank" rel="noopener">Hodde-Tistrup Hallen</a></li>
+        <li><a href="https://www.vardekommune.dk/tistrup" target="_blank" rel="noopener">Varde Kommune</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Tistrup Erhvervs- og Borgerforening</span>
+    <span>Byen i midten af det hele.</span>
+  </div>
+</footer>
+
+<!-- Markdown-parser, så opslag kan formatteres med fed/kursiv, lister, links osv. -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/data-loader.js"></script>
+</body>
+</html>

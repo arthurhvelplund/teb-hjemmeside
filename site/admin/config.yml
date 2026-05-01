@@ -1,0 +1,176 @@
+# Decap CMS – konfiguration for TEB-hjemmesiden
+# ----------------------------------------------------------------------
+# Dette panel viser et redigeringsbillede til personer uden teknisk
+# baggrund. Alle ændringer commit'es til GitHub-repositoriet, hvorfra
+# Netlify automatisk deployer til https://teb-tistrup.dk
+#
+# Backend: Git Gateway + Netlify Identity.
+# Redaktører logger ind med email + password (fra invitation), og har
+# IKKE brug for en GitHub-konto.
+backend:
+  name: git-gateway
+  branch: main
+
+# Hvor mediefiler (billeder) gemmes når man uploader via panelet:
+media_folder: "site/images"
+public_folder: "/images"
+
+# "Editorial workflow" – ændringer går igennem en kladde/godkend-flow
+# før de bliver live. Tag den fra hvis I vil publicere direkte.
+publish_mode: editorial_workflow
+
+# Vis siden på dansk
+locale: 'da'
+
+# ----------------------------------------------------------------------
+# Collections – hvad redaktørerne kan rette
+# ----------------------------------------------------------------------
+collections:
+
+  # ---------------- Indlæg / opslag (foreningens nyhedsfeed) ----------------
+  - name: "indlaeg"
+    label: "Indlæg"
+    label_singular: "Opslag"
+    description: "Skriv et opslag der vises på forsiden under 'Seneste nyt' og på siden Nyt."
+    files:
+      - file: "site/data/indlaeg.json"
+        name: "indlaeg"
+        label: "Opslag"
+        format: "json"
+        fields:
+          - label: "Opslag"
+            name: "items"
+            widget: "list"
+            label_singular: "opslag"
+            summary: "{{fields.date}} – {{fields.title}}"
+            fields:
+              - { label: "Titel", name: "title", widget: "string" }
+              - { label: "Dato", name: "date", widget: "datetime", date_format: "DD.MM.YYYY", time_format: false, format: "YYYY-MM-DD", default: "" }
+              - { label: "Forfatter", name: "author", widget: "string", required: false, hint: "Valgfrit. Fx 'Arthur Hvelplund'." }
+              - { label: "Forsidebillede", name: "image", widget: "image", required: false, hint: "Valgfrit. Vises øverst i opslaget." }
+              - { label: "Resumé", name: "summary", widget: "text", required: false, hint: "1-2 linjer der vises på forsiden." }
+              - { label: "Tekst", name: "body", widget: "markdown", hint: "Selve opslaget. Du kan formatere med fed/kursiv, lister, links og billeder." }
+
+  # ---------------- Bestyrelsen ----------------
+  - name: "bestyrelse"
+    label: "Bestyrelse"
+    label_singular: "Bestyrelsesmedlem"
+    description: "Navne, roller og kontaktinfo på bestyrelsen, suppleanter og revisorer."
+    files:
+      - file: "site/data/bestyrelsen.json"
+        name: "bestyrelsen"
+        label: "Bestyrelse 2026"
+        format: "json"
+        fields:
+          - label: "Overskrift"
+            name: "title"
+            widget: "string"
+            default: "Bestyrelsen 2026"
+          - label: "Underoverskrift"
+            name: "subtitle"
+            widget: "string"
+            default: "Syv mennesker, valgt af byen."
+          - label: "Beskrivelse"
+            name: "description"
+            widget: "text"
+          - label: "Bestyrelsesmedlemmer"
+            name: "members"
+            widget: "list"
+            summary: "{{fields.role}}: {{fields.name}}"
+            fields:
+              - { label: "Rolle", name: "role", widget: "string", hint: "fx Formand, Kasserer, Bestyrelsesmedlem, Suppleant" }
+              - { label: "Navn", name: "name", widget: "string" }
+              - { label: "Adresse", name: "address", widget: "string", required: false }
+              - { label: "Telefon", name: "phone", widget: "string", required: false, hint: "Skriv tlf. som det skal vises, fx '29 22 85 59'" }
+              - { label: "Email", name: "email", widget: "string", required: false }
+          - label: "Revisorer"
+            name: "auditors"
+            widget: "list"
+            field: { label: "Navn", name: "name", widget: "string" }
+
+  # ---------------- Repræsentanter ----------------
+  - name: "repraesentanter"
+    label: "Repræsentanter"
+    description: "Hvem foreningen sender til andre råd og udvalg."
+    files:
+      - file: "site/data/repraesentanter.json"
+        name: "repraesentanter"
+        label: "Repræsentanter"
+        format: "json"
+        fields:
+          - label: "Repræsentanter"
+            name: "items"
+            widget: "list"
+            summary: "{{fields.body}}: {{fields.persons}}"
+            fields:
+              - { label: "Råd / udvalg", name: "body", widget: "string", hint: "fx HHST-Udvikling, Varde Handelsråd" }
+              - { label: "Personer", name: "persons", widget: "string", hint: "fx 'Mette Bergstedt' eller 'Lars Lindblad (til 2027), Jens Bach Mortensen (til 2026)'" }
+
+  # ---------------- Kontaktinfo ----------------
+  - name: "kontakt"
+    label: "Kontaktinfo"
+    description: "Formand, CVR og generel kontaktinfo (vises i footer + kontakt-side)."
+    files:
+      - file: "site/data/kontakt.json"
+        name: "kontakt"
+        label: "Kontaktinfo"
+        format: "json"
+        fields:
+          - { label: "Formandens navn", name: "formand_navn", widget: "string" }
+          - { label: "Formandens adresse", name: "formand_adresse", widget: "string" }
+          - { label: "Formandens telefon", name: "formand_tlf", widget: "string" }
+          - { label: "Formandens e-mail", name: "formand_email", widget: "string" }
+          - { label: "CVR", name: "cvr", widget: "string" }
+          - { label: "Postnr. og by", name: "by", widget: "string", default: "6862 Tistrup, Danmark" }
+
+  # ---------------- Forsidens nøgletal ----------------
+  - name: "forside"
+    label: "Forside – nøgletal"
+    description: "De tre tal der vises i hero-billedet (borgere, virksomheder, antal år)."
+    files:
+      - file: "site/data/forside.json"
+        name: "forside"
+        label: "Forside-tal"
+        format: "json"
+        fields:
+          - { label: "Antal borgere", name: "borgere", widget: "string", default: "501" }
+          - { label: "Antal virksomheder", name: "virksomheder", widget: "string", default: "46" }
+          - { label: "Antal år i byens tjeneste", name: "aar", widget: "string", default: "122" }
+
+  # ---------------- Sider (rå redigering) ----------------
+  # Avancerede ændringer i ren tekst på siderne. Brug kun hvis du ved hvad
+  # du gør – ellers spørg en udvikler.
+  - name: "pages"
+    label: "Sider (avanceret)"
+    description: "Råtekst-redigering af de enkelte sider. Brug kun hvis du ved hvad du gør – ellers spørg en udvikler."
+    files:
+      - file: "site/index.html"
+        name: "forside_html"
+        label: "Forside (index.html)"
+        fields:
+          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
+      - file: "site/om-tistrup.html"
+        name: "om_tistrup_html"
+        label: "Om Tistrup"
+        fields:
+          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
+      - file: "site/om-foreningen.html"
+        name: "om_foreningen_html"
+        label: "Om foreningen"
+        fields:
+          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
+      - file: "site/bliv-medlem.html"
+        name: "bliv_medlem_html"
+        label: "Bliv medlem"
+        fields:
+          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
+      - file: "site/kontakt.html"
+        name: "kontakt_html"
+        label: "Kontakt"
+        fields:
+          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }
+      - file: "site/nyt.html"
+        name: "nyt_html"
+        label: "Nyt"
+        fields:
+          - { label: "HTML", name: "body", widget: "code", default_language: "html", allow_language_selection: false }

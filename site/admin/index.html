@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TEB – Redaktion</title>
+<link rel="icon" href="../images/teb-trolde-haandtegnet.png">
+
+<!-- Netlify Identity – widget der håndterer login/invitationer.
+     Skal indlæses FØR Decap-scriptet for at sætte det op korrekt. -->
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body>
+
+<!-- Decap CMS – det administrative panel for hjemmesiden.
+     Hele admin-oplevelsen renderes af scriptet nedenfor og styres af config.yml. -->
+<script src="https://unpkg.com/decap-cms@^3.8.0/dist/decap-cms.js"></script>
+
+<!-- Hjælper Identity-widget'en med at vise et login-modal hvis en redaktør
+     besøger /admin/ uden at være logget ind. Også klassikeren der håndterer
+     "godkend-mailen-link"-flowet hvor en ny redaktør har klikket invitations-
+     mailens link og lander på forsiden. -->
+<script>
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.on("init", function (user) {
+      if (!user) {
+        window.netlifyIdentity.on("login", function () {
+          document.location.href = "/admin/";
+        });
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

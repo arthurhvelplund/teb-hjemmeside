@@ -1,0 +1,68 @@
+{
+  "title": "Bestyrelsen 2026",
+  "subtitle": "Syv mennesker, valgt af byen.",
+  "description": "Bestyrelsen består af 7 medlemmer valgt blandt medlemmerne. Den blev konstitueret efter generalforsamlingen 26. marts 2026.",
+  "members": [
+    {
+      "role": "Formand",
+      "name": "Arthur Hvelplund",
+      "address": "Kirke Allé 18",
+      "phone": "29 22 85 59",
+      "email": "afhvelplund@gmail.com"
+    },
+    {
+      "role": "Kasserer",
+      "name": "Lars Krog",
+      "address": "Vestervang 5",
+      "phone": "40 89 02 09",
+      "email": "ltkrog88@gmail.com"
+    },
+    {
+      "role": "Sekretær",
+      "name": "Helle Nørtoft",
+      "address": "Yderikparken 33",
+      "phone": "40 70 10 60",
+      "email": "helle.noertoft@gmail.com"
+    },
+    {
+      "role": "Bestyrelsesmedlem",
+      "name": "Jens Bach Mortensen",
+      "address": "Bøgevej 28",
+      "phone": "20 96 28 00",
+      "email": "bachmortensen@live.dk"
+    },
+    {
+      "role": "Bestyrelsesmedlem",
+      "name": "Hans Ole Hansen",
+      "address": "Møllegårdsvej 33",
+      "phone": "29 46 94 68",
+      "email": "hoshans1@outlook.dk"
+    },
+    {
+      "role": "Bestyrelsesmedlem",
+      "name": "Jørn Uhre Tranekjer",
+      "address": "Bredhovej 10",
+      "phone": "22 30 88 01",
+      "email": "tranekjer@hotmail.dk"
+    },
+    {
+      "role": "Bestyrelsesmedlem",
+      "name": "Per Bjørn Nielsen",
+      "address": "Kasthøjvej 3A",
+      "phone": "28 51 96 49",
+      "email": "Per.Bjoern.Nielsen@LEGO.com"
+    },
+    {
+      "role": "Suppleant",
+      "name": "Lasse Hindsig"
+    },
+    {
+      "role": "Suppleant",
+      "name": "Malene Ladefoghed"
+    }
+  ],
+  "auditors": [
+    { "name": "Holger Bjørnskov" },
+    { "name": "Gert Christensen" }
+  ]
+}

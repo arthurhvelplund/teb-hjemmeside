@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor / IDE
+.vscode/
+.idea/
+*.sublime-*
+*.swp
+*.swo
+
+# Node (hvis vi senere får brug for build-tools)
+node_modules/
+.npm/
+.yarn/
+package-lock.json
+
+# Lokale arkiver / dev-junk
+*.zip
+*.tar.gz
+tmp/
+
+# Cowork / lokale sessions-mapper (hvis de ender her ved en fejl)
+.claude/
+local-agent-mode-sessions/
+
+# Netlify CLI cache (hvis I senere bruger den lokalt)
+.netlify/
+
+# Logs
+*.log
