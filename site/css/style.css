@@ -222,6 +222,20 @@ strong { font-weight: 700; }
   background: var(--terra);
 }
 
+.nav a.nav-fb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--forest);
+  font-weight: 600;
+}
+.nav a.nav-fb:hover { color: var(--terra); }
+.nav a.nav-fb svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
 @media (max-width: 820px) {
   .nav-toggle { display: block; }
   .nav {
