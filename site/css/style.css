@@ -829,6 +829,23 @@ main { display: block; }
 }
 .person .contact a { color: var(--muted); }
 
+.board-photo {
+  margin: 2.5rem 0 0;
+}
+.board-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+.board-photo figcaption {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 /* Downloads ------------------------------------------------ */
 .downloads { margin: 2rem 0; }
 .downloads ul { list-style: none; padding: 0; margin: 0; }
