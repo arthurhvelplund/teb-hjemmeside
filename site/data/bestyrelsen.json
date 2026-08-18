@@ -1,7 +1,7 @@
 {
   "title": "Bestyrelsen 2026",
   "subtitle": "Syv mennesker, valgt af byen.",
-  "description": "Bestyrelsen består af 7 medlemmer valgt blandt medlemmerne. Den blev konstitueret efter generalforsamlingen 26. marts 2026.",
+  "description": "Bestyrelsen består af 7 medlemmer valgt blandt medlemmerne. Den blev konstitueret efter generalforsamlingen 26. marts 2026. Opdateret april 2026.",
   "members": [
     {
       "role": "Formand",
@@ -9,6 +9,13 @@
       "address": "Kirke Allé 18",
       "phone": "29 22 85 59",
       "email": "afhvelplund@gmail.com"
+    },
+    {
+      "role": "Næstformand",
+      "name": "Jens Bach Mortensen",
+      "address": "Bøgevej 28",
+      "phone": "20 96 28 00",
+      "email": "bachmortensen@live.dk"
     },
     {
       "role": "Kasserer",
@@ -21,15 +28,8 @@
       "role": "Sekretær",
       "name": "Helle Nørtoft",
       "address": "Yderikparken 33",
-      "phone": "40 70 10 60",
+      "phone": "22 52 37 22",
       "email": "helle.noertoft@gmail.com"
-    },
-    {
-      "role": "Bestyrelsesmedlem",
-      "name": "Jens Bach Mortensen",
-      "address": "Bøgevej 28",
-      "phone": "20 96 28 00",
-      "email": "bachmortensen@live.dk"
     },
     {
       "role": "Bestyrelsesmedlem",
@@ -54,11 +54,17 @@
     },
     {
       "role": "Suppleant",
-      "name": "Lasse Hindsig"
+      "name": "Malene Ladefoghed",
+      "address": "Kirke Allé 14",
+      "phone": "60 22 47 13",
+      "email": "malenejacobsen83@gmail.com"
     },
     {
       "role": "Suppleant",
-      "name": "Malene Ladefoghed"
+      "name": "Lasse Hindsig",
+      "address": "Kirke Allé 4",
+      "phone": "60 88 00 37",
+      "email": "lsh@evmetal.dk"
     }
   ],
   "auditors": [

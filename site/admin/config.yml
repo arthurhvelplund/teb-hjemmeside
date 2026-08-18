@@ -56,10 +56,10 @@ collections:
 
   # =================== 2. Foreningen ===================
   # Bestyrelse, repræsentanter og kontaktinfo. Alle tre filer
-  # vises på siden 'Om foreningen' og i footeren.
+  # vises på 'Bestyrelse', 'Om foreningen' og i footeren.
   - name: "foreningen"
     label: "Foreningen"
-    description: "Bestyrelse, repræsentanter og kontaktinfo. Vises på 'Om foreningen' og i footeren."
+    description: "Bestyrelse, repræsentanter og kontaktinfo. Vises på 'Bestyrelse', 'Om foreningen' og i footeren."
     files:
 
       # ----- Bestyrelse -----

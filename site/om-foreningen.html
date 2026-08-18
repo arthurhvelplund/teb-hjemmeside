@@ -25,6 +25,7 @@
       <a href="nyt.html">Nyt</a>
       <a href="om-tistrup.html">Om Tistrup</a>
       <a href="om-foreningen.html" class="active">Om foreningen</a>
+      <a href="bestyrelse.html">Bestyrelse</a>
       <a href="bliv-medlem.html">Bliv medlem</a>
       <a href="kontakt.html">Kontakt</a>
       <a class="nav-fb" href="https://www.facebook.com/groups/1628780513814332" target="_blank" rel="noopener" aria-label="TEB på Facebook">
@@ -110,9 +111,10 @@
 
   <section class="section">
     <div class="wrap">
-      <span class="eyebrow">Bestyrelsen 2026</span>
-      <h2 class="mt-0">Syv mennesker, valgt af byen.</h2>
-      <p style="max-width:58ch;">Bestyrelsen består af 7 medlemmer valgt blandt medlemmerne. Den blev konstitueret efter generalforsamlingen 26. marts 2026.</p>
+      <span class="eyebrow" data-bind="bestyrelse.eyebrow">Bestyrelsen 2026</span>
+      <h2 class="mt-0" data-bind="bestyrelse.title">Syv mennesker, valgt af byen.</h2>
+      <p style="max-width:58ch;" data-bind="bestyrelse.description">Bestyrelsen består af 7 medlemmer valgt blandt medlemmerne. Den blev konstitueret efter generalforsamlingen 26. marts 2026.</p>
+      <p style="margin-top:0.75rem;"><a href="bestyrelse.html">Se den fulde bestyrelsesoversigt →</a></p>
 
       <!-- Bestyrelsen indlæses dynamisk fra /data/bestyrelsen.json
            via js/data-loader.js. Redigeres via admin-panelet. -->
@@ -200,6 +202,7 @@
       <ul>
         <li><a href="om-tistrup.html">Om Tistrup</a></li>
         <li><a href="om-foreningen.html">Om foreningen</a></li>
+        <li><a href="bestyrelse.html">Bestyrelse</a></li>
         <li><a href="bliv-medlem.html">Bliv medlem</a></li>
         <li><a href="kontakt.html">Kontakt</a></li>
       </ul>

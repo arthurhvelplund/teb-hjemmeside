@@ -6,6 +6,7 @@ Statisk hjemmeside (HTML/CSS/JS) for [teb-tistrup.dk](https://teb-tistrup.dk).
 - `index.html` – forside med hero, genveje, Facebook-embed
 - `om-tistrup.html` – om byen
 - `om-foreningen.html` – formål, bestyrelse, dokumenter
+- `bestyrelse.html` – oversigt over bestyrelsen (navne, roller, kontakt)
 - `bliv-medlem.html` – kontingent og indmeldelsesformular
 - `kontakt.html` – kontaktinfo og kontaktformular
 
@@ -35,6 +36,6 @@ For at aktivere dem:
 Gratis-planen tillader 50 indsendelser om måneden – rigeligt.
 
 ## Indhold der skal opdateres
-- **Næstformand** på `om-foreningen.html` mangler (ny konstituering efter GF 26. marts 2026).
-- **Bestyrelsesbilleder** kan tilføjes i `images/` og indsættes i `.person`-blokke på om-foreningen.
+- **Bestyrelsen** redigeres i `data/bestyrelsen.json` (eller via admin-panelet) og vises på `bestyrelse.html` og `om-foreningen.html`.
+- **Bestyrelsesbilleder** kan tilføjes i `images/` og indsættes i `.person`-blokke.
 - **Facebook-embed** virker kun hvis gruppen er offentlig; ellers skift til en simpel link-knap.
