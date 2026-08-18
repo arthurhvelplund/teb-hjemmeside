@@ -31,3 +31,17 @@ local-agent-mode-sessions/
 
 # Logs
 *.log
+
+# Cloudflare / lokale secrets (kun dette projekt — må aldrig i git)
+.env
+.env.*
+!.env.teb.example
+.envrc
+.wrangler/
+*.pem
+.gstack/
+# Cloudflare lokal auth
+.env.teb.local
+# Agent tooling (lokalt / valgfrit at dele)
+.grok/skills/
+skills-lock.json
