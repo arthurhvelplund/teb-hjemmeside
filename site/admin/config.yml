@@ -134,7 +134,7 @@ collections:
         format: "json"
         fields:
           - { label: "Antal borgere", name: "borgere", widget: "string", default: "501" }
-          - { label: "Antal virksomheder", name: "virksomheder", widget: "string", default: "46" }
+          - { label: "Antal virksomheder", name: "virksomheder", widget: "string", default: "50" }
           - { label: "Antal år i byens tjeneste", name: "aar", widget: "string", default: "122" }
 
 # ----------------------------------------------------------------------
