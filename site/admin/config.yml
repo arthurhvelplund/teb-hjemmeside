@@ -75,7 +75,7 @@ collections:
           - label: "Underoverskrift"
             name: "subtitle"
             widget: "string"
-            default: "Syv mennesker, valgt af byen."
+            default: "Ni mennesker, valgt af byen."
           - label: "Beskrivelse"
             name: "description"
             widget: "text"

@@ -74,9 +74,13 @@
 
     // Overskrift, underoverskrift og beskrivelse (valgfrit)
     var titleEl = document.querySelector("[data-bind='bestyrelse.title']");
-    if (titleEl && data.subtitle) titleEl.textContent = data.subtitle;
+    if (titleEl && data.subtitle) {
+      titleEl.textContent = data.subtitle.replace(/^Syv mennesker/, "Ni mennesker");
+    }
     var descEl = document.querySelector("[data-bind='bestyrelse.description']");
-    if (descEl && data.description) descEl.textContent = data.description;
+    if (descEl && data.description) {
+      descEl.textContent = data.description.replace("består af 7 medlemmer", "består af 9 medlemmer");
+    }
     var eyebrowEl = document.querySelector("[data-bind='bestyrelse.eyebrow']");
     if (eyebrowEl && data.title) eyebrowEl.textContent = data.title;
 
