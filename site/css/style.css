@@ -314,10 +314,10 @@ main { display: block; }
   z-index: 2;
   background:
     linear-gradient(180deg,
-      rgba(28,29,24,0.45) 0%,
-      rgba(28,29,24,0.55) 45%,
-      rgba(28,29,24,0.65) 75%,
-      rgba(28,29,24,0.85) 100%);
+      rgba(28,29,24,0.24) 0%,
+      rgba(28,29,24,0.32) 45%,
+      rgba(28,29,24,0.44) 75%,
+      rgba(28,29,24,0.68) 100%);
 }
 .hero-full .place-mark {
   position: absolute;
