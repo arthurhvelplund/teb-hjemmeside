@@ -1965,7 +1965,9 @@ main { display: block; }
 }
 .award-list {
   margin-top: 2.5rem;
+  padding: 0;
   border-top: 1px solid var(--line);
+  list-style: none;
 }
 .award-row {
   display: grid;
