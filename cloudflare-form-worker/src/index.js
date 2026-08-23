@@ -38,6 +38,15 @@ function fieldRow(label, value) {
 
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+    if (request.method === "GET" && url.pathname === "/api/formular") {
+      return new Response("TEB formular version 2 er aktiv.", {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-store"
+        }
+      });
+    }
     if (request.method !== "POST") return error("Kun POST er tilladt.", 405);
 
     const origin = request.headers.get("Origin");
