@@ -1698,3 +1698,188 @@ main { display: block; }
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Phase 4: projects ---------------------------------------- */
+.projects-hero {
+  padding-bottom: 1rem;
+}
+
+.development-plan {
+  margin: 1rem 0 4rem;
+  padding: clamp(2rem, 5vw, 4rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(240px, 0.7fr);
+  gap: 3rem;
+  align-items: center;
+  border-radius: var(--radius-lg);
+  background: var(--forest);
+  color: var(--paper);
+  box-shadow: var(--shadow-lift);
+}
+
+.development-plan h2 {
+  max-width: 18ch;
+  margin: 0 0 1rem;
+  color: var(--paper);
+}
+
+.development-plan .eyebrow {
+  color: var(--terra-soft);
+}
+
+.development-plan p {
+  color: rgba(246, 241, 228, 0.9);
+}
+
+.development-plan__years {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(3.5rem, 8vw, 6.5rem);
+  font-weight: 300;
+  line-height: 0.95;
+  text-align: center;
+  color: var(--terra-soft);
+}
+
+.development-plan__years small {
+  display: block;
+  margin-top: 0.8rem;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 228, 0.75);
+}
+
+.project-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.project-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--paper-soft);
+  overflow: hidden;
+}
+
+.project-item summary {
+  padding: 1.5rem 4rem 1.5rem 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  list-style: none;
+}
+
+.project-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.project-item summary::after {
+  content: "+";
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.5rem;
+  color: var(--terra);
+}
+
+.project-item[open] summary::after {
+  content: "–";
+}
+
+.project-summary h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+}
+
+.project-summary p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.project-status {
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: var(--paper-deep);
+  color: var(--forest);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.project-body {
+  padding: 0 1.5rem 1.75rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.project-field {
+  padding-top: 1.25rem;
+}
+
+.project-field h4 {
+  margin: 0 0 0.35rem;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--terra);
+}
+
+.project-field p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.project-updated {
+  grid-column: 1 / -1;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.project-principle {
+  max-width: 62ch;
+  margin: 2rem auto 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 760px) {
+  .development-plan {
+    grid-template-columns: 1fr;
+  }
+
+  .development-plan__years {
+    text-align: left;
+  }
+
+  .project-item summary {
+    grid-template-columns: 1fr;
+  }
+
+  .project-status {
+    width: max-content;
+  }
+
+  .project-body {
+    grid-template-columns: 1fr;
+  }
+}
