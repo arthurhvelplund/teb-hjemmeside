@@ -1,0 +1,19 @@
+# Revalidateér de filer, som ofte ændres, så nye versioner vises straks.
+/ 
+  Cache-Control: no-cache, must-revalidate
+
+/*.html
+  Cache-Control: no-cache, must-revalidate
+
+/css/*
+  Cache-Control: no-cache, must-revalidate
+
+/js/*
+  Cache-Control: no-cache, must-revalidate
+
+/data/*
+  Cache-Control: no-cache, must-revalidate
+
+# Billeder ændres sjældent og må gerne ligge kortvarigt i browserens cache.
+/images/*
+  Cache-Control: public, max-age=3600
