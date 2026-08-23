@@ -1121,6 +1121,8 @@ main { display: block; }
 
 .thank-you .eyebrow {
   margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .thank-you h1 {
