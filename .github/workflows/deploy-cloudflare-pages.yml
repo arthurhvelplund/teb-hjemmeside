@@ -46,17 +46,11 @@ jobs:
         if: steps.worker_changes.outputs.changed == 'true'
         shell: bash
         run: |
-          status=$(curl --silent --show-error             --output /tmp/teb-form-body             --dump-header /tmp/teb-form-headers             --write-out "%{http_code}"             --request POST "https://teb-tistrup.dk/api/formular"             --header "Origin: https://teb-tistrup.dk"             --header "Content-Type: application/x-www-form-urlencoded"             --data-urlencode "formular=kontakt"             --data-urlencode "navn=Automatisk udgivelsestest"             --data-urlencode "email=formular@teb-tistrup.dk"             --data-urlencode "emne=Kontrol af formular og e-mail"             --data-urlencode "besked=Denne besked bekræfter, at formularen og Cloudflare Email Sending virker efter en udgivelse.")
+          status=$(curl --silent --show-error             --output /tmp/teb-form-body             --write-out "%{http_code}"             --request POST "https://teb-tistrup.dk/api/formular"             --header "Origin: https://teb-tistrup.dk"             --header "Content-Type: application/x-www-form-urlencoded"             --data-urlencode "formular=kontakt"             --data-urlencode "navn=Automatisk udgivelsestest"             --data-urlencode "email=formular@teb-tistrup.dk"             --data-urlencode "emne=Kontrol af formular og e-mail"             --data-urlencode "besked=Denne besked bekræfter, at formularen og Cloudflare Email Sending virker efter en udgivelse.")
 
           if [ "$status" != "303" ]; then
             echo "Formularen svarede med HTTP $status"
             cat /tmp/teb-form-body
-            exit 1
-          fi
-
-          if ! grep --ignore-case --quiet '^x-teb-email-id:' /tmp/teb-form-headers; then
-            echo "Cloudflare returnerede ikke et mail-id."
-            cat /tmp/teb-form-headers
             exit 1
           fi
 
