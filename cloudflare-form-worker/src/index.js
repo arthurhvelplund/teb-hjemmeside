@@ -1,5 +1,3 @@
-import { EmailMessage } from "cloudflare:email";
-
 const destination = "afhvelplund@gmail.com";
 const sender = "formular@teb-tistrup.dk";
 const allowedOrigin = "https://teb-tistrup.dk";
@@ -10,13 +8,6 @@ function clean(value, maxLength = 5000) {
 
 function header(value) {
   return clean(value, 200).replace(/[\r\n]+/g, " ");
-}
-
-function encodedHeader(value) {
-  const bytes = new TextEncoder().encode(header(value));
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return `=?UTF-8?B?${btoa(binary)}?=`;
 }
 
 function htmlEscape(value) {
@@ -104,28 +95,17 @@ export default {
       return error("Ukendt formular.");
     }
 
-    const boundary = `teb-${crypto.randomUUID()}`;
     const html = `<html><body><h2>${htmlEscape(subject)}</h2><table>${rows}</table><p style="margin-top:24px;color:#666">Sendt fra formularen på teb-tistrup.dk</p></body></html>`;
-    const raw = [
-      `From: TEB Hjemmeside <${sender}>`,
-      `To: ${destination}`,
-      `Reply-To: ${header(email)}`,
-      `Subject: ${encodedHeader(subject)}`,
-      "MIME-Version: 1.0",
-      `Content-Type: multipart/alternative; boundary=\"${boundary}\"`,
-      "",
-      `--${boundary}`,
-      "Content-Type: text/plain; charset=UTF-8",
-      "",
-      `${subject}\n\n${rows.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")}`,
-      `--${boundary}`,
-      "Content-Type: text/html; charset=UTF-8",
-      "",
-      html,
-      `--${boundary}--`
-    ].join("\r\n");
+    const text = `${subject}\n\n${rows.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")}`;
 
-    await env.TEB_EMAIL.send(new EmailMessage(sender, destination, raw));
+    await env.TEB_EMAIL.send({
+      from: { email: sender, name: "TEB Hjemmeside" },
+      to: destination,
+      replyTo: email,
+      subject,
+      html,
+      text
+    });
     return redirect("/tak.html");
   }
 };
