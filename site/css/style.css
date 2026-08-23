@@ -202,9 +202,10 @@ strong { font-weight: 700; }
 .nav a {
   text-decoration: none;
   color: var(--ink);
-  padding: 0.5rem 0.62rem;
-  font-size: 0.9rem;
-  font-weight: 500;
+  padding: 0.52rem 0.5rem;
+  font-size: 0.94rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   border-radius: var(--radius);
   position: relative;
 }
@@ -216,8 +217,8 @@ strong { font-weight: 700; }
 .nav a.active::after {
   content: "";
   position: absolute;
-  left: 0.62rem;
-  right: 0.62rem;
+  left: 0.5rem;
+  right: 0.5rem;
   bottom: 0.25rem;
   height: 2px;
   background: var(--terra);
