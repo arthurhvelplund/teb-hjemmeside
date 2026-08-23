@@ -1883,3 +1883,50 @@ main { display: block; }
     grid-template-columns: 1fr;
   }
 }
+
+/* Kalender og dokumentarkiv -------------------------------- */
+.calendar-intro {
+  display: flex; align-items: end; justify-content: space-between; gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+.calendar-intro > div { max-width: 700px; }
+.calendar-grid, .document-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem;
+}
+.calendar-card, .document-card {
+  background: var(--paper-soft); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  padding: clamp(1.35rem, 3vw, 2rem); box-shadow: var(--shadow-soft);
+}
+.calendar-card h3, .document-card h2 { margin-top: 0.35rem; }
+.calendar-card-featured { grid-row: span 2; }
+.calendar-placeholder {
+  min-height: 240px; display: grid; place-content: center; text-align: center; gap: 0.35rem;
+  margin: 1rem 0 1.25rem; padding: 1.5rem; border: 1px dashed var(--moss);
+  border-radius: var(--radius-lg); background: var(--paper-deep); color: var(--forest);
+}
+.calendar-placeholder span { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--terra); }
+.calendar-placeholder strong { font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 500; }
+.card-kicker { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--terra); }
+.updated-note { margin-top: 1rem; font-size: 0.82rem; color: var(--muted); }
+.btn-small { padding: 0.7rem 1rem; font-size: 0.88rem; }
+.document-card-wide { grid-column: 1 / -1; }
+.document-link {
+  display: flex; justify-content: space-between; gap: 1rem; padding: 0.85rem 0;
+  border-top: 1px solid var(--line); font-weight: 700; text-decoration: none;
+}
+.document-link span { color: var(--terra); white-space: nowrap; }
+.document-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem 1.5rem; margin-top: 1.25rem; }
+.status-pill { display: inline-flex; padding: 0.5rem 0.8rem; border-radius: 999px; background: var(--paper-deep); color: var(--forest); font-size: 0.82rem; font-weight: 700; }
+.useful-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.useful-links a {
+  display: flex; flex-direction: column; gap: 0.4rem; padding: 1.35rem;
+  background: var(--paper-soft); border: 1px solid var(--line); border-radius: var(--radius-lg); text-decoration: none;
+}
+.useful-links span { color: var(--muted); font-size: 0.86rem; }
+.hero-compact { padding-block: clamp(3.5rem, 8vw, 6rem); }
+@media (max-width: 760px) {
+  .calendar-intro { align-items: stretch; flex-direction: column; }
+  .calendar-grid, .document-grid, .useful-links { grid-template-columns: 1fr; }
+  .calendar-card-featured { grid-row: auto; }
+  .document-card-wide { grid-column: auto; }
+}
