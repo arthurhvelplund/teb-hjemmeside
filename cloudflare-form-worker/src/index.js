@@ -63,7 +63,7 @@ export default {
     const body = await request.text();
     if (body.length > 20_000) return error("Formularen er for stor.", 413);
     const form = new URLSearchParams(body);
-    if (clean(form.get("website"), 200)) return redirect("/tak.html");
+    if (clean(form.get("website"), 200)) {\n      return error("Din browser har udfyldt et skjult spamfelt. Gå tilbage, ryd formularen og prøv igen.");\n    }
 
     const type = clean(form.get("formular"), 30);
     const name = clean(form.get("navn"), 150);
