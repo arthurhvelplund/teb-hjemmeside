@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nyt – TEB</title>
-<meta name="description" content="Seneste opslag og nyt fra Tistrup Erhvervs- og Borgerforening.">
-<link rel="stylesheet" href="css/style.css?v=20260823-phase2">
+<title>Det sker – kalender og nyt fra Tistrup | TEB</title>
+<meta name="description" content="Kalender, arrangementer, omdelingsuger og nyt fra Tistrup Erhvervs- og Borgerforening.">
+<link rel="stylesheet" href="css/style.css?v=20260823-phase5">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
 </head>
 <body>
@@ -39,9 +39,9 @@
   <section class="hero">
     <div class="hero-grid">
       <div class="hero-text">
-        <span class="eyebrow">Nyt fra foreningen</span>
-        <h1>Hvad sker der<br>i <em>Tistrup</em>.</h1>
-        <p class="lead">Opslag fra bestyrelsen, kommende arrangementer og nyt fra byen. Her finder du alt det vi vil dele med jer på den lange bane.</p>
+        <span class="eyebrow">Kalender og nyt</span>
+        <h1>Det sker<br>i <em>Tistrup</em>.</h1>
+        <p class="lead">Få det hurtige overblik her – og brug Tistrup Nyt, når du vil se hele den løbende kalender for Hodde og Tistrup.</p>
       </div>
       <div class="hero-image">
         <img src="images/torvet-optraeden.png" alt="Optræden på Tistrup Torv">
@@ -50,7 +50,56 @@
   </section>
 
   <section class="section">
+    <div class="wrap">
+      <div class="calendar-intro">
+        <div>
+          <span class="eyebrow">Det hurtige overblik</span>
+          <h2 class="mt-0">Kalenderen uden dobbeltarbejde.</h2>
+          <p>Tistrup Nyt er den detaljerede og løbende kalender. Her på TEB-siden samler vi den fysiske bykalender, det næste TEB-arrangement og praktiske oplysninger.</p>
+        </div>
+        <a class="btn" href="https://tistrupnyt.dk/menu/kalender" target="_blank" rel="noopener">Se hele kalenderen på Tistrup Nyt</a>
+      </div>
+
+      <div class="calendar-grid">
+        <article class="calendar-card calendar-card-featured">
+          <span class="card-kicker">Fysisk bykalender</span>
+          <h3>Kalenderen, der omdeles i byen</h3>
+          <div class="calendar-placeholder" aria-label="Plads til den aktuelle fysiske kalender">
+            <span>Aktuel kalender</span>
+            <strong>Uploades som billede og PDF</strong>
+          </div>
+          <p>Kalenderen bliver normalt opdateret hver anden måned. Den aktuelle udgave bliver vist her, så snart filerne er klar.</p>
+          <p class="updated-note">Senest gennemgået: 23. august 2026</p>
+        </article>
+
+        <article class="calendar-card">
+          <span class="card-kicker">Næste TEB-arrangement</span>
+          <h3>Næste arrangement offentliggøres her</h3>
+          <p>Når dato og program er besluttet, får du det korte overblik her og et link til de fulde oplysninger.</p>
+          <a class="text-link" href="kontakt.html">Har du et spørgsmål? Skriv til os →</a>
+        </article>
+
+        <article class="calendar-card">
+          <span class="card-kicker">Omdelingsuger</span>
+          <h3>Hvornår kommer bykalenderen?</h3>
+          <p>Oversigten over de kommende omdelingsuger tilføjes sammen med den næste kalenderudgave.</p>
+          <p class="updated-note">Status: afventer næste kalender</p>
+        </article>
+
+        <article class="calendar-card">
+          <span class="card-kicker">Til kalenderen</span>
+          <h3>Har du et arrangement?</h3>
+          <p>Send oplysningerne til TEB, så de kan blive vurderet og sendt videre til den rette kalenderansvarlige.</p>
+          <a class="btn btn-small" href="kontakt.html">Send kalenderoplysninger</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
     <div class="wrap-narrow">
+      <span class="eyebrow">Nyt fra TEB</span>
+      <h2 class="mt-0">Seneste opslag fra foreningen.</h2>
       <!-- Indlæses fra /data/indlaeg.json via js/data-loader.js -->
       <div id="nyt-feed-mount"></div>
     </div>
@@ -91,6 +140,7 @@
       <ul>
         <li><a href="om-tistrup.html">Om Tistrup</a></li>
         <li><a href="om-foreningen.html">Om foreningen</a></li>
+        <li><a href="dokumenter.html">Dokumenter</a></li>
         <li><a href="bestyrelse.html">Bestyrelse</a></li>
         <li><a href="bliv-medlem.html">Bliv medlem</a></li>
         <li><a href="kontakt.html">Kontakt</a></li>
