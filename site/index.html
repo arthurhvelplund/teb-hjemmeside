@@ -4,13 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tistrup Erhvervs- og Borgerforening</title>
-<meta name="description" content="For byen, for erhvervslivet, for fællesskabet. Tistrup Erhvervs- og Borgerforening siden 1904.">
-<link rel="stylesheet" href="css/style.css?v=20260822-lighter-hero">
+<meta name="description" content="For byen, for erhvervslivet, for fællesskabet. Find hverdagsliv, erhverv, arrangementer og Tistrups udviklingsplan 2026–2030.">
+<link rel="stylesheet" href="css/style.css?v=20260823-phase2">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
 <script>
-  // Hvis Netlify Identity sender en redaktør hertil via invitations- eller
-  // recovery-link, så send dem videre til /admin/ hvor Identity-widget'en
-  // ligger og kan håndtere flowet.
   (function () {
     var h = window.location.hash || "";
     if (h.indexOf("invite_token=") !== -1 || h.indexOf("recovery_token=") !== -1) {
@@ -33,13 +30,14 @@
     <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
     <nav class="nav" id="primary-nav" aria-label="Hovedmenu">
       <a href="index.html" class="active">Forside</a>
-      <a href="nyt.html">Nyt</a>
-      <a href="om-tistrup.html">Om Tistrup</a>
-      <a href="om-foreningen.html">Om foreningen</a>
-      <a href="bestyrelse.html">Bestyrelse</a>
-      <a href="bliv-medlem.html">Bliv medlem</a>
-      <a href="kontakt.html">Kontakt</a>
-      <a href="https://www.facebook.com/groups/1628780513814332" target="_blank" rel="noopener">Facebook</a>
+      <a href="om-tistrup.html">Bo &amp; lev</a>
+      <a href="#erhverv">Erhverv</a>
+      <a href="nyt.html">Det sker</a>
+      <a href="#udviklingsplan">Projekter</a>
+      <a href="om-foreningen.html">Om TEB</a>
+      <a href="bliv-medlem.html">Vær med</a>
+      <a class="nav-find" href="#find-i-tistrup">Find i Tistrup</a>
+      <a class="nav-cta" href="bliv-medlem.html">Bliv medlem</a>
     </nav>
   </div>
 </header>
@@ -49,139 +47,143 @@
   <section class="hero-full">
     <img src="images/anlaegget-hero-uden-kanter.jpg" alt="Tistrup Anlæg med søen en stille sommermorgen">
     <div class="caption">Tistrup Anlæg</div>
-
     <div class="hero-overlay">
       <div class="hero-overlay-inner">
         <span class="eyebrow">Velkommen til Tistrup</span>
         <h1>For byen,<br>for erhvervslivet,<br>for <em>fællesskabet</em>.</h1>
-        <p class="lead">Tistrup Erhvervs- og Borgerforening siden 1904. Vi arbejder for at gøre vores vestjyske stationsby til et endnu bedre sted at bo, arbejde og være på besøg.</p>
+        <p class="lead">Her finder du hverdagsliv, erhverv, arrangementer og de projekter, der former Tistrups fremtid.</p>
         <div class="btn-row">
-          <a class="btn" href="bliv-medlem.html">Bliv medlem</a>
-          <a class="btn btn-ghost" href="om-foreningen.html">Læs om foreningen</a>
-        </div>
-        <div class="hero-meta">
-          <span><span class="dot"></span>501 borgere</span>
-          <span><span class="dot"></span>50 virksomheder</span>
-          <span><span class="dot"></span>TEB 122 år i byens tjeneste</span>
+          <a class="btn" href="#find-i-tistrup">Find det, du søger</a>
+          <a class="btn btn-ghost" href="#udviklingsplan">Udviklingsplan 2026–2030</a>
         </div>
       </div>
     </div>
   </section>
 
-  <div class="wrap">
-    <div class="shortcut-strip">
-      <a class="shortcut" href="om-tistrup.html">
-        <span class="num">01</span>
-        <h3>Om Tistrup</h3>
-        <p>Byens historie, natur og fællesskab.</p>
-        <span class="arrow">Læs mere →</span>
-      </a>
-      <a class="shortcut" href="om-foreningen.html">
-        <span class="num">02</span>
-        <h3>Om foreningen</h3>
-        <p>Formål, bestyrelse og dokumenter.</p>
-        <span class="arrow">Læs mere →</span>
-      </a>
-      <a class="shortcut" href="bliv-medlem.html">
-        <span class="num">03</span>
-        <h3>Bliv medlem</h3>
-        <p>Støt byen for 500 kr. om året pr. husstand.</p>
-        <span class="arrow">Meld dig ind →</span>
-      </a>
-      <a class="shortcut" href="https://tistrupnyt.dk/menu/kalender" target="_blank" rel="noopener">
-        <span class="num">04</span>
-        <h3>Kalender</h3>
-        <p>Se alt hvad der sker i byen – i kalenderen på Tistrup Nyt.</p>
-        <span class="arrow">Åbn kalenderen →</span>
-      </a>
-    </div>
-  </div>
-
-  <section class="section">
+  <section class="audience-section" id="find-i-tistrup">
     <div class="wrap">
-      <div class="feature">
-        <div class="feature-text">
-          <span class="eyebrow">Byen</span>
-          <h2>En lille by med et stort hjerte.</h2>
-          <p>Tistrup ligger midt mellem Varde og Ølgod — en af de større landsbyer i Sydvestjylland med cirka 1.400 indbyggere. Vi har skole, børnehave, kirke, plejecenter, Brugsen, Hodde-Tistrup Hallen og et lille, aktivt handelsliv på torvet.</p>
-          <p>Tistrup blev stationsby i 1875. I 2025 fejrede vi 150-års jubilæet med en stor <strong>Tog Festival</strong>.</p>
+      <div class="audience-intro">
+        <span class="eyebrow">Find din vej</span>
+        <h2>Hvad leder du efter?</h2>
+        <p class="lead center">Tre hurtige indgange til det vigtigste i og omkring Tistrup.</p>
+      </div>
+      <div class="audience-grid">
+        <a class="audience-card" href="#det-sker">
+          <span class="num">01</span>
+          <h3>Jeg bor her</h3>
+          <p>Find arrangementer, kalender, nyt fra byen og muligheder for at være med.</p>
+          <span class="arrow">Se hvad der sker →</span>
+        </a>
+        <a class="audience-card" href="#erhverv">
+          <span class="num">02</span>
+          <h3>Jeg driver virksomhed her</h3>
+          <p>Find erhvervsfællesskabet, lokale forbindelser og vejen ind i TEB.</p>
+          <span class="arrow">Gå til erhverv →</span>
+        </a>
+        <a class="audience-card" href="om-tistrup.html">
+          <span class="num">03</span>
+          <h3>Jeg overvejer at flytte hertil</h3>
+          <p>Få et første overblik over byen, fællesskabet, naturen og hverdagslivet.</p>
+          <span class="arrow">Mød Tistrup →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="udviklingsplan">
+    <div class="wrap">
+      <div class="plan-feature">
+        <div>
+          <span class="eyebrow">Tistrups udviklingsplan 2026–2030</span>
+          <h2>Tistrups fælles retning frem mod 2030.</h2>
+          <p>Planen samler Tistrups overordnede mål og ambitioner. Den er blevet til med lokal involvering, er godkendt af Varde Kommune og danner ramme om en række projekter og initiativer.</p>
           <div class="btn-row">
-            <a class="btn btn-ghost" href="om-tistrup.html">Mere om byen</a>
+            <a class="btn btn-paper" href="nyt.html">Følg udviklingen</a>
+            <a class="btn btn-ghost" style="color:var(--paper);border-color:var(--paper);" href="kontakt.html">Kom med et forslag</a>
           </div>
         </div>
-        <div class="feature-img">
-          <img src="images/torvet-optraeden.png" alt="Optræden på Tistrup Torv">
+        <div class="plan-focus" aria-label="Udvalgte fokusområder">
+          <span>Aktivitetsområdet ved Tistrup Skole</span>
+          <span>Almene boliger og bosætning</span>
+          <span>Torvet og bymidten</span>
+          <span>Natur, stier og fælles mødesteder</span>
         </div>
       </div>
     </div>
   </section>
 
-  <p class="pullquote">Foreningens formål er at fremme Tistrup By og oplands interesser – og således styrke sammenholdet.</p>
-
-  <section class="section">
+  <section class="section" id="det-sker">
     <div class="wrap">
-      <div class="feature reverse">
-        <div class="feature-text">
-          <span class="eyebrow">Foreningens rolle</span>
-          <h2>Den der passer på anlægget, når ingen andre kigger.</h2>
-          <p>Vi ejer og plejer <strong>Tistrup Anlæg</strong> med søen, de hvide broer og legepladsen. Vi driver <strong>By-skoven</strong>, vedligeholder stadionanlægget, og står bag <strong>Midsommerfest</strong>, <strong>Jul i Tistrup</strong>, <strong>valgaften</strong> og en række andre arrangementer.</p>
-          <p>Alt sammen drevet af frivillige kræfter – og finansieret af medlemmernes kontingent.</p>
-          <div class="btn-row">
-            <a class="btn btn-ghost" href="om-foreningen.html">Mere om foreningen</a>
-          </div>
+      <div class="home-section-head">
+        <div>
+          <span class="eyebrow">Det sker</span>
+          <h2>Aktuelt i Tistrup</h2>
         </div>
-        <div class="feature-img">
-          <img src="images/anlaegget-soe-uden-kanter.jpg" alt="Anlægget en sommeraften med refleksion i søen">
-        </div>
+        <a class="btn btn-ghost" href="nyt.html">Se alle opslag</a>
       </div>
+      <div class="post-grid" id="seneste-nyt-mount"></div>
     </div>
   </section>
 
   <section class="section-tight">
     <div class="wrap">
-      <div class="mosaic">
-        <div class="mosaic-item big"><img src="images/carneval-scene.jpg" alt="Børn på scene under Tistrup Screaming Carnival"></div>
-        <div class="mosaic-item"><img src="images/juletrae.png" alt="Juletræet på torvet en vinteraften"></div>
-        <div class="mosaic-item"><img src="images/sandkasse-indvielse.jpg" alt="Indvielse af Tistrup Strand"></div>
-        <div class="mosaic-item"><img src="images/togfestival.jpg" alt="Tog Festival 2025"></div>
-        <div class="mosaic-item"><img src="images/byskov-legeplads-uden-kanter.jpg" alt="Legeplads i By-skoven"></div>
+      <div class="home-actions">
+        <article class="home-action" id="erhverv">
+          <span class="eyebrow">Erhverv</span>
+          <h3>Et stærkt lokalt erhvervsfællesskab.</h3>
+          <p>TEB samler byens virksomheder, landbrug og selvstændige omkring synlighed, netværk og Tistrups udvikling.</p>
+          <div class="btn-row">
+            <a class="btn btn-ghost" href="bliv-medlem.html">Se erhvervsmedlemskab</a>
+            <a class="btn btn-ghost" href="kontakt.html">Kontakt os</a>
+          </div>
+        </article>
+        <article class="home-action home-action--calendar">
+          <span class="eyebrow">Kalender</span>
+          <h3>Hvad sker der hvornår?</h3>
+          <p>Se den løbende kalender på Tistrup Nyt. Den fysiske bykalender bliver opdateret hver anden måned.</p>
+          <div class="btn-row">
+            <a class="btn" href="https://tistrupnyt.dk/menu/kalender" target="_blank" rel="noopener">Åbn kalenderen</a>
+          </div>
+        </article>
       </div>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:1rem;">
+      <div class="home-section-head">
         <div>
-          <span class="eyebrow">Seneste nyt</span>
-          <h2 class="mt-0">Hvad sker der i Tistrup?</h2>
+          <span class="eyebrow">Det gør TEB</span>
+          <h2>Synlige resultater i byen.</h2>
         </div>
-        <a class="btn btn-ghost" href="nyt.html">Se alle opslag →</a>
+        <p>Medlemmer og frivillige gør arbejdet muligt.</p>
       </div>
-      <!-- Indlæses fra /data/indlaeg.json via js/data-loader.js -->
-      <div class="post-grid" id="seneste-nyt-mount"></div>
-    </div>
-  </section>
-
-  <section class="band-forest section">
-    <div class="wrap text-center">
-      <span class="eyebrow">Hold dig opdateret</span>
-      <h2 class="mt-0" style="max-width:22ch;margin-left:auto;margin-right:auto;">De fleste nyheder lægger vi på Facebook.</h2>
-      <p style="max-width:52ch;margin:0 auto 1rem;">I gruppen <strong>Vores Tistrup Hodde</strong> deler vi opslag, arrangementer og nyt fra bestyrelsen. Gruppen er offentlig – alle kan kigge med.</p>
-      <p style="max-width:52ch;margin:0 auto 2rem;opacity:0.85;">Er du ikke på Facebook? Så hold øje med opslag i byen, flyers og plakatsøjler – eller ring til formanden.</p>
-      <div class="btn-row" style="justify-content:center;">
-        <a class="btn btn-paper" href="https://www.facebook.com/groups/1628780513814332" target="_blank" rel="noopener">Åbn Facebook-gruppen</a>
-        <a class="btn btn-ghost" style="color:var(--paper);border-color:var(--paper);" href="https://tistrupnyt.dk/menu/kalender" target="_blank" rel="noopener">Åbn kalenderen</a>
+      <div class="result-grid">
+        <div class="result-item">
+          <strong>Grønne områder</strong>
+          <p>Vi passer Tistrup Anlæg, søen, legepladsen og By-skoven.</p>
+        </div>
+        <div class="result-item">
+          <strong>Liv i byen</strong>
+          <p>Vi står bag blandt andet Midsommerfest, Jul i Tistrup og fælles arrangementer.</p>
+        </div>
+        <div class="result-item">
+          <strong>Tistrups stemme</strong>
+          <p>Vi samler borgere og erhverv og arbejder for byens interesser og udvikling.</p>
+        </div>
       </div>
     </div>
   </section>
 
   <section class="band">
     <div class="wrap text-center">
-      <span class="eyebrow">Kom med</span>
-      <h2 class="mt-0" style="max-width:20ch;margin-left:auto;margin-right:auto;">Støt byen — 500 kr. pr. husstand om året.</h2>
-      <p style="max-width:50ch;margin:0 auto 2rem;color:var(--muted);">Hver en krone bliver i Tistrup. Kontingentet går til anlægget, byskoven, julelys, Midsommerfest og alt det andet, der gør byen levende.</p>
-      <a class="btn" href="bliv-medlem.html">Bliv medlem</a>
+      <span class="eyebrow">Vær med</span>
+      <h2 class="mt-0" style="max-width:20ch;margin-left:auto;margin-right:auto;">Sammen gør vi Tistrup endnu bedre.</h2>
+      <p style="max-width:52ch;margin:0 auto 2rem;color:var(--muted);">Et medlemskab støtter arbejdet for byen, erhvervslivet og fællesskabet – og giver dig en direkte vej til at være med.</p>
+      <div class="btn-row" style="justify-content:center;">
+        <a class="btn" href="bliv-medlem.html">Bliv medlem</a>
+        <a class="btn btn-ghost" href="kontakt.html">Jeg vil gerne hjælpe</a>
+      </div>
     </div>
   </section>
 
@@ -207,21 +209,21 @@
     <div>
       <h3>På siden</h3>
       <ul>
-        <li><a href="om-tistrup.html">Om Tistrup</a></li>
-        <li><a href="om-foreningen.html">Om foreningen</a></li>
-        <li><a href="bestyrelse.html">Bestyrelse</a></li>
-        <li><a href="bliv-medlem.html">Bliv medlem</a></li>
-        <li><a href="kontakt.html">Kontakt</a></li>
+        <li><a href="om-tistrup.html">Bo &amp; lev</a></li>
+        <li><a href="#erhverv">Erhverv</a></li>
+        <li><a href="nyt.html">Det sker</a></li>
+        <li><a href="#udviklingsplan">Projekter</a></li>
+        <li><a href="om-foreningen.html">Om TEB</a></li>
+        <li><a href="bliv-medlem.html">Vær med</a></li>
       </ul>
     </div>
     <div>
-      <h3>Eksternt</h3>
+      <h3>Genveje</h3>
       <ul>
+        <li><a href="#find-i-tistrup">Find i Tistrup</a></li>
+        <li><a href="bliv-medlem.html">Bliv medlem</a></li>
         <li><a href="https://tistrupnyt.dk/" target="_blank" rel="noopener">Tistrup Nyt</a></li>
-        <li><a href="https://tistrupnyt.dk/menu/kalender" target="_blank" rel="noopener">Kalender</a></li>
         <li><a href="https://www.facebook.com/groups/1628780513814332" target="_blank" rel="noopener">Facebook-gruppen</a></li>
-        <li><a href="https://hthallen.dk/" target="_blank" rel="noopener">Hodde-Tistrup Hallen</a></li>
-        <li><a href="https://www.vardekommune.dk/tistrup" target="_blank" rel="noopener">Varde Kommune</a></li>
       </ul>
     </div>
   </div>
