@@ -11,11 +11,7 @@
   ],
   "send_email": [
     {
-      "name": "TEB_EMAIL",
-      "destination_address": "afhvelplund@gmail.com",
-      "allowed_sender_addresses": [
-        "formular@teb-tistrup.dk"
-      ]
+      "name": "TEB_EMAIL"
     }
   ]
 }
