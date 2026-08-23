@@ -20,8 +20,10 @@ function htmlEscape(value) {
   })[character]);
 }
 
-function redirect(location) {
-  return new Response(null, { status: 303, headers: { Location: location } });
+function redirect(location, messageId) {
+  const headers = { Location: location };
+  if (messageId) headers["X-TEB-Email-Id"] = messageId;
+  return new Response(null, { status: 303, headers });
 }
 
 function error(message, status = 400) {
@@ -40,7 +42,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/api/formular") {
-      return new Response("TEB formular version 2 er aktiv.", {
+      return new Response("TEB formular version 3 er aktiv.", {
         headers: {
           "Content-Type": "text/plain; charset=utf-8",
           "Cache-Control": "no-store"
@@ -110,7 +112,7 @@ export default {
     const text = `${subject}\n\n${rows.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")}`;
 
     try {
-      await env.TEB_EMAIL.send({
+      const result = await env.TEB_EMAIL.send({
         from: { email: sender, name: "TEB Hjemmeside" },
         to: destination,
         replyTo: email,
@@ -118,10 +120,15 @@ export default {
         html,
         text
       });
+      if (!result?.messageId) {
+        throw new Error("Cloudflare Email Sending returnerede ikke et messageId.");
+      }
+      console.log(JSON.stringify({ event: "teb_form_email_accepted", messageId: result.messageId, type }));
+      return redirect("/tak.html", result.messageId);
     } catch (sendError) {
       console.error("TEB form email failed", sendError);
-      return error("E-mailafsendelsen er midlertidigt ikke aktiveret. Skriv direkte til afhvelplund@gmail.com.", 503);
+      return error("E-mailafsendelsen mislykkedes. Skriv direkte til afhvelplund@gmail.com.", 503);
     }
-    return redirect("/tak.html");
   }
 };
+
