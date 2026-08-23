@@ -1214,12 +1214,6 @@ main { display: block; }
 
 
 /* Phase 2: navigation and homepage ------------------------- */
-.nav a.nav-find {
-  color: var(--forest);
-  font-weight: 700;
-  border: 1px solid var(--line);
-  padding-inline: 0.75rem;
-}
 
 .nav a.nav-cta {
   background: var(--forest);
@@ -1441,7 +1435,6 @@ main { display: block; }
     font-size: 0.82rem;
   }
 
-  .nav a.nav-find,
   .nav a.nav-cta {
     padding-inline: 0.62rem;
   }
