@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "teb-formular",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-23",
+  "routes": [
+    {
+      "pattern": "teb-tistrup.dk/api/formular",
+      "zone_name": "teb-tistrup.dk"
+    }
+  ],
+  "send_email": [
+    {
+      "name": "TEB_EMAIL",
+      "destination_address": "afhvelplund@gmail.com"
+    }
+  ]
+}

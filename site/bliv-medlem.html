@@ -94,8 +94,12 @@
       <h2 class="mt-0">Udfyld formularen.</h2>
       <p>Vi sender dig indbetalingsoplysninger og en kort velkomst.</p>
 
-      <form class="form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-        <input type="hidden" name="_subject" value="Ny indmeldelse – TEB">
+      <form class="form" action="/api/formular" method="POST">
+        <input type="hidden" name="formular" value="indmeldelse">
+        <div class="form-honeypot" aria-hidden="true">
+          <label for="website-indmeldelse">Lad dette felt være tomt</label>
+          <input id="website-indmeldelse" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
         <div>
           <label for="navn">Navn</label>
           <input id="navn" name="navn" type="text" required autocomplete="name">
