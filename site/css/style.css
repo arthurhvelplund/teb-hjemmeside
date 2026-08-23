@@ -128,14 +128,14 @@ strong { font-weight: 700; }
 }
 
 .header-inner {
-  max-width: var(--max);
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 1rem 1.5rem;
+  padding: 0.65rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  gap: 1.25rem;
+  flex-wrap: nowrap;
 }
 
 .logo-link {
@@ -149,7 +149,7 @@ strong { font-weight: 700; }
 }
 .logo-link:hover { color: var(--forest); }
 .logo-mark {
-  height: 88px;
+  height: 70px;
   width: auto;
   flex-shrink: 0;
   mix-blend-mode: multiply;
@@ -161,7 +161,7 @@ strong { font-weight: 700; }
 }
 .logo-word strong {
   font-family: 'Manrope', sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: 0.22em;
   color: var(--forest);
@@ -194,15 +194,16 @@ strong { font-weight: 700; }
 
 .nav {
   display: flex;
-  gap: 0.1rem;
-  flex-wrap: wrap;
+  gap: 0.05rem;
+  flex-wrap: nowrap;
   align-items: center;
+  white-space: nowrap;
 }
 .nav a {
   text-decoration: none;
   color: var(--ink);
-  padding: 0.55rem 0.95rem;
-  font-size: 0.98rem;
+  padding: 0.5rem 0.62rem;
+  font-size: 0.9rem;
   font-weight: 500;
   border-radius: var(--radius);
   position: relative;
@@ -215,8 +216,8 @@ strong { font-weight: 700; }
 .nav a.active::after {
   content: "";
   position: absolute;
-  left: 0.95rem;
-  right: 0.95rem;
+  left: 0.62rem;
+  right: 0.62rem;
   bottom: 0.25rem;
   height: 2px;
   background: var(--terra);
@@ -236,7 +237,8 @@ strong { font-weight: 700; }
   display: block;
 }
 
-@media (max-width: 820px) {
+@media (max-width: 1080px) {
+  .header-inner { flex-wrap: wrap; }
   .nav-toggle { display: block; }
   .nav {
     display: none;
