@@ -1931,3 +1931,11 @@ main { display: block; }
   .calendar-card-featured { grid-row: auto; }
   .document-card-wide { grid-column: auto; }
 }
+
+.calendar-poster {
+  display: block; margin: 1rem 0 1.25rem; border-radius: var(--radius-lg);
+  overflow: hidden; border: 1px solid var(--line); background: #fff;
+  box-shadow: var(--shadow-soft); text-decoration: none;
+}
+.calendar-poster img { width: 100%; height: auto; }
+.calendar-poster:hover { box-shadow: var(--shadow-lift); }
