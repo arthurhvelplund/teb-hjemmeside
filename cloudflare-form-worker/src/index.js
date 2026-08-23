@@ -98,14 +98,19 @@ export default {
     const html = `<html><body><h2>${htmlEscape(subject)}</h2><table>${rows}</table><p style="margin-top:24px;color:#666">Sendt fra formularen på teb-tistrup.dk</p></body></html>`;
     const text = `${subject}\n\n${rows.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")}`;
 
-    await env.TEB_EMAIL.send({
-      from: { email: sender, name: "TEB Hjemmeside" },
-      to: destination,
-      replyTo: email,
-      subject,
-      html,
-      text
-    });
+    try {
+      await env.TEB_EMAIL.send({
+        from: { email: sender, name: "TEB Hjemmeside" },
+        to: destination,
+        replyTo: email,
+        subject,
+        html,
+        text
+      });
+    } catch (sendError) {
+      console.error("TEB form email failed", sendError);
+      return error("E-mailafsendelsen er midlertidigt ikke aktiveret. Skriv direkte til afhvelplund@gmail.com.", 503);
+    }
     return redirect("/tak.html");
   }
 };
