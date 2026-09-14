@@ -1,0 +1,8 @@
+{
+  "name": "teb-formular-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

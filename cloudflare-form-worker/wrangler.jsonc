@@ -7,11 +7,18 @@
     {
       "pattern": "teb-tistrup.dk/api/formular",
       "zone_name": "teb-tistrup.dk"
+    },
+    {
+      "pattern": "teb-tistrup.dk/api/formular/config",
+      "zone_name": "teb-tistrup.dk"
     }
   ],
   "send_email": [
     {
       "name": "TEB_EMAIL"
     }
-  ]
+  ],
+  // Opret en Turnstile-widget til teb-tistrup.dk og tilføj derefter:
+  // "vars": { "TURNSTILE_SITE_KEY": "den-offentlige-site-key" }
+  // Gem den hemmelige nøgle med: wrangler secret put TURNSTILE_SECRET_KEY
 }

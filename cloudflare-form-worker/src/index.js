@@ -1,6 +1,8 @@
 const destination = "afhvelplund@gmail.com";
 const sender = "formular@teb-tistrup.dk";
 const allowedOrigin = "https://teb-tistrup.dk";
+const minimumCompletionTimeMs = 3000;
+const maximumCompletionTimeMs = 2 * 60 * 60 * 1000;
 
 function clean(value, maxLength = 5000) {
   return String(value ?? "").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim().slice(0, maxLength);
@@ -38,6 +40,29 @@ function fieldRow(label, value) {
   return `<tr><th align="left" style="padding:8px 16px 8px 0;vertical-align:top">${htmlEscape(label)}</th><td style="padding:8px 0">${htmlEscape(value).replace(/\n/g, "<br>")}</td></tr>`;
 }
 
+async function verifyTurnstile(token, ip, secret) {
+  try {
+    const verification = new FormData();
+    verification.append("secret", secret);
+    verification.append("response", token);
+    if (ip) verification.append("remoteip", ip);
+
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body: verification
+    });
+    if (!response.ok) return false;
+
+    const result = await response.json();
+    return result.success === true
+      && result.hostname === "teb-tistrup.dk"
+      && result.action === "formular";
+  } catch (verificationError) {
+    console.error("TEB Turnstile verification failed", verificationError);
+    return false;
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -49,10 +74,27 @@ export default {
         }
       });
     }
+    if (request.method === "GET" && url.pathname === "/api/formular/config") {
+      const turnstileConfigured = Boolean(env.TURNSTILE_SITE_KEY && env.TURNSTILE_SECRET_KEY);
+      return Response.json(
+        { turnstileSiteKey: turnstileConfigured ? env.TURNSTILE_SITE_KEY : "" },
+        { headers: { "Cache-Control": "no-store" } }
+      );
+    }
     if (request.method !== "POST") return error("Kun POST er tilladt.", 405);
 
+    if (Boolean(env.TURNSTILE_SITE_KEY) !== Boolean(env.TURNSTILE_SECRET_KEY)) {
+      return error("Formularens spamkontrol er ikke konfigureret korrekt.", 503);
+    }
+
     const origin = request.headers.get("Origin");
-    if (origin !== allowedOrigin) return error("Ugyldig afsender.", 403);
+    const referer = request.headers.get("Referer") || "";
+    const fetchSite = request.headers.get("Sec-Fetch-Site");
+    if (origin !== allowedOrigin) {
+      return error("Ugyldig afsender.", 403);
+    }
+    if (referer && !referer.startsWith(`${allowedOrigin}/`)) return error("Ugyldig afsender.", 403);
+    if (fetchSite && fetchSite !== "same-origin") return error("Ugyldig afsender.", 403);
 
     const contentType = request.headers.get("Content-Type") || "";
     if (!contentType.includes("application/x-www-form-urlencoded")) {
@@ -67,6 +109,21 @@ export default {
     const form = new URLSearchParams(body);
     if (clean(form.get("website"), 200)) {
       return error("Din browser har udfyldt et skjult spamfelt. Gå tilbage, ryd formularen og prøv igen.");
+    }
+
+    const now = Date.now();
+    const startedAt = Number(form.get("formular_startet"));
+    const completionTime = now - startedAt;
+    if (!Number.isFinite(startedAt) || completionTime < minimumCompletionTimeMs || completionTime > maximumCompletionTimeMs) {
+      return error("Formularen blev sendt for hurtigt eller er udløbet. Genindlæs siden og prøv igen.", 400);
+    }
+
+    if (env.TURNSTILE_SECRET_KEY) {
+      const token = clean(form.get("cf-turnstile-response"), 2048);
+      const ip = request.headers.get("CF-Connecting-IP") || "";
+      if (!token || !(await verifyTurnstile(token, ip, env.TURNSTILE_SECRET_KEY))) {
+        return error("Spamkontrollen kunne ikke godkende indsendelsen. Prøv venligst igen.", 400);
+      }
     }
 
     const type = clean(form.get("formular"), 30);
@@ -131,4 +188,3 @@ export default {
     }
   }
 };
-
