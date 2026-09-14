@@ -3,13 +3,10 @@
   "name": "teb-formular",
   "main": "src/index.js",
   "compatibility_date": "2026-08-23",
+  "keep_vars": true,
   "routes": [
     {
-      "pattern": "teb-tistrup.dk/api/formular",
-      "zone_name": "teb-tistrup.dk"
-    },
-    {
-      "pattern": "teb-tistrup.dk/api/formular/config",
+      "pattern": "teb-tistrup.dk/api/formular*",
       "zone_name": "teb-tistrup.dk"
     }
   ],
