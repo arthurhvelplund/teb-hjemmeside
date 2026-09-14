@@ -42,19 +42,28 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config cloudflare-form-worker/wrangler.jsonc
 
-      - name: Test formular og e-mail i produktion
+      - name: Test formular og Turnstile i produktion
         if: steps.worker_changes.outputs.changed == 'true'
         shell: bash
         run: |
-          status=$(curl --silent --show-error             --output /tmp/teb-form-body             --write-out "%{http_code}"             --request POST "https://teb-tistrup.dk/api/formular"             --header "Origin: https://teb-tistrup.dk"             --header "Content-Type: application/x-www-form-urlencoded"             --data-urlencode "formular=kontakt"             --data-urlencode "navn=Automatisk udgivelsestest"             --data-urlencode "email=formular@teb-tistrup.dk"             --data-urlencode "emne=Kontrol af formular og e-mail"             --data-urlencode "besked=Denne besked bekræfter, at formularen og Cloudflare Email Sending virker efter en udgivelse.")
+          status=$(curl --silent --show-error \
+            --output /tmp/teb-form-config \
+            --write-out "%{http_code}" \
+            "https://teb-tistrup.dk/api/formular/config")
 
-          if [ "$status" != "303" ]; then
-            echo "Formularen svarede med HTTP $status"
-            cat /tmp/teb-form-body
+          if [ "$status" != "200" ]; then
+            echo "Turnstile-konfigurationen svarede med HTTP $status"
+            cat /tmp/teb-form-config
             exit 1
           fi
 
-          echo "Formularen er godkendt, og Cloudflare har accepteret e-mailen."
+          if ! grep -Eq '"turnstileSiteKey":"[^"]+' /tmp/teb-form-config; then
+            echo "Turnstile-site key mangler i produktionskonfigurationen."
+            cat /tmp/teb-form-config
+            exit 1
+          fi
+
+          echo "Formular-Workeren og Turnstile-konfigurationen er aktive."
 
       - name: Deploy site/ to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
