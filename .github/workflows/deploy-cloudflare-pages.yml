@@ -36,6 +36,7 @@ jobs:
           fi
 
       - name: Deploy form worker
+        if: steps.worker_changes.outputs.changed == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
