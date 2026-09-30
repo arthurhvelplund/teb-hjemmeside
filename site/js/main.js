@@ -8,6 +8,22 @@
     });
   }
 
+  var townMenu = document.querySelector('.nav-group');
+  if (townMenu) {
+    document.addEventListener('click', function (event) {
+      if (!townMenu.contains(event.target)) townMenu.open = false;
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape' || !townMenu.open) return;
+      var returnFocus = townMenu.contains(event.target);
+      townMenu.open = false;
+      if (returnFocus) townMenu.querySelector('summary').focus();
+    });
+    townMenu.addEventListener('focusout', function (event) {
+      if (event.relatedTarget && !townMenu.contains(event.relatedTarget)) townMenu.open = false;
+    });
+  }
+
   var stationYears = document.querySelector('[data-station-years]');
   if (stationYears) {
     var now = new Date();

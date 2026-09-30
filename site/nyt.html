@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Det sker – kalender og nyt fra Tistrup | TEB</title>
 <meta name="description" content="Kalender, arrangementer, omdelingsuger og nyt fra Tistrup Erhvervs- og Borgerforening.">
-<link rel="stylesheet" href="css/style.css?v=20260930-facebook-icon">
+<link rel="stylesheet" href="css/style.css?v=20260930-menu5">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
 </head>
 <body>
@@ -21,11 +21,15 @@
     </a>
     <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
     <nav class="nav" id="primary-nav" aria-label="Hovedmenu">
-      <a href="index.html">Forside</a>
-      <a href="om-tistrup.html">Bo &amp; lev</a>
+      <details class="nav-group">
+        <summary class="nav-trigger">Byen<span class="nav-caret" aria-hidden="true"></span></summary>
+        <div class="nav-submenu">
+          <a href="om-tistrup.html">Bo &amp; lev</a>
+          <a href="projekter.html">Projekter</a>
+        </div>
+      </details>
       <a href="index.html#erhverv">Erhverv</a>
       <a href="nyt.html" class="active">Det sker</a>
-      <a href="projekter.html">Projekter</a>
       <a href="om-foreningen.html">Om TEB</a>
       <a href="kontakt.html">Kontakt</a>
       <a class="nav-cta" href="bliv-medlem.html">Bliv medlem</a>
@@ -170,7 +174,7 @@
 
 <!-- Markdown-parser, så opslag kan formatteres med fed/kursiv, lister, links osv. -->
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
-<script src="js/main.js"></script>
+<script src="js/main.js?v=20260930-menu5"></script>
 <script src="js/data-loader.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dokumenter og udviklingsplan | TEB</title>
 <meta name="description" content="Vedtægter, regnskaber, årsberetninger og udviklingsplaner fra Tistrup Erhvervs- og Borgerforening.">
-<link rel="stylesheet" href="css/style.css?v=20260930-facebook-icon">
+<link rel="stylesheet" href="css/style.css?v=20260930-menu5">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
 </head>
 <body>
@@ -17,11 +17,15 @@
     </a>
     <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
     <nav class="nav" id="primary-nav" aria-label="Hovedmenu">
-      <a href="index.html">Forside</a>
-      <a href="om-tistrup.html">Bo &amp; lev</a>
+      <details class="nav-group">
+        <summary class="nav-trigger">Byen<span class="nav-caret" aria-hidden="true"></span></summary>
+        <div class="nav-submenu">
+          <a href="om-tistrup.html">Bo &amp; lev</a>
+          <a href="projekter.html">Projekter</a>
+        </div>
+      </details>
       <a href="index.html#erhverv">Erhverv</a>
       <a href="nyt.html">Det sker</a>
-      <a href="projekter.html">Projekter</a>
       <a href="om-foreningen.html">Om TEB</a>
       <a href="kontakt.html">Kontakt</a>
       <a class="nav-cta" href="bliv-medlem.html">Bliv medlem</a>
@@ -134,6 +138,6 @@
     <span>Byen i midten af det hele.</span>
   </div>
 </footer>
-<script src="js/main.js"></script>
+<script src="js/main.js?v=20260930-menu5"></script>
 </body>
 </html>

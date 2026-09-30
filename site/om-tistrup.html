@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bo &amp; lev i Tistrup – TEB</title>
 <meta name="description" content="Tistrup er en levende stationsby i Varde Kommune med ca. 1.400 indbyggere, stærkt foreningsliv og aktivt erhvervsliv.">
-<link rel="stylesheet" href="css/style.css?v=20260930-facebook-icon">
+<link rel="stylesheet" href="css/style.css?v=20260930-menu5">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
 </head>
 <body>
@@ -21,11 +21,15 @@
     </a>
     <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
     <nav class="nav" id="primary-nav" aria-label="Hovedmenu">
-      <a href="index.html">Forside</a>
-      <a href="om-tistrup.html" class="active">Bo &amp; lev</a>
+      <details class="nav-group">
+        <summary class="nav-trigger active">Byen<span class="nav-caret" aria-hidden="true"></span></summary>
+        <div class="nav-submenu">
+          <a href="om-tistrup.html" class="active" aria-current="page">Bo &amp; lev</a>
+          <a href="projekter.html">Projekter</a>
+        </div>
+      </details>
       <a href="index.html#erhverv">Erhverv</a>
       <a href="nyt.html">Det sker</a>
-      <a href="projekter.html">Projekter</a>
       <a href="om-foreningen.html">Om TEB</a>
       <a href="kontakt.html">Kontakt</a>
       <a class="nav-cta" href="bliv-medlem.html">Bliv medlem</a>
@@ -234,6 +238,6 @@
   </div>
 </footer>
 
-<script src="js/main.js?v=20260823-station1"></script>
+<script src="js/main.js?v=20260930-menu5"></script>
 </body>
 </html>
