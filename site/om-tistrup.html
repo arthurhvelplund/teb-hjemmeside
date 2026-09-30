@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bo &amp; lev i Tistrup – TEB</title>
 <meta name="description" content="Tistrup er en levende stationsby i Varde Kommune med ca. 1.400 indbyggere, stærkt foreningsliv og aktivt erhvervsliv.">
-<link rel="stylesheet" href="css/style.css?v=20260930-town-film">
+<link rel="stylesheet" href="css/style.css?v=20260930-video-menu-polish">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
 </head>
 <body>
@@ -21,15 +21,15 @@
     </a>
     <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
     <nav class="nav" id="primary-nav" aria-label="Hovedmenu">
+      <a href="om-tistrup.html" class="active" aria-current="page">Byen</a>
+      <a href="index.html#erhverv">Erhverv</a>
       <details class="nav-group">
-        <summary class="nav-trigger active">Byen<span class="nav-caret" aria-hidden="true"></span></summary>
+        <summary class="nav-trigger">Det sker<span class="nav-caret" aria-hidden="true"></span></summary>
         <div class="nav-submenu">
-          <a href="om-tistrup.html" class="active" aria-current="page">Bo &amp; lev</a>
+          <a href="nyt.html">Kalender &amp; nyt</a>
           <a href="projekter.html">Projekter</a>
         </div>
       </details>
-      <a href="index.html#erhverv">Erhverv</a>
-      <a href="nyt.html">Det sker</a>
       <a href="om-foreningen.html">Om TEB</a>
       <a href="kontakt.html">Kontakt</a>
       <a class="nav-cta" href="bliv-medlem.html">Bliv medlem</a>
@@ -50,9 +50,13 @@
         <span class="eyebrow">Stationsby siden 1875</span>
         <h1>Vestjylland<br>når det er <em>bedst</em>.</h1>
         <p class="lead">Tistrup er en levende stationsby i Varde Kommune med cirka 1.400 indbyggere. Her er der højt til himlen, grønne åndehuller og et stærkt fællesskab, hvor både borgere, foreninger og erhvervsliv er med til at skabe liv i byen.</p>
-        <div class="btn-row">
-          <a class="btn btn-ghost" href="#tistrup-video">Se videoen om Tistrup</a>
-        </div>
+        <a class="film-link" href="#tistrup-video">
+          <img src="images/anlaegget-soe-uden-kanter.jpg" alt="" loading="lazy">
+          <span class="film-link-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" focusable="false"><path d="M8 5v14l11-7z"></path></svg>
+          </span>
+          <span class="film-link-label">Se videoen om Tistrup</span>
+        </a>
       </div>
       <div class="hero-image">
         <img src="images/velkomstskilt-uden-kanter.jpg" alt="Velkomstskilt ved indkørslen til Tistrup">
@@ -79,9 +83,13 @@
           <h2 id="town-film-title">Se byen og livet i Tistrup.</h2>
           <p>Få et indtryk af byen, fællesskabet og mulighederne for at bygge nyt i Yderikparken.</p>
           <p class="town-film-credit">Video fra Varde Kommune.</p>
-          <div class="btn-row">
-            <a class="btn btn-ghost" href="https://www.facebook.com/reel/2046868242624251/" target="_blank" rel="noopener">Se videoen på Facebook</a>
-          </div>
+          <a class="film-link" href="https://www.facebook.com/reel/2046868242624251/" target="_blank" rel="noopener">
+            <img src="images/anlaegget-soe-uden-kanter.jpg" alt="" loading="lazy">
+            <span class="film-link-play" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor" focusable="false"><path d="M8 5v14l11-7z"></path></svg>
+            </span>
+            <span class="film-link-label">Se videoen på Facebook</span>
+          </a>
         </div>
         <div class="town-film-player">
           <iframe src="https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Freel%2F2046868242624251%2F&amp;show_text=0&amp;width=360" width="360" height="640" title="Varde Kommunes video om Tistrup og Yderikparken" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
@@ -260,6 +268,6 @@
   </div>
 </footer>
 
-<script src="js/main.js?v=20260930-menu5"></script>
+<script src="js/main.js?v=20260930-video-menu-polish"></script>
 </body>
 </html>

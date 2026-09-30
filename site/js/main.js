@@ -8,19 +8,19 @@
     });
   }
 
-  var townMenu = document.querySelector('.nav-group');
-  if (townMenu) {
+  var navGroup = document.querySelector('.nav-group');
+  if (navGroup) {
     document.addEventListener('click', function (event) {
-      if (!townMenu.contains(event.target)) townMenu.open = false;
+      if (!navGroup.contains(event.target)) navGroup.open = false;
     });
     document.addEventListener('keydown', function (event) {
-      if (event.key !== 'Escape' || !townMenu.open) return;
-      var returnFocus = townMenu.contains(event.target);
-      townMenu.open = false;
-      if (returnFocus) townMenu.querySelector('summary').focus();
+      if (event.key !== 'Escape' || !navGroup.open) return;
+      var returnFocus = navGroup.contains(event.target);
+      navGroup.open = false;
+      if (returnFocus) navGroup.querySelector('summary').focus();
     });
-    townMenu.addEventListener('focusout', function (event) {
-      if (event.relatedTarget && !townMenu.contains(event.relatedTarget)) townMenu.open = false;
+    navGroup.addEventListener('focusout', function (event) {
+      if (event.relatedTarget && !navGroup.contains(event.relatedTarget)) navGroup.open = false;
     });
   }
 

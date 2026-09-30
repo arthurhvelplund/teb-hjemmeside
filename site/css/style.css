@@ -1012,6 +1012,74 @@ main { display: block; }
   color: var(--muted);
   font-size: 0.9rem;
 }
+.film-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 32rem;
+  min-height: 150px;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--forest);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+}
+.film-link img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 65%;
+}
+.film-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(24, 44, 31, 0.85), rgba(24, 44, 31, 0.3));
+}
+.film-link-play,
+.film-link-label {
+  position: relative;
+  z-index: 1;
+}
+.film-link-play {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+}
+.film-link-play svg {
+  width: 22px;
+  height: 22px;
+  margin-left: 3px;
+}
+.film-link-label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.film-link:hover {
+  color: #fff;
+  box-shadow: var(--shadow-lift);
+}
+.film-link:focus-visible {
+  outline: 3px solid var(--terra);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .film-link img { transition: transform 0.25s ease; }
+  .film-link:hover img { transform: scale(1.04); }
+}
 .town-film-player {
   width: 100%;
   max-width: 360px;
