@@ -3,7 +3,6 @@
 Det administrative panel ligger på **`/admin/`** (altså
 `https://teb-tistrup.dk/admin/`) og giver bestyrelsen mulighed for at:
 
-- skrive opslag der vises på forsiden og på siden Nyt
 - rette navne, telefonnumre og roller på bestyrelsen
 - opdatere repræsentanter, kontaktinfo og forsidens tal
 
@@ -72,32 +71,15 @@ domænet i øjeblikket peger på Vercel, er det her vi flytter til.
 ### Trin 5 — Inviter de øvrige redaktører
 
 Gå til *Identity → Invite users* og send invitationer til de personer
-der skal kunne poste opslag eller redigere. Hver person får en mail og
+der skal kunne redigere. Hver person får en mail og
 sætter selv et kodeord.
 
 ---
 
-## 2. Sådan poster du et opslag
+## 2. Opslag på Facebook
 
-1. Gå til `https://teb-tistrup.dk/admin/` og log ind.
-2. Klik på **Indlæg** i venstre side.
-3. Klik *Edit* (panelet viser én fil med en liste af opslag).
-4. Klik *Add Opslag*.
-5. Udfyld:
-   - **Titel**: kort overskrift, fx "Midsommerfest 23. juni"
-   - **Dato**: vælges i datofelt
-   - **Forfatter**: dit navn (valgfrit)
-   - **Forsidebillede**: upload eller vælg blandt billederne (valgfrit)
-   - **Resumé**: 1–2 linjer der vises på forsiden
-   - **Tekst**: selve opslaget. Du kan formatere med **fed**, *kursiv*,
-     punktlister, links, billeder. Editoren ligner Word.
-6. Klik *Save* → *Publish*.
-7. Hvis "editorial workflow" er slået til (default): klik
-   *Publish → Publish now*. Hvis ikke: ændringen er live efter ~30 sek.
-
-Opslaget vises automatisk:
-- på **forsiden** under "Seneste nyt" (de tre nyeste)
-- på **`/nyt.html`** med fuld tekst
+Foreningens opslag deles på Facebook. Hjemmesiden har ikke et separat
+nyhedsfeed eller en opslagssamling i redaktionspanelet.
 
 ---
 
@@ -127,15 +109,14 @@ teb-hjemmeside/
 │   │   ├── config.yml    ← konfiguration: backend, collections, felter
 │   │   └── README.md     ← (denne fil)
 │   ├── data/
-│   │   ├── indlaeg.json       ← opslag — redigeres via "Indlæg"
 │   │   ├── bestyrelsen.json   ← bestyrelsen — "Bestyrelse"
 │   │   ├── repraesentanter.json
 │   │   ├── kontakt.json
 │   │   └── forside.json
 │   ├── js/
 │   │   └── data-loader.js     ← henter JSON-filerne og indsætter dem i siderne
-│   ├── nyt.html               ← side med fuld liste af opslag
-│   ├── index.html             ← forsiden (incl. "Seneste nyt"-widget)
+│   ├── nyt.html               ← kalender og praktiske oplysninger
+│   ├── index.html             ← forsiden
 │   └── ...resten af siderne
 ```
 
@@ -143,12 +124,9 @@ teb-hjemmeside/
 
 - **Login virker ikke** → Tjek at *Identity* og *Git Gateway* er
   aktiveret i Netlify-dashboardet (begge to). De kan være slået fra.
-- **Opslag vises ikke på siden** → Tjek at deployment lykkedes:
-  *Deploys*-fanen i Netlify viser status. Et fejlet deploy logger
-  årsagen.
-- **Editoren viser fejl** → Tjek `site/data/indlaeg.json` er gyldig
+- **Editoren viser fejl** → Tjek at den relevante fil i `site/data/` er gyldig
   JSON. Dårlig JSON gør at hele samlingen ikke kan loades.
 - **Værste fald**: Rul ændringen tilbage med `git revert` på den
   pågældende commit – alle ændringer er almindelige Git-commits.
-- **Behov for hjælp**: Spørg Claude. Sig fx: "Jeg har lige skrevet et
-  opslag men det vises ikke" eller "Jeg vil tilføje en ny redaktør".
+- **Behov for hjælp**: Sig fx: "Jeg har rettet bestyrelsen, men ændringen
+  vises ikke" eller "Jeg vil tilføje en ny redaktør".

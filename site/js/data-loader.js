@@ -112,105 +112,6 @@
     if (a && data.aar) a.textContent = data.aar + " år i byens tjeneste";
   }
 
-  // ---------- Indlæg / nyhedsfeed ----------
-  // Formatér ISO-dato til "1. maj 2026"
-  var DA_MONTHS = ["januar","februar","marts","april","maj","juni","juli","august","september","oktober","november","december"];
-  function formatDate(iso) {
-    if (!iso) return "";
-    var d = new Date(iso);
-    if (isNaN(d.getTime())) return esc(iso);
-    return d.getDate() + ". " + DA_MONTHS[d.getMonth()] + " " + d.getFullYear();
-  }
-
-  // Lille markdown-til-HTML hvis marked-biblioteket er indlæst,
-  // ellers en simpel fallback (linjeskift + paragrafer).
-  function md(s) {
-    if (!s) return "";
-    if (typeof window.marked !== "undefined") {
-      try { return window.marked.parse(String(s)); } catch (e) { /* fallthrough */ }
-    }
-    // Simpel fallback: split på dobbelt-linjeskift, escape, lav <p>.
-    return String(s)
-      .split(/\n\s*\n/)
-      .map(function (para) { return "<p>" + esc(para).replace(/\n/g, "<br>") + "</p>"; })
-      .join("");
-  }
-
-  // Sortér opslag efter dato (nyeste først)
-  function sortByDate(items) {
-    return (items || []).slice().sort(function (a, b) {
-      return (b.date || "").localeCompare(a.date || "");
-    });
-  }
-
-  // Lav en sluggified URL-streng til anker-links
-  function slugify(s) {
-    return String(s || "")
-      .toLowerCase()
-      .replace(/æ/g, "ae").replace(/ø/g, "o").replace(/å/g, "aa")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  }
-
-  // Forsidens "Seneste nyt"-widget – viser de 3 nyeste opslag som teasere
-  function renderSenesteNyt(data) {
-    var mount = document.getElementById("seneste-nyt-mount");
-    if (!mount) return;
-    var items = sortByDate(data.items).slice(0, 3);
-    if (items.length === 0) {
-      mount.innerHTML = '<p style="opacity:0.7;">Ingen opslag endnu.</p>';
-      return;
-    }
-    mount.innerHTML = items.map(function (it) {
-      var img = it.image
-        ? '<div class="post-card-img"><img src="' + esc(it.image) + '" alt=""></div>'
-        : '';
-      var summary = it.summary
-        ? '<p>' + esc(it.summary) + '</p>'
-        : '';
-      var slug = slugify(it.title);
-      return ''
-        + '<a class="post-card" href="nyt.html#' + esc(slug) + '">'
-        +   img
-        +   '<div class="post-card-body">'
-        +     '<span class="post-date">' + esc(formatDate(it.date)) + '</span>'
-        +     '<h3>' + esc(it.title) + '</h3>'
-        +     summary
-        +     '<span class="arrow">Læs mere →</span>'
-        +   '</div>'
-        + '</a>';
-    }).join("");
-  }
-
-  // /nyt.html – fuld liste af opslag
-  function renderNytFeed(data) {
-    var mount = document.getElementById("nyt-feed-mount");
-    if (!mount) return;
-    var items = sortByDate(data.items);
-    if (items.length === 0) {
-      mount.innerHTML = '<p style="opacity:0.7;">Der er ikke postet noget endnu. Kig forbi senere.</p>';
-      return;
-    }
-    mount.innerHTML = items.map(function (it) {
-      var slug = slugify(it.title);
-      var img = it.image
-        ? '<div class="post-img"><img src="' + esc(it.image) + '" alt=""></div>'
-        : '';
-      var author = it.author
-        ? ' · <span class="post-author">' + esc(it.author) + '</span>'
-        : '';
-      return ''
-        + '<article class="post" id="' + esc(slug) + '">'
-        +   '<header>'
-        +     '<span class="post-date">' + esc(formatDate(it.date)) + author + '</span>'
-        +     '<h2>' + esc(it.title) + '</h2>'
-        +   '</header>'
-        +   img
-        +   '<div class="post-body">' + md(it.body) + '</div>'
-        + '</article>';
-    }).join('<hr class="post-sep">');
-  }
-
   // ---------- Kør de relevante render-funktioner ----------
   // Hver fetch-fejl logges men stopper ikke de andre.
   function safe(promiseFactory) {
@@ -230,13 +131,5 @@
   }
   if (document.querySelector("[data-bind^='forside.']")) {
     safe(function () { return fetchJSON("forside").then(renderForside); });
-  }
-  if (document.getElementById("seneste-nyt-mount") || document.getElementById("nyt-feed-mount")) {
-    safe(function () {
-      return fetchJSON("indlaeg").then(function (data) {
-        renderSenesteNyt(data);
-        renderNytFeed(data);
-      });
-    });
   }
 })();

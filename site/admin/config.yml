@@ -23,38 +23,13 @@ publish_mode: editorial_workflow
 locale: 'da'
 
 # ----------------------------------------------------------------------
-# Collections – tre logiske grupper:
-#   1. Indlæg     – nyhedsfeed
-#   2. Foreningen – bestyrelse, repræsentanter, kontaktinfo
-#   3. Forside    – indhold der vises på forsiden
+# Collections – to logiske grupper:
+#   1. Foreningen – bestyrelse, repræsentanter, kontaktinfo
+#   2. Tal og fakta – indhold der vises på forsiden
 # ----------------------------------------------------------------------
 collections:
 
-  # =================== 1. Indlæg ===================
-  - name: "indlaeg"
-    label: "Indlæg"
-    label_singular: "Opslag"
-    description: "Skriv et opslag der vises på forsiden under 'Seneste nyt' og på siden Nyt."
-    files:
-      - file: "site/data/indlaeg.json"
-        name: "indlaeg"
-        label: "Opslag"
-        format: "json"
-        fields:
-          - label: "Opslag"
-            name: "items"
-            widget: "list"
-            label_singular: "opslag"
-            summary: "{{fields.date}} – {{fields.title}}"
-            fields:
-              - { label: "Titel", name: "title", widget: "string" }
-              - { label: "Dato", name: "date", widget: "datetime", date_format: "DD.MM.YYYY", time_format: false, format: "YYYY-MM-DD", default: "" }
-              - { label: "Forfatter", name: "author", widget: "string", required: false, hint: "Valgfrit. Fx 'Arthur Hvelplund'." }
-              - { label: "Forsidebillede", name: "image", widget: "image", required: false, hint: "Valgfrit. Vises øverst i opslaget." }
-              - { label: "Resumé", name: "summary", widget: "text", required: false, hint: "1-2 linjer der vises på forsiden." }
-              - { label: "Tekst", name: "body", widget: "markdown", hint: "Selve opslaget. Du kan formatere med fed/kursiv, lister, links og billeder." }
-
-  # =================== 2. Foreningen ===================
+  # =================== 1. Foreningen ===================
   # Bestyrelse, repræsentanter og kontaktinfo. Alle tre filer
   # vises på 'Bestyrelse', 'Om foreningen' og i footeren.
   - name: "foreningen"
@@ -121,7 +96,7 @@ collections:
           - { label: "CVR", name: "cvr", widget: "string" }
           - { label: "Postnr. og by", name: "by", widget: "string", default: "6862 Tistrup, Danmark" }
 
-  # =================== 3. Tal og fakta ===================
+  # =================== 2. Tal og fakta ===================
   # De tal der vises på forsiden. Klar til at vokse hvis vi senere
   # vil gøre flere fakta-felter redigerbare.
   - name: "tal"
