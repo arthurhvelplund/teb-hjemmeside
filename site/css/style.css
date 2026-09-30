@@ -1450,6 +1450,9 @@ main { display: block; }
   color: var(--muted);
 }
 
+/* Leave room for the sticky header when following the Erhverv link. */
+#erhverv { scroll-margin-top: 7rem; }
+
 .home-actions {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
