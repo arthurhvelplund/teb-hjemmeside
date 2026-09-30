@@ -174,6 +174,8 @@ strong { font-weight: 700; }
   letter-spacing: 0.02em;
 }
 @media (max-width: 520px) {
+  .header-inner { gap: 0.5rem; padding-inline: 1rem; }
+  .logo-link { gap: 0.5rem; }
   .logo-mark { height: 64px; }
   .logo-word em { display: none; }
 }
@@ -194,6 +196,7 @@ strong { font-weight: 700; }
 
 .nav {
   display: flex;
+  margin-left: auto;
   gap: 0.05rem;
   flex-wrap: nowrap;
   align-items: center;
@@ -224,26 +227,42 @@ strong { font-weight: 700; }
   background: var(--terra);
 }
 
-.nav a.nav-fb {
+.header-facebook {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
   color: var(--forest);
-  font-weight: 600;
+  text-decoration: none;
+  border-radius: 50%;
 }
-.nav a.nav-fb:hover { color: var(--terra); }
-.nav a.nav-fb svg {
-  width: 20px;
-  height: 20px;
+.header-facebook:hover {
+  color: var(--terra);
+  background: var(--paper-deep);
+}
+.header-facebook:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 3px;
+}
+.header-facebook svg {
+  width: 24px;
+  height: 24px;
   display: block;
 }
 
 @media (max-width: 1080px) {
   .header-inner { flex-wrap: wrap; }
-  .nav-toggle { display: block; }
+  .nav-toggle {
+    display: block;
+    margin-left: auto;
+  }
   .nav {
     display: none;
+    order: 1;
     width: 100%;
+    margin-left: 0;
     flex-direction: column;
     align-items: stretch;
     gap: 0;
