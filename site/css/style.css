@@ -2120,3 +2120,17 @@ main { display: block; }
 @media (max-width: 600px) { .teb-link-grid { grid-template-columns: minmax(0, 1fr); } }
 
 .hero-image[data-caption]::after { content: attr(data-caption); }
+
+/* Tistrup film in the hero */
+.hero-town-film {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+.hero-town-film h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  text-align: center;
+}
+.hero-town-film .town-film-credit { margin: 0; text-align: center; max-width: 38ch; }
