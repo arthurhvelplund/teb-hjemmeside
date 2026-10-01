@@ -2139,3 +2139,20 @@ main { display: block; }
 .hero-grid--town { align-items: center; }
 .hero-grid--town .hero-text { padding-bottom: 0; }
 .hero-grid--town .hero-text .lead { margin-bottom: 0; }
+
+/* Nature destinations near Tistrup */
+.nature-nearby .lead { max-width: 58ch; }
+.nature-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; margin-top: 2.5rem; }
+.nature-card { display: flex; flex-direction: column; overflow: hidden; background: var(--paper-soft); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); }
+.nature-card figure { margin: 0; }
+.nature-card figure img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+.nature-card figcaption { padding: 0.6rem 1.5rem 0; font-size: 0.75rem; color: var(--muted); }
+.nature-card-body { display: flex; flex-direction: column; align-items: flex-start; flex: 1; padding: 1.5rem 2rem 2rem; }
+.nature-card-body .eyebrow { margin-bottom: 0.8rem; }
+.nature-card-body h3 { margin: 0 0 1rem; font-size: clamp(1.6rem, 2.5vw, 2rem); }
+.nature-card-body .nature-practical { color: var(--muted); font-size: 0.9rem; }
+.nature-card-body .btn { margin-top: auto; max-width: 100%; }
+@media (max-width: 760px) {
+  .nature-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .nature-card-body { padding: 1.5rem; }
+}
