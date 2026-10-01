@@ -2156,3 +2156,31 @@ main { display: block; }
   .nature-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
   .nature-card-body { padding: 1.5rem; }
 }
+
+/* Supporting roles beneath the board */
+.board-support-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+.board-support-card {
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--paper-soft);
+}
+.board-support-card h3 {
+  margin: 0 0 1rem;
+  font-size: 1.35rem;
+}
+.board-support-card p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 900px) {
+  .board-support-grid { grid-template-columns: minmax(0, 1fr); }
+}
