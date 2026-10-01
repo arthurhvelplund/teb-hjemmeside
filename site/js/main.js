@@ -8,22 +8,6 @@
     });
   }
 
-  var navGroup = document.querySelector('.nav-group');
-  if (navGroup) {
-    document.addEventListener('click', function (event) {
-      if (!navGroup.contains(event.target)) navGroup.open = false;
-    });
-    document.addEventListener('keydown', function (event) {
-      if (event.key !== 'Escape' || !navGroup.open) return;
-      var returnFocus = navGroup.contains(event.target);
-      navGroup.open = false;
-      if (returnFocus) navGroup.querySelector('summary').focus();
-    });
-    navGroup.addEventListener('focusout', function (event) {
-      if (event.relatedTarget && !navGroup.contains(event.relatedTarget)) navGroup.open = false;
-    });
-  }
-
   var stationYears = document.querySelector('[data-station-years]');
   if (stationYears) {
     var now = new Date();
@@ -68,3 +52,4 @@
       });
   }
 })();
+
