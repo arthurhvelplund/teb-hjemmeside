@@ -2113,11 +2113,10 @@ main { display: block; }
 
 
 /* Direct navigation and association links */
-.teb-link-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+.teb-link-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 .teb-link-grid .audience-card { min-height: 230px; padding: 1.5rem; }
 .nav a:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
-@media (max-width: 1000px) { .teb-link-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 600px) { .teb-link-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) { .teb-link-grid { grid-template-columns: minmax(0, 1fr); } }
 
 .hero-image[data-caption]::after { content: attr(data-caption); }
 
