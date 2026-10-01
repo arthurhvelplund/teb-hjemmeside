@@ -2118,3 +2118,5 @@ main { display: block; }
 .nav a:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
 @media (max-width: 1000px) { .teb-link-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .teb-link-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.hero-image[data-caption]::after { content: attr(data-caption); }
