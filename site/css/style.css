@@ -2220,3 +2220,14 @@ main { display: block; }
   .town-video-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
   .town-video-copy { padding: 1.5rem; }
 }
+
+/* Preserve the full award photograph on mobile */
+@media (max-width: 820px) {
+  .town-award .feature-img { aspect-ratio: auto; }
+  .town-award .feature-img img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    object-position: center top;
+  }
+}
