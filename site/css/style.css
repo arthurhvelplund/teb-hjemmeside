@@ -2184,3 +2184,40 @@ main { display: block; }
 @media (max-width: 900px) {
   .board-support-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Town films */
+.town-videos .lead { max-width: 65ch; }
+.town-video-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+.town-video-card {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.town-video-card--featured {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  align-items: center;
+}
+.town-video-player { aspect-ratio: 16 / 9; background: var(--forest); }
+.town-video-player iframe { display: block; width: 100%; height: 100%; border: 0; }
+.town-video-copy { padding: 2rem; overflow-wrap: anywhere; }
+.town-video-copy .eyebrow { margin-bottom: 0.8rem; }
+.town-video-copy h3 { margin: 0 0 1rem; font-size: clamp(1.5rem, 2.5vw, 2rem); }
+.town-video-copy p { margin: 0 0 1rem; }
+.town-video-copy .town-video-duration { font-size: 0.85rem; color: var(--muted); }
+.town-video-copy > a { font-size: 0.9rem; }
+@media (max-width: 900px) {
+  .town-video-card--featured { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .town-video-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .town-video-copy { padding: 1.5rem; }
+}
