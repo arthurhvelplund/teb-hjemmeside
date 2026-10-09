@@ -63,3 +63,36 @@ html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web{width:
 html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-spider{font-size:15px;top:33px;left:4px}
 html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-pumpkins{font-size:25px;bottom:3px;right:7px}
 }
+
+/* Stronger background decoration, with original content above it. */
+html[data-seasonal-theme="halloween"] main>.hero,
+html[data-seasonal-theme="halloween"] main>.thank-you{isolation:isolate;background:radial-gradient(ellipse at 0 100%,#eaa05c44,transparent 40%),radial-gradient(ellipse at 100% 0,#efbf8455,transparent 55%)}
+html[data-seasonal-theme="halloween"] .hero>.hero-grid,
+html[data-seasonal-theme="halloween"] .hero>.wrap,
+html[data-seasonal-theme="halloween"] .thank-you>.thank-you__inner{position:relative;z-index:1}
+html[data-seasonal-theme="halloween"] .halloween-secondary{z-index:0;overflow:hidden}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web{width:190px;height:190px;opacity:.55;background:repeating-radial-gradient(circle at 0 0,transparent 0 22px,#957044 23px 24px,transparent 25px 30px)}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web-right{width:215px;height:215px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-spider{left:18px;top:145px;font-size:33px;filter:none}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-spider:before{height:65px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-pumpkins{right:9px;bottom:1px;font-size:69px;filter:drop-shadow(0 0 15px #ff790733)}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-pumpkin-left{left:9px;bottom:2px;font-size:63px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-skeleton{left:15px;bottom:70px;transform:rotate(-12deg) scale(.8);transform-origin:bottom left;filter:drop-shadow(0 0 1px #5d391b)}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-skeleton-right{left:auto;right:10px;bottom:81px;transform:rotate(13deg) scale(.75);transform-origin:bottom right}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-bats{right:26%;top:9px;font-size:34px;opacity:.85}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-bats-small{left:23%;right:auto;top:20px;font-size:23px}
+@media(max-width:1200px){
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-skeleton{left:2px;transform:rotate(-12deg) scale(.45);opacity:.8}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-skeleton-right{left:auto;right:2px;transform:rotate(13deg) scale(.45)}
+}
+@media(max-width:600px){
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web{width:105px;height:105px;opacity:.38}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web-right{width:125px;height:125px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-spider{left:2px;top:102px;font-size:21px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-pumpkins{right:6px;bottom:2px;font-size:34px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-pumpkin-left{left:5px;bottom:2px;font-size:34px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-bats{right:22%;top:6px;font-size:25px;letter-spacing:3px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-bats-small{left:23%;right:auto;top:18px;font-size:16px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-skeleton{bottom:40px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-skeleton-right{bottom:41px}
+}
