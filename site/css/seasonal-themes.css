@@ -48,3 +48,18 @@ html[data-seasonal-theme="halloween"] .hero-full>img{filter:sepia(.18)}
 html[data-seasonal-theme="halloween"] .audience-section{background:radial-gradient(ellipse at 50% 0,#eed4bd66,transparent 75%)}
 html[data-seasonal-theme="halloween"] .audience-card:before{background:repeating-radial-gradient(circle at 100% 0,transparent 0 14px,#956e4866 15px 16px,transparent 17px 20px)}
 @media(max-width:600px){html[data-seasonal-theme="halloween"] .max-skeleton-right{right:10px}}
+
+/* Secondary pages: small decorations in the existing hero padding. */
+html[data-seasonal-theme="halloween"] .halloween-secondary{position:absolute;inset:0;z-index:4;pointer-events:none;user-select:none}
+html[data-seasonal-theme="halloween"] main>.hero,
+html[data-seasonal-theme="halloween"] main>.thank-you{position:relative;background:radial-gradient(ellipse at 90% 0,#efd4b855,transparent 75%)}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web{width:70px;height:70px;opacity:.6;background:repeating-radial-gradient(circle at 0 0,transparent 0 13px,#997651 14px 15px,transparent 16px 20px)}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web:after{background:linear-gradient(45deg,transparent 49%,#997651 49.5% 50.5%,transparent 51%)}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-spider{left:7px;top:49px;font-size:20px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-spider:before{height:20px;background:#997651}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-pumpkins{right:10px;bottom:4px;font-size:31px;filter:none}
+@media(max-width:600px){
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web{width:45px;height:45px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-spider{font-size:15px;top:33px;left:4px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-pumpkins{font-size:25px;bottom:3px;right:7px}
+}
