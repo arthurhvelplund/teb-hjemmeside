@@ -96,3 +96,51 @@ html[data-seasonal-theme="halloween"] .halloween-secondary .max-bats-small{left:
 html[data-seasonal-theme="halloween"] .halloween-secondary .max-skeleton{bottom:40px}
 html[data-seasonal-theme="halloween"] .halloween-secondary .max-skeleton-right{bottom:41px}
 }
+
+/* Halloween encore: richer atmosphere, with every original foreground untouched. */
+html[data-seasonal-theme="halloween"] main{
+background-image:radial-gradient(ellipse at 0 20%,#ed873a40,transparent 38%),radial-gradient(ellipse at 100% 70%,#9663ae26,transparent 40%);
+}
+html[data-seasonal-theme="halloween"] main>.hero,
+html[data-seasonal-theme="halloween"] main>.thank-you{
+background:radial-gradient(ellipse at 0 100%,#ed873a70,transparent 48%),radial-gradient(ellipse at 100% 0,#b36eaa40,transparent 55%),radial-gradient(ellipse at 50% 100%,#ffbd5340,transparent 65%);
+}
+html[data-seasonal-theme="halloween"] .halloween-web{width:240px;height:240px;opacity:.9}
+html[data-seasonal-theme="halloween"] .halloween-web-right{width:265px;height:265px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web{width:260px;height:260px;opacity:.7}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web-right{width:290px;height:290px}
+html[data-seasonal-theme="halloween"] .halloween-spider{font-size:43px;top:214px}
+html[data-seasonal-theme="halloween"] .halloween-spider-right{font-size:45px;top:250px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-spider{font-size:43px;top:180px}
+html[data-seasonal-theme="halloween"] .halloween-pumpkins{font-size:115px;filter:drop-shadow(0 0 24px #ff7907aa)}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-pumpkins{font-size:89px;filter:drop-shadow(0 0 22px #ff790777)}
+html[data-seasonal-theme="halloween"] .max-pumpkin-left{font-size:88px;filter:drop-shadow(0 0 22px #ff790777)}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-pumpkin-left{font-size:79px}
+html[data-seasonal-theme="halloween"] .max-fog{height:240px;background:radial-gradient(ellipse at 15% 100%,#e4aad277,transparent 64%),radial-gradient(ellipse at 90% 110%,#ffb95888,transparent 68%)}
+html[data-seasonal-theme="halloween"] .max-bats{font-size:39px;letter-spacing:24px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-bats{font-size:42px;letter-spacing:19px;opacity:1}
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-bats-small{font-size:29px}
+@media(prefers-reduced-motion:no-preference){
+html[data-seasonal-theme="halloween"] .halloween-spider{animation:halloween-spider-drift 6s ease-in-out infinite}
+html[data-seasonal-theme="halloween"] .halloween-spider-right{animation-delay:-3s}
+html[data-seasonal-theme="halloween"] .max-fog{animation:halloween-mist-glow 8s ease-in-out infinite alternate}
+}
+@keyframes halloween-spider-drift{0%,100%{translate:0 0}50%{translate:0 16px}}
+@keyframes halloween-mist-glow{from{opacity:.55}to{opacity:1}}
+@media(max-width:600px){
+html[data-seasonal-theme="halloween"] .halloween-web,
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web{width:135px;height:135px;opacity:.55}
+html[data-seasonal-theme="halloween"] .halloween-web-right,
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-web-right{width:155px;height:155px}
+html[data-seasonal-theme="halloween"] .halloween-spider{font-size:29px;top:130px}
+html[data-seasonal-theme="halloween"] .halloween-spider-right{font-size:31px;top:156px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-spider{font-size:26px;top:114px}
+html[data-seasonal-theme="halloween"] .halloween-pumpkins{font-size:64px}
+html[data-seasonal-theme="halloween"] .max-pumpkin-left{font-size:53px}
+html[data-seasonal-theme="halloween"] .halloween-secondary .halloween-pumpkins,
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-pumpkin-left{font-size:43px}
+html[data-seasonal-theme="halloween"] .max-bats,
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-bats{font-size:29px;letter-spacing:4px}
+html[data-seasonal-theme="halloween"] .max-bats-small,
+html[data-seasonal-theme="halloween"] .halloween-secondary .max-bats-small{font-size:20px}
+}
