@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Send et arrangement | TEB</title>
+<meta name="description" content="Send dit arrangement til Tistrups fælles kalender.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="css/style.css?v=20261001-flat-menu">
+<link rel="stylesheet" href="css/foreningsportal.css?v=20261008-hybrid">
+<link rel="icon" href="images/teb-trolde-haandtegnet.png">
+</head>
+<body class="portal-page">
+<header class="portal-header">
+  <a href="index.html" class="portal-logo" aria-label="TEB, tilbage til hjemmesiden">
+    <img src="images/teb-trolde-haandtegnet.png" alt="" width="76" height="60">
+    <span>TEB <span>Foreningsportal</span></span>
+  </a>
+  <a class="portal-back" href="index.html">Tilbage til hjemmesiden</a>
+</header>
+<main class="portal-main" id="arrangement">
+  <div class="portal-heading">
+    <h1>Del jeres <em>arrangement.</em></h1>
+    <p class="portal-intro">Send det ind ét sted. Vi hjælper med at dele det i Tistrup.</p>
+    <div class="portal-channels" aria-label="Her deler vi aktiviteterne"><span>Byens kalender</span><span>Facebook</span><span>Print</span></div>
+  </div>
+  <div class="portal-workspace">
+  <div class="portal-panel">
+    <h2 class="portal-form-heading">Hvad har I på programmet?</h2>
+    <form id="activity-form" class="portal-form" action="#arrangement">
+      <div>
+        <label for="activity-title">Hvad skal der ske?</label>
+        <input id="activity-title" name="title" required maxlength="100" placeholder="F.eks. banko eller fællesspisning">
+      </div>
+      <div>
+        <label for="activity-association">Foreningens navn</label>
+        <input id="activity-association" name="association" required maxlength="100" autocomplete="organization">
+      </div>
+      <div class="portal-when">
+        <div><label for="activity-date">Dato</label><input id="activity-date" name="date" type="date" required></div>
+        <div><label for="activity-time">Klokken</label><input id="activity-time" name="time" type="time" required></div>
+      </div>
+      <div>
+        <label for="activity-location">Hvor foregår det?</label>
+        <input id="activity-location" name="location" required maxlength="180" placeholder="Sted og adresse">
+      </div>
+      <div>
+        <label for="activity-description">Fortæl lidt mere <span>(valgfrit)</span></label>
+        <textarea id="activity-description" name="description" maxlength="1000" rows="3" placeholder="F.eks. pris og tilmelding"></textarea>
+      </div>
+      <div>
+        <label for="activity-email">Din e-mail</label>
+        <input id="activity-email" name="email" type="email" required maxlength="254" autocomplete="email" aria-describedby="email-note">
+        <p class="portal-note" id="email-note">Kun så vi kan kontakte dig.</p>
+      </div>
+      <button class="portal-button" type="submit" id="send-activity" disabled>Send til kalenderen</button>
+      <p class="portal-demo-note">Prøveversion. Der bliver ikke sendt noget.</p>
+      <noscript><p>Send dit arrangement til <a href="mailto:tistrup.kalender@gmail.com">tistrup.kalender@gmail.com</a>.</p></noscript>
+    </form>
+    <section id="activity-receipt" hidden aria-labelledby="receipt-heading">
+      <h2 id="receipt-heading" tabindex="-1">Prøven er færdig</h2>
+      <p>Dit arrangement er ikke sendt.</p>
+      <button class="portal-button" type="button" id="edit-activity">Tilbage til formularen</button>
+    </section>
+  </div>
+  <aside class="portal-side" aria-label="Forhåndsvisning og kontakt">
+    <h2 class="portal-preview-heading">Sådan kan det se ud</h2>
+    <article class="portal-event-card" aria-label="Eksempel på jeres arrangement i kalenderen">
+      <div class="portal-event-image">
+        <img src="images/torvet-optraeden.png" alt="Stemningsbillede fra Tistrup Torv">
+        <div class="portal-date-tile"><strong id="preview-day" hidden></strong><span id="preview-month">Din dato</span></div>
+      </div>
+      <div class="portal-event-body">
+        <h3 id="preview-title">Jeres næste arrangement</h3>
+        <p class="portal-event-meta"><span id="preview-time">Dato og tid</span><br><span id="preview-location">Sted og adresse</span></p>
+        <p class="portal-event-description" id="preview-description">Her står lidt om arrangementet.</p>
+        <p class="portal-event-association" id="preview-association">Jeres forening</p>
+      </div>
+    </article>
+    <p class="portal-note portal-preview-note">Kortet følger med, mens du skriver.</p>
+  <section class="portal-email" aria-labelledby="email-heading">
+    <h2 id="email-heading">Vil du hellere sende en e-mail?</h2>
+    <a class="portal-button portal-button-secondary" id="send-activity-email" href="mailto:tistrup.kalender@gmail.com?subject=Arrangement%20til%20kalenderen">Send en e-mail</a>
+    <p class="portal-note"><a href="mailto:tistrup.kalender@gmail.com">tistrup.kalender@gmail.com</a></p>
+  </section>
+    <p class="portal-phone">Brug for hjælp?<br><a href="tel:+4529228559">Ring 29 22 85 59</a></p>
+    <p class="portal-note portal-deadline">Til print: send senest den 15. i måneden før udgivelsen.</p>
+  </aside>
+  </div>
+  <section class="portal-extra" aria-labelledby="extra-heading">
+    <div><h2 id="extra-heading">Vil I lidt mere?</h2><p>Vi hjælper jer videre med flyers, plakater og grafik.</p></div>
+    <a class="portal-button portal-button-secondary" href="kontakt.html">Kontakt TEB</a>
+  </section>
+</main>
+<footer class="portal-footer"><span>Tistrup Erhvervs- og Borgerforening</span><a href="nyt.html">Se kalenderen</a></footer>
+<script src="js/foreningsportal.js?v=20261008-hybrid"></script>
+</body>
+</html>

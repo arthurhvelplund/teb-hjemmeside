@@ -9,6 +9,35 @@ Statisk hjemmeside (HTML/CSS/JS) for [teb-tistrup.dk](https://teb-tistrup.dk).
 - `bestyrelse.html` – oversigt over bestyrelsen (navne, roller, kontakt)
 - `bliv-medlem.html` – kontingent og indmeldelsesformular
 - `kontakt.html` – kontaktinfo og kontaktformular
+- `foreningsportal.html` – enkel prototype til indsendelse af arrangementer
+
+## Foreningsportal, prototype
+
+Delbart preview: https://preview.teb-foreningsportal-preview.pages.dev/
+
+Previewet er udgivet i det separate Cloudflare Pages-projekt
+`teb-foreningsportal-preview` på Business and Fitness-kontoen, branch `preview`.
+Det indeholder kun portalen og dens nødvendige billeder, CSS og JavaScript.
+Links til forsiden, kontakt og kalenderen går til den offentlige TEB-hjemmeside.
+Previewet har `noindex` og kræver ikke login. TEB's eksisterende projekt er ikke
+ændret af denne preview-udgivelse.
+
+Portalen findes fra forsiden, fra “Det sker” og i sidernes genveje. Den består af
+én kort formular med store felter til arrangement, forening, dato, klokkeslæt,
+sted, valgfri beskrivelse og kontaktmail. Ved siden af vises et kalenderkort, som
+opdateres, mens brugeren skriver. Kontaktmailen vises ikke på kortet. En e-mailknap og et telefonnummer er
+alternativer for dem, der hellere vil kontakte TEB direkte.
+
+Formularen er en lokal prøve. Den sender eller gemmer ingen oplysninger og
+opdaterer hverken kalenderen, Facebook eller print. Ved indsendelse vises en kort
+prøvekvittering. Brugeren kan gå tilbage uden at miste sine oplysninger.
+E-mailknappen åbner en mailkladde til `tistrup.kalender@gmail.com` med de felter,
+brugeren allerede har udfyldt. Brugeren sender selv mailen.
+
+Før rigtig indsendelse aktiveres, skal modtagelse, redaktionens godkendelse og en
+fælles datakilde til aktiviteterne aftales. Kalender, Facebook, print og senere
+AI-hjælp kan derefter bruge de samme oplysninger. Ekstra hjælp med flyers,
+plakater og grafik er samlet i en kort kontaktsektion. Partnerlisten mangler endnu.
 
 ## Sådan kører du siden lokalt
 Åbn `index.html` i en browser – eller kør en lille webserver:
