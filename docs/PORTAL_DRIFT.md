@@ -86,3 +86,17 @@ vurderes særskilt, fordi den kan fjerne ændringer modtaget efter backupen.
 
 Der bygges ikke automatisk Gmail-import, opslag hos medier eller Facebook-
 publicering. Det sker viser links til kilderne og eksisterende Facebook-feed.
+
+## Kontrol af den integrerede lokale version
+
+Valideret 18. oktober 2026: 42 backendtests, HTTP-integration, lokal
+Cloudflare-runtime med D1/R2 og 16 browserforløb. Browserkontrollen omfatter
+faktiske kvitteringslinks, genforsøg efter mistet svar, rettigheder,
+forhåndsvisning og gemt PDF samt 320 og 390 px mobilbredde. Plakat og A3 er
+gennemset visuelt, også med 45 arrangementer fordelt over flere sider.
+
+Ubrugte scripts og CSS fra den gamle pilot er fjernet. De gamle HTML-adresser
+bevares som viderestillinger. Prototypen og pilotens lokale data er bevaret.
+
+Resultater og skærmbilleder findes lokalt i `output/portal-integreret/`.
+Der er ikke sendt eksterne mails, pushet commits eller deployet ressourcer.

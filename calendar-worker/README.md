@@ -10,7 +10,7 @@ Kræver Node 24.3 eller nyere og npm.
 
 ```sh
 cd calendar-worker
-npm install
+npm ci
 npm run dev
 ```
 
@@ -29,7 +29,7 @@ npm run seed
 
 Seed tilføjer kun opdigtede eksempeldata via loopback-API. Den kan køres igen
 uden at kopiere eksempelarrangementerne. Den opretter én forening, otte direkte
-udgivne arrangementer, én gæsteindsendelse og følgende fiktive mailadresser:
+udgivne arrangementer, én gæsteindsendelse og følgende lokale logins:
 
 - `tistrup.kalender@gmail.com`: lokal TEB-administrator, kan ændres med `TEB_ADMIN_EMAILS`.
 - `ansvarlig@example.test`: foreningsansvarlig.
