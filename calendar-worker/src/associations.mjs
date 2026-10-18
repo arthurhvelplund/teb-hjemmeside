@@ -1,4 +1,4 @@
-import { ensure, now, json } from './shared.mjs';
+import { ensure, now, json, hash } from './shared.mjs';
 import { stmt, all, field, emailAddress, rate } from './db.mjs';
 import { guard, requireAccess, associationData } from './auth.mjs';
 import { mailStatement, deliverKeys, mailState } from './mail.mjs';
@@ -22,9 +22,17 @@ export async function saveAssociation(env,auth,id,data){
  return associations(env,id);
 }
 export async function createAssociation(env,auth,data){
- const g=await requireAccess(env,auth),a=validateAssociation(data.association),id=crypto.randomUUID(),stamp=now();
- const result=await stmt(env,`INSERT INTO associations(id,name,category,description,chair,email,phone,website,place,created_at,updated_at) SELECT ?,?,?,?,?,?,?,?,?,?,? WHERE ${g.sql}`,id,...Object.values(a),stamp,stamp,...g.args).run();
- ensure(result.meta.changes===1,403,'Din adgang er ophørt.');return associations(env,id);
+ const g=await requireAccess(env,auth),a=validateAssociation(data.association);
+ ensure(/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(data.requestKey||''),400,'Genindlæs formularen og prøv igen.');
+ // Validation fixes field order and normalizes contacts before hashing. Keep the
+ // original hash even when the public profile is subsequently edited.
+ const requestHash=await hash(JSON.stringify(a)),id=crypto.randomUUID(),stamp=now();
+ await stmt(env,`INSERT OR IGNORE INTO associations(id,name,category,description,chair,email,phone,website,place,created_at,updated_at,creation_request_key,creation_actor,creation_hash)
+ SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,? WHERE ${g.sql}`,id,...Object.values(a),stamp,stamp,data.requestKey,auth.user.id,requestHash,...g.args).run();
+ const row=await stmt(env,`SELECT *,(${g.sql}) AS permitted FROM associations WHERE creation_request_key=?`,...g.args,data.requestKey).first();
+ ensure(row?.permitted,403,'Din adgang er ophørt.');
+ ensure(row.creation_actor===auth.user.id&&row.creation_hash===requestHash,409,'Nøglen er allerede brugt til en anden oprettelse. Genindlæs formularen.');
+ return json({association:associationData(row)});
 }
 export async function members(env,auth,id){
  await requireAccess(env,auth,id);

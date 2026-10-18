@@ -17,7 +17,7 @@ export async function snapshot(env,options){
  const rows=await all(stmt(env,'SELECT event_id,data_json,published_at FROM publications ORDER BY published_at ASC,id ASC'));
  const latest=new Map();
  for(const row of rows)if(copenhagenDate(row.published_at)<=options.deadline)latest.set(row.event_id,{id:row.event_id,...JSON.parse(row.data_json)});
- return {...options,calendarUrl:env.PUBLIC_ORIGIN+'/kalender.html',events:[...latest.values()].filter(e=>e.state==='approved'&&e.date<=options.end&&(e.endDate||e.date)>=options.start).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)||a.title.localeCompare(b.title,'da'))};
+ return {...options,calendarUrl:env.PUBLIC_ORIGIN+'/kalender.html',events:[...latest.values()].filter(e=>e.state==='approved'&&e.printRequested!==false&&e.date<=options.end&&(e.endDate||e.date)>=options.start).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)||a.title.localeCompare(b.title,'da'))};
 }
 const pdfResponse=(bytes,id,extra={})=>new Response(bytes,{headers:{'Content-Type':'application/pdf','Content-Disposition':`inline; filename="tistrup-kalender-${id}.pdf"`,'Cache-Control':'public, max-age=31536000, immutable','X-Content-Type-Options':'nosniff',...extra}});
 async function bytesHash(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');}

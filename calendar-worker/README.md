@@ -10,7 +10,7 @@ Kræver Node 24.3 eller nyere og npm.
 
 ```sh
 cd calendar-worker
-npm install
+npm ci
 npm run dev
 ```
 
@@ -29,9 +29,9 @@ npm run seed
 
 Seed tilføjer kun opdigtede eksempeldata via loopback-API. Den kan køres igen
 uden at kopiere eksempelarrangementerne. Den opretter én forening, otte direkte
-udgivne arrangementer, én gæsteindsendelse og følgende fiktive mailadresser:
+udgivne arrangementer, én gæsteindsendelse og følgende lokale logins:
 
-- `teb-admin@example.test`: TEB-administrator.
+- `tistrup.kalender@gmail.com`: lokal TEB-administrator, kan ændres med `TEB_ADMIN_EMAILS`.
 - `ansvarlig@example.test`: foreningsansvarlig.
 - `redaktor@example.test`: inviteret redaktør, aktiveres ved sit første OTP-login.
 
@@ -46,7 +46,46 @@ lokale mailjobs ved læsning. Nye koder og private links ligger ikke i klartekst
 i SQLite. Den oprindelige pilots lokale postkasse bevares ved en eksplicit
 opgradering og er underlagt samme loopback-kontrol.
 
+## Test med nyheder fra Tistrup Nyt
+
+`GET /api/kalender/nyheder/tistrup-nyt` henter forsiden på
+`https://tistrupnyt.dk/` direkte fra backend uden cookies, login, RSS eller API.
+Importen læser højst 12 unikke artikelkort fra Tistrup Nyt i deres rækkefølge
+på forsiden. Kalenderkort og andre domæner udelades. Overskrifter og korte
+beskrivelser returneres som tekst, aldrig som eksekverbar HTML. Billeder vises
+fra kildens Ruban-billedserver, og artikler åbner hos Tistrup Nyt.
+
+Cachen gemmes under `news/tistrup-nyt-v1.json` i den eksisterende R2-binding
+`PDFS`, separat fra PDF-objekterne. Den lokale server bruger samme adapter på
+disk. Første besøg henter nyheder; senere besøg genbruger dem i en time og
+udløser derefter næste hentning. Der er ingen baggrundstimer uden besøg.
+Samtidige forespørgsler i samme worker deler hentningen. En kildefejl eller
+ændret HTML beholder sidste gode resultat med `stale:true` og fem minutters
+pause før næste forsøg. Uden nogen gemt kopi returneres HTTP 503.
+
+`site/nyt.html` viser nyhederne med kilde, billeder og tidspunkt for hentning.
+Tidspunktet er ikke artiklernes udgivelsesdato. Parseren findes i
+`src/news.mjs`, og `test/news.test.mjs` dækker udtræk, cache og fejltilstande.
+Kør `npm test` og `npm run build`. Routen ligger under den eksisterende
+kalender-API, så der kræves ingen ekstra Worker-route eller database-migration.
+Dette aktiverer ikke deployment.
+
 ## Adgang og revisioner
+
+Den samlede side er nu `/nyt.html`. Den bruger `GET/POST /posts` og
+`GET /admin/posts` samt `POST /admin/posts/:id` til TEBs godkendelse.
+Migration `0005_posts.sql` tilføjer rigtige opslag uden at flytte forsøgsdata.
+Gæster afventer godkendelse; godkendte foreningsmedlemmer og TEB udgiver straks.
+Et arrangementsopslag opretter sin kanoniske kalenderpost atomisk ved udgivelse.
+Det har samme id i nyheder og kalender, og rettelser/aflysninger følger kalenderen.
+Valget af fysisk kalender gemmes som `printRequested`, som printarkivet respekterer.
+Allerede afsluttede PDF-filer ændres ikke. Ekstern deling bestilles ikke automatisk.
+
+Den gamle `/experiment/*`-API og `experiment_posts` bevares som et separat,
+kun lokalt sandkasselager. De er ikke datakilden til den rigtige side.
+Pulsen i Vest leverer nyheds- og arrangementskort via
+`GET /api/kalender/nyheder/pulsen`, cached separat fra Tistrup Nyt.
+Importen dækker kildernes viste kort, ikke komplette årsarkiver.
 
 OTP har seks tilfældige cifre, ti minutters levetid og højst fem forsøg.
 Anmodninger begrænses pr. mail, IP og globalt. Verifikation begrænses pr.
@@ -84,8 +123,7 @@ arrangementer. En gæsts oplyste forening giver aldrig medlemsrettigheder.
 Gæsteindsendelser, rettelser og aflysninger godkendes af TEB. En ventende eller
 afslået ændring erstatter ikke den offentliggjorte version. Privat adgang kræver
 Bearer-tokenet, hvis hash ligger i databasen. Mailens link har kun tokenet i
-URL-fragmentet: `kalender.html?id=...#adgang=...`. Frontend skal fjerne fragmentet
-fra adresselinjen efter læsning og må ikke sende det som query-parameter.
+URL-fragmentet: `kalender.html?privat=...#adgang=...`. Tokenet må ikke sendes som query-parameter og må aldrig indgå i offentlige links.
 
 Offentlig event-state hedder `approved` eller `cancelled`. Privat wrapper-status
 er `pending`, `approved` eller `rejected`. En godkendt aflysning har altså

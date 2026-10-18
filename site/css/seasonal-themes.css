@@ -1,0 +1,117 @@
+/* Fælles sæsontema. Figurer og datoer kommer fra scripts/site-layout/. */
+html[data-seasonal-theme="halloween"] .site-main{
+  --seasonal-edge:clamp(12px,calc((100vw - var(--max)) / 2),115px);
+  background-image:url('../images/seasonal/b9ef7ed87635.svg'),url('../images/seasonal/b9ef7ed87635.svg'),radial-gradient(ellipse at 0 25%,#f1842866,transparent 48%),radial-gradient(ellipse at 100% 70%,#974d8844,transparent 48%);
+  background-size:var(--seasonal-edge) calc(var(--seasonal-edge) * 5),var(--seasonal-edge) calc(var(--seasonal-edge) * 5),100% 100%,100% 100%;
+  background-position:left top,right 240px,center,center;
+  background-repeat:repeat-y,repeat-y,no-repeat,no-repeat;
+}
+html[data-seasonal-theme="halloween"] .page-hero{background:none}
+html[data-seasonal-theme="halloween"] .halloween-decor{
+  position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;user-select:none;
+}
+html[data-seasonal-theme="halloween"] .halloween-emoji{
+  display:inline-block;width:1em;height:1em;max-width:none;vertical-align:middle;
+}
+html[data-seasonal-theme="halloween"] .halloween-web{
+  position:absolute;left:0;top:0;width:100px;height:100px;opacity:.7;
+  background:repeating-radial-gradient(circle at 0 0,transparent 0 22px,#957044 23px 24px,transparent 25px 30px);
+  clip-path:polygon(0 0,100% 0,0 100%);
+}
+html[data-seasonal-theme="halloween"] .halloween-web::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(45deg,transparent 49.4%,#957044 49.7% 50.3%,transparent 50.6%),linear-gradient(23deg,transparent 49.4%,#957044 49.7% 50.3%,transparent 50.6%),linear-gradient(67deg,transparent 49.4%,#957044 49.7% 50.3%,transparent 50.6%);
+}
+html[data-seasonal-theme="halloween"] .halloween-web-right{left:auto;right:0;width:115px;height:115px;transform:scaleX(-1)}
+html[data-seasonal-theme="halloween"] .halloween-spider{position:absolute;left:12px;top:25px;font-size:28px;line-height:1}
+html[data-seasonal-theme="halloween"] .halloween-spider::before{content:'';position:absolute;width:1px;height:35px;left:50%;bottom:100%;background:#957044;opacity:.8}
+html[data-seasonal-theme="halloween"] .halloween-spider-right{left:auto;right:18px}
+html[data-seasonal-theme="halloween"] .max-bats{position:absolute;right:15%;top:12px;font-size:34px;letter-spacing:12px;transform:rotate(-12deg)}
+html[data-seasonal-theme="halloween"] .max-bats-small{left:25%;right:auto;top:20px;font-size:24px;transform:rotate(12deg)}
+html[data-seasonal-theme="halloween"] .halloween-pumpkins{position:absolute;right:10px;bottom:10px;font-size:65px;line-height:1;filter:drop-shadow(0 0 18px #ff790777)}
+html[data-seasonal-theme="halloween"] .halloween-pumpkins span{font-size:45px;margin-left:-12px}
+html[data-seasonal-theme="halloween"] .max-pumpkin-left{position:absolute;left:10px;bottom:10px;font-size:60px;line-height:1;filter:drop-shadow(0 0 18px #ff790777)}
+html[data-seasonal-theme="halloween"] .halloween-secondary :is(.halloween-pumpkins,.max-pumpkin-left){filter:drop-shadow(0 2px 3px #0003)}
+html[data-seasonal-theme="halloween"] .halloween-skeleton{display:none}
+html[data-seasonal-theme="halloween"] .max-skeleton{position:absolute;left:15px;bottom:90px;width:74px;height:159px;color:#ede3d3;transform:rotate(-12deg);transform-origin:bottom left;filter:drop-shadow(0 0 2px #5d391b)}
+html[data-seasonal-theme="halloween"] .max-skeleton .skull{position:absolute;left:19px;top:0;font-size:35px;line-height:1}
+html[data-seasonal-theme="halloween"] .max-skeleton .ribcage{position:absolute;left:25px;top:40px;width:27px;height:43px;border-radius:40%;background:repeating-linear-gradient(0deg,transparent 0 7px,#ede3d3 8px 11px);border-left:3px solid #ede3d3;border-right:3px solid #ede3d3}
+html[data-seasonal-theme="halloween"] .max-skeleton .ribcage::after{content:'';position:absolute;width:4px;height:52px;left:8px;top:0;background:#ede3d3}
+html[data-seasonal-theme="halloween"] .max-skeleton .arms{position:absolute;left:3px;top:46px;width:71px;height:48px;border-left:5px solid #ede3d3;border-right:5px solid #ede3d3;transform:rotate(9deg);border-radius:20px}
+html[data-seasonal-theme="halloween"] .max-skeleton .hips{position:absolute;left:26px;top:88px;width:27px;height:14px;border:4px solid #ede3d3;border-radius:4px 4px 12px 12px}
+html[data-seasonal-theme="halloween"] .max-skeleton .legs{position:absolute;left:24px;top:104px;width:34px;height:53px;border-left:5px solid #ede3d3;border-right:5px solid #ede3d3;transform:rotate(-4deg)}
+html[data-seasonal-theme="halloween"] .max-skeleton .legs::after{content:'';position:absolute;left:-9px;bottom:-4px;width:45px;height:5px;background:linear-gradient(90deg,#ede3d3 0 13px,transparent 13px 31px,#ede3d3 31px)}
+html[data-seasonal-theme="halloween"] .max-skeleton-right{left:auto;right:15px;bottom:100px;transform:rotate(13deg);transform-origin:bottom right}
+html[data-seasonal-theme="halloween"] .halloween-decor::before,
+html[data-seasonal-theme="halloween"] .halloween-decor::after{
+  content:'';position:absolute;left:7px;bottom:270px;width:80px;height:110px;opacity:.92;
+  background:url('../images/seasonal/e5548ca5bd71.svg') center/contain no-repeat;filter:drop-shadow(0 0 18px #fff2b9aa);transform:rotate(-13deg);
+}
+html[data-seasonal-theme="halloween"] .halloween-decor::after{left:auto;right:10px;bottom:290px;transform:rotate(15deg) scale(.85)}
+/* Ingen separat tågebaggrund i en overskrift: sidens baggrund er sammenhængende. */
+html[data-seasonal-theme="halloween"] .max-fog{display:none}
+/* Forsidens store billedfelt bruger samme figurer og en større udsmykning. */
+html[data-seasonal-theme="halloween"] .hero-full > img{filter:sepia(.35) brightness(.62) saturate(.8)}
+html[data-seasonal-theme="halloween"] .hero-full .halloween-decor{
+  z-index:4;background:radial-gradient(circle 44px at 85% 15%,#fff1b8 0 76%,#ffe4a080 80%,transparent 100%),radial-gradient(ellipse at 0 100%,#66235a88,transparent 40%),radial-gradient(ellipse at 100% 100%,#ff7c2266,transparent 40%);
+}
+html[data-seasonal-theme="halloween"] .hero-full .halloween-web{width:240px;height:240px}
+html[data-seasonal-theme="halloween"] .hero-full .halloween-web-right{width:265px;height:265px}
+html[data-seasonal-theme="halloween"] .hero-full .halloween-spider{left:62px;top:214px;font-size:43px}
+html[data-seasonal-theme="halloween"] .hero-full .halloween-spider-right{left:auto;right:56px;top:250px;font-size:45px}
+html[data-seasonal-theme="halloween"] .hero-full .halloween-pumpkins{font-size:160px;filter:drop-shadow(0 0 30px #ff8c00cc)}
+html[data-seasonal-theme="halloween"] .hero-full .halloween-pumpkins span{font-size:100px}
+html[data-seasonal-theme="halloween"] .hero-full .max-pumpkin-left{font-size:115px}
+html[data-seasonal-theme="halloween"] .hero-full .max-skeleton{transform:rotate(-11deg) scale(1.35);bottom:100px}
+html[data-seasonal-theme="halloween"] .hero-full .max-skeleton-right{transform:rotate(13deg) scale(1.2);bottom:140px}
+html[data-seasonal-theme="halloween"] .hero-full .max-bats{font-size:52px;letter-spacing:28px;right:19%;top:8%}
+html[data-seasonal-theme="halloween"] .hero-full .max-bats-small{font-size:35px;left:21%;top:16%}
+html[data-seasonal-theme="halloween"] .hero-full .halloween-decor::before{bottom:345px}
+html[data-seasonal-theme="halloween"] .hero-full .halloween-decor::after{bottom:370px}
+html[data-seasonal-theme="halloween"] .audience-card{position:relative}
+html[data-seasonal-theme="halloween"] .audience-card::after{content:'';position:absolute;top:26px;right:20px;width:30px;height:30px;background:url('../images/seasonal/d0c68fbaaad0.png') center/contain no-repeat;pointer-events:none}
+html[data-seasonal-theme="halloween"] .audience-card:nth-child(2)::after{background-image:url('../images/seasonal/25db14685bb6.png')}
+html[data-seasonal-theme="halloween"] .audience-card:last-child::after{background-image:url('../images/seasonal/e733209c1fb6.png')}
+@media(max-width:1359px){
+  html[data-seasonal-theme="halloween"] .halloween-secondary .max-skeleton,
+  html[data-seasonal-theme="halloween"] .halloween-secondary::before,
+  html[data-seasonal-theme="halloween"] .halloween-secondary::after{display:none}
+}
+@media(max-width:600px){
+  html[data-seasonal-theme="halloween"] .halloween-web{width:65px;height:65px}
+  html[data-seasonal-theme="halloween"] .halloween-web-right{width:75px;height:75px}
+  html[data-seasonal-theme="halloween"] .halloween-spider{font-size:22px}
+  html[data-seasonal-theme="halloween"] .max-bats{right:12%;font-size:28px;letter-spacing:4px}
+  html[data-seasonal-theme="halloween"] .max-bats-small{left:32%;font-size:20px}
+  html[data-seasonal-theme="halloween"] .hero-full .halloween-web{width:135px;height:135px}
+  html[data-seasonal-theme="halloween"] .hero-full .halloween-web-right{width:155px;height:155px}
+  html[data-seasonal-theme="halloween"] .hero-full .halloween-spider{left:18px;top:130px;font-size:29px}
+  html[data-seasonal-theme="halloween"] .hero-full .halloween-spider-right{left:auto;right:20px;top:156px;font-size:31px}
+  html[data-seasonal-theme="halloween"] .hero-full .halloween-pumpkins{font-size:78px}
+  html[data-seasonal-theme="halloween"] .hero-full .halloween-pumpkins span{font-size:48px}
+  html[data-seasonal-theme="halloween"] .hero-full .max-pumpkin-left{font-size:64px}
+  html[data-seasonal-theme="halloween"] .hero-full .max-skeleton{transform:rotate(-11deg) scale(.65);bottom:63px;left:6px}
+  html[data-seasonal-theme="halloween"] .hero-full .max-skeleton-right{transform:rotate(13deg) scale(.65);bottom:76px;left:auto;right:10px}
+  html[data-seasonal-theme="halloween"] .hero-full .max-bats{font-size:32px;letter-spacing:5px}
+  html[data-seasonal-theme="halloween"] .hero-full .max-bats-small{font-size:23px}
+  html[data-seasonal-theme="halloween"] .hero-full .halloween-decor::before,
+  html[data-seasonal-theme="halloween"] .hero-full .halloween-decor::after{width:37px;height:51px}
+  html[data-seasonal-theme="halloween"] .hero-full .halloween-decor::before{bottom:178px}
+  html[data-seasonal-theme="halloween"] .hero-full .halloween-decor::after{bottom:207px}
+}
+@media(prefers-reduced-motion:no-preference){
+  html[data-seasonal-theme="halloween"] .halloween-spider{animation:halloween-spider-drift 6s ease-in-out infinite}
+  html[data-seasonal-theme="halloween"] .halloween-spider-right{animation-delay:-3s}
+  html[data-seasonal-theme="halloween"] .halloween-decor::before,
+  html[data-seasonal-theme="halloween"] .halloween-decor::after{animation:halloween-ghost-float 7s ease-in-out infinite alternate}
+}
+@keyframes halloween-spider-drift{0%,100%{translate:0 0}50%{translate:0 12px}}
+@keyframes halloween-ghost-float{from{translate:0 -6px}to{translate:0 12px}}
+@media print{
+  .halloween-decor{display:none!important}
+  html[data-seasonal-theme="halloween"] .site-main{background:none}
+}
+
+/* Compact headings retain the common seasonal background with small corner webs. */
+html[data-seasonal-theme="halloween"] .page-hero--compact .halloween-secondary > *{display:none}
+html[data-seasonal-theme="halloween"] .page-hero--compact .halloween-secondary > .halloween-web{display:block;width:28px;height:28px}

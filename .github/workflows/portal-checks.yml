@@ -1,0 +1,46 @@
+name: Test association portal
+on:
+  pull_request:
+    paths: ['site/**', 'calendar-worker/**', 'scripts/**', '.github/workflows/portal-checks.yml']
+  push:
+    branches: [tistrup-kalender]
+    paths: ['site/**', 'calendar-worker/**', 'scripts/**', '.github/workflows/portal-checks.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: portal-checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: calendar-worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: npm ci
+      - name: Shared layout and generated assets
+        run: node ../scripts/sync-site.mjs --check && node ../scripts/site-layout-check.mjs
+      - name: Backend checks
+        run: npm test
+      - name: Browser for integration tests
+        run: npx playwright install --with-deps chromium
+      - name: Browser integration checks
+        run: npm run test:browser && node ../scripts/mailbox-content-check.mjs && node ../scripts/site-layout-browser-check.mjs && node ../scripts/det-sker-browser-check.mjs
+      - name: Cloudflare build without deployment
+        run: npm run build
+      - name: Retain diagnostic screenshots and PDF
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: portal-checks
+          path: |
+            output/portal-integreret/
+            output/det-sker-eksperiment/
+          if-no-files-found: ignore

@@ -1,0 +1,27 @@
+/* Kun foreningssiden. Fælles design kommer fra style.css og portal.css. */
+.fa-skip{position:fixed;left:1rem;top:-8rem;z-index:110;background:var(--paper-soft);padding:.8rem;color:var(--forest)}
+.fa-skip:focus{top:1rem}
+.fa-filter{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.fa-preline{white-space:pre-line}
+.fa-details{margin:0}
+.fa-details dt{font-weight:700;margin-top:.8rem}
+.fa-details dd{margin:0;overflow-wrap:anywhere}
+.fa-form-narrow{max-width:42rem}
+.fa-section{margin-top:2rem}
+.fa-check{display:flex!important;align-items:flex-start;gap:.7rem;font-weight:400!important}
+.fp-form .fa-check input{width:1.2rem;min-height:1.2rem;flex-shrink:0;margin-top:.25rem;accent-color:var(--forest)}
+.fa-member{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center}
+.fa-member p{margin-bottom:.2rem}
+.fa-review summary{cursor:pointer;padding:.8rem 0;font-weight:600}
+.fa-review[open] summary{margin-bottom:1rem}
+.fa-review .fp-form{margin-top:1rem}
+.fa-login-email{overflow-wrap:anywhere;font-size:.88rem;color:var(--muted)}
+.fa-status-row{display:flex;gap:.5rem;flex-wrap:wrap;margin:.7rem 0}
+.fa-event-compare{padding:1rem;border-left:3px solid var(--moss);margin-bottom:1rem}
+.fa-form-result:empty{display:none}
+.fa-filter label{font-weight:600}
+.fa-toolbar{margin-bottom:1.5rem}
+.fp-main .fp-tabs a{min-height:44px}
+.fp-main button,.fp-main input,.fp-main select{scroll-margin-top:7rem}
+@media(max-width:560px){.fa-filter{grid-template-columns:1fr}.fa-member{align-items:stretch}.fa-member form{width:100%}.fa-review .btn{width:100%;justify-content:center}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fp-main *{transition:none!important}}

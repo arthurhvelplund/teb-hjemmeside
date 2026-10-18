@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { readFile, readdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -36,7 +36,7 @@ function fixture(t){
  const privateEvent=async s=>(await (await guest.call('/private/'+s.id,{authorization:s.payload.authorToken})).json());
  const decide=async(s,action='approve',extra={})=>admin.call('/admin/events/'+s.id,{data:{action,revision:(await privateEvent(s)).revision,...extra}});
  const publicEvents=async(query='')=>(await (await guest.call('/events'+query)).json()).events;
- const association=async(name='Eksempelforeningen')=>{const r=await admin.call('/admin/associations',{data:{association:{name,chair:'Offentlig Formand',email:'public@example.test'}}});assert.equal(r.status,200,await r.clone().text());return (await r.json()).association;};
+ const association=async(name='Eksempelforeningen')=>{const r=await admin.call('/admin/associations',{data:{requestKey:crypto.randomUUID(),association:{name,chair:'Offentlig Formand',email:'public@example.test'}}});assert.equal(r.status,200,await r.clone().text());return (await r.json()).association;};
  const invite=async(a,email='manager@example.test',role='manager')=>{const r=await admin.call('/admin/associations/'+a.id+'/members',{data:{email,name:'Eksempel Medlem',role}});assert.equal(r.status,200,await r.clone().text());return r.json();};
  const member=async()=>{await admin.login('admin@example.test');const a=await association();await invite(a);const user=client();await user.login('manager@example.test');return {a,user};};
  const memberEvent=async(user,a,extra={})=>{const payload={event:event(),associationId:a.id,requestKey:crypto.randomUUID(),...extra},r=await user.call('/events',{data:payload});assert.equal(r.status,201,await r.clone().text());return {...await r.json(),payload};};
@@ -80,6 +80,36 @@ test('directory exposes profile contacts, never login memberships; optimistic pr
  const changed=await ok(await user.call('/associations/'+a.id,{data:{association:{...a,description:'Opdateret'},revision:1}}));assert.equal(changed.association.revision,2);
  assert.equal((await user.call('/associations/'+a.id,{data:{association:a,revision:1}})).status,409);
  const s=await ok(await user.call('/session'));assert.equal(s.memberships[0].association.id,a.id);assert.equal(s.memberships[0].associationId,a.id);assert.equal(s.memberships[0].role,'manager');
+});
+test('association creation retries and concurrent requests create one directory entry',async t=>{
+ const f=fixture(t);await f.admin.login('admin@example.test');
+ const payload={association:{name:' Retry Forening ',email:' PUBLIC@example.test ',website:'https://example.test'},requestKey:crypto.randomUUID()};
+ const responses=await Promise.all([f.admin.call('/admin/associations',{data:payload}),f.admin.call('/admin/associations',{data:payload})]);
+ const results=await Promise.all(responses.map(r=>ok(r)));assert.equal(results[0].association.id,results[1].association.id);
+ assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM associations').first()).n,1);
+ const normalized={...payload,association:{name:'Retry Forening',email:'public@example.test',website:'https://example.test/'}};
+ assert.equal((await ok(await f.admin.call('/admin/associations',{data:normalized}))).association.id,results[0].association.id);
+ const original=results[0].association;
+ await ok(await f.admin.call('/associations/'+original.id,{data:{association:{...original,name:'Senere rettet navn'},revision:original.revision}}));
+ const replay=await ok(await f.admin.call('/admin/associations',{data:payload}));assert.equal(replay.association.id,original.id);assert.equal(replay.association.name,'Senere rettet navn');
+ assert.equal((await f.admin.call('/admin/associations',{data:{...payload,association:{...payload.association,name:'Anden forening'}}})).status,409);
+ assert.equal((await f.admin.call('/admin/associations',{data:{association:payload.association}})).status,400);
+ assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM associations').first()).n,1);
+});
+test('association creation retry keys belong to one administrator and revoked access stops retries',async t=>{
+ const f=fixture(t);await f.admin.login('admin@example.test');const payload={association:{name:'Beskyttet oprettelse'},requestKey:crypto.randomUUID()};
+ await ok(await f.admin.call('/admin/associations',{data:payload}));
+ f.env.TEB_ADMIN_EMAILS+=',second-admin@example.test';const second=f.client();await second.login('second-admin@example.test');
+ assert.equal((await second.call('/admin/associations',{data:payload})).status,409);
+ await f.DB.prepare("UPDATE users SET is_admin=0 WHERE email='admin@example.test'").run();
+ assert.equal((await f.admin.call('/admin/associations',{data:payload})).status,403);
+ assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM associations').first()).n,1);
+});
+test('association creation checks administrator rights inside the insert',async t=>{
+ const f=fixture(t);await f.admin.login('admin@example.test');const real=f.env.DB;
+ f.env.DB={...real,prepare(sql){const statement=real.prepare(sql);if(!sql.startsWith('INSERT OR IGNORE INTO associations('))return statement;return {bind(...args){return {run(){real.prepare('UPDATE users SET is_admin=0').run();return statement.bind(...args).run();}};}};}};
+ const response=await f.admin.call('/admin/associations',{data:{association:{name:'Skal ikke oprettes'},requestKey:crypto.randomUUID()}});
+ assert.equal(response.status,403);assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM associations').first()).n,0);
 });
 test('invitation requires the same email and a fresh OTP, with no rights from an older session',async t=>{
  const f=fixture(t);await f.admin.login('admin@example.test');const a=await f.association(),c=f.client();await c.login('member@example.test');
@@ -251,7 +281,8 @@ test('local R2 persists bytes, conditionally creates objects and rejects travers
 test('migration upgrades a pilot database once without changing original rows',async()=>{
  const path=await mkdtemp(join(tmpdir(),'teb-migrations-'));try{
   const file=join(path,'pilot.sqlite'),old=new DatabaseSync(file);old.exec(await readFile(new URL('../migrations/0001_calendar.sql',import.meta.url),'utf8'));old.prepare('INSERT INTO editions(id,month,deadline,data_json,created_at) VALUES(?,?,?,?,?)').run('original',month,copenhagenDate(),JSON.stringify({events:[]}),new Date().toISOString());old.close();
-  let db=database(file);assert.equal((await db.prepare('SELECT count(*) AS n FROM editions').first()).n,1);assert.equal((await db.prepare('SELECT count(*) AS n FROM d1_migrations').first()).n,2);db.close();db=database(file);assert.equal((await db.prepare('SELECT count(*) AS n FROM d1_migrations').first()).n,2);assert.equal((await db.prepare('SELECT id FROM editions').first()).id,'original');db.close();
+  const migrationCount=(await readdir(new URL('../migrations/',import.meta.url))).filter(name=>/^\d+.*\.sql$/.test(name)).length;
+  let db=database(file);assert.equal((await db.prepare('SELECT count(*) AS n FROM editions').first()).n,1);assert.equal((await db.prepare('SELECT count(*) AS n FROM d1_migrations').first()).n,migrationCount);db.close();db=database(file);assert.equal((await db.prepare('SELECT count(*) AS n FROM d1_migrations').first()).n,migrationCount);assert.equal((await db.prepare('SELECT id FROM editions').first()).id,'original');db.close();
  }finally{await rm(path,{recursive:true,force:true});}
 });
 test('production worker never redirects root or exposes assets/site/CMS',async t=>{

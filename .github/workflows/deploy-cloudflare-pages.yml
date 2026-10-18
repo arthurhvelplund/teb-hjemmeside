@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "scripts/**"
       - "cloudflare-form-worker/**"
       - ".github/workflows/deploy-cloudflare-pages.yml"
   workflow_dispatch:
@@ -34,6 +35,9 @@ jobs:
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Validate shared site layout
+        run: node scripts/sync-site.mjs --check && node scripts/site-layout-check.mjs
 
       - name: Deploy form worker
         if: steps.worker_changes.outputs.changed == 'true'

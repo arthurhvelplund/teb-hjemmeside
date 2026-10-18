@@ -75,7 +75,11 @@ Gæster returneres med authenticated false, ikke som en fejl.
 - GET `/admin/access-requests` -> `{requests}`. Request har
   `{id,email,name,associationId,newAssociationName,roleNote,status}`.
 - POST `/admin/access-requests/:id` `{action:'approve'|'reject',verified,note}`.
-- POST `/admin/associations` `{association}` -> `{association}`.
+- POST `/admin/associations` `{association,requestKey}` -> `{association}`.
+  Klienten beholder samme UUID ved genforsøg indtil oprettelsen er bekræftet.
+  Serveren opretter højst én forening pr. nøgle, også ved samtidige kald.
+  Genbrug kræver samme TEB-bruger og validerede profilfelter samt fortsat
+  administratoradgang. Ændret indhold eller anden bruger afvises med 409.
 - POST `/admin/associations/:id/members` `{email,name,role}` -> `{saved,deliveryState}`.
   TEB kan tilknytte ansvarlig eller redaktør; aktivering kræver modtagerens OTP.
 

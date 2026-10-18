@@ -31,9 +31,9 @@ async function eventMail(env,{id,revision,event,email,kind,authorToken,condition
   await make('editor',env.EDITOR_EMAIL||'',`${kind==='cancel'?'Aflysning':kind==='edit'?'Rettelse':'Nyt arrangement'} til godkendelse: ${event.title}`,
    `Et arrangement afventer TEBs godkendelse.\n\n${event.title}\n${event.date} kl. ${event.time}\n${event.location}\nOplyst forening: ${event.association}\nKontakt: ${email}\n\nTilknytningen er ikke verificeret. Log ind på ${env.PUBLIC_ORIGIN}/forening.html for at gennemgå indsendelsen.`, 'notification_state');
   if(authorToken)await make('receipt',email,`Modtaget til godkendelse: ${event.title}`,
-   `Dit arrangement er gemt og afventer TEBs godkendelse.\n\nDit private link til status, rettelser og aflysning:\n${env.PUBLIC_ORIGIN}/kalender.html?id=${id}#adgang=${authorToken}\n\nGem linket, og del det kun med dem, der må rette arrangementet. Din kontaktmail offentliggøres ikke.`, 'receipt_state');
+   `Dit arrangement er gemt og afventer TEBs godkendelse.\n\nDit private link til status, rettelser og aflysning:\n${env.PUBLIC_ORIGIN}/kalender.html?privat=${id}#adgang=${authorToken}\n\nGem linket, og del det kun med dem, der må rette arrangementet. Din kontaktmail offentliggøres ikke.`, 'receipt_state');
  } else await make('decision',email,`Svar fra TEB: ${event.title}`,
-  `${kind==='reject'?'TEB har ikke godkendt forslaget.':'TEB har godkendt forslaget. Se arrangementet på '+env.PUBLIC_ORIGIN+'/kalender.html?id='+id}\n${note?'\nBesked fra TEB: '+note:''}\n\nAllerede udgivne printudgaver ændres ikke.`, 'receipt_state');
+  `${kind==='reject'?'TEB har ikke godkendt forslaget.':'TEB har godkendt forslaget. Se arrangementet på '+env.PUBLIC_ORIGIN+'/kalender.html?arrangement='+id}\n${note?'\nBesked fra TEB: '+note:''}\n\nAllerede udgivne printudgaver ændres ikke.`, 'receipt_state');
  return {keys,statements};
 }
 function createResult(row){return {id:row.id,status:row.status,notificationState:row.notification_state,receiptState:row.receipt_state,published:Boolean(row.published_json)};}
@@ -95,6 +95,7 @@ export async function memberUpdate(env,auth,id,data){
  ensure(!associationId||a,404,'Foreningen findes ikke.');
  const event=data.action==='cancel'?JSON.parse(row.published_json):validateEvent({...data.event,...(a?{association:a.name}:{})},{allowPast:true});
  if(associationId)event.associationId=associationId;
+ if(row.published_json){const previous=JSON.parse(row.published_json);if(previous.postId){event.postId=previous.postId;event.printRequested=previous.printRequested;}}
  event.state=data.action==='cancel'?'cancelled':'approved';
  const result=await stmt(env,`UPDATE events SET published_json=?,pending_json=NULL,pending_kind=NULL,status=?,moderation_note='',revision=revision+1,association_id=?,updated_at=? WHERE id=? AND revision=? AND ${g.sql}`,
  JSON.stringify(event),event.state==='cancelled'?'approved':event.state,associationId,now(),id,row.revision,...g.args).run();
@@ -109,6 +110,7 @@ export async function review(env,auth,id,data){
  let published=row.published_json,event=JSON.parse(row.pending_json||row.published_json);
  if(data.action==='approve'){
   event=row.pending_kind==='cancel'?JSON.parse(row.published_json):validateEvent(data.event||event,{allowPast:true});
+  if(row.published_json){const previous=JSON.parse(row.published_json);if(previous.postId){event.postId=previous.postId;event.printRequested=previous.printRequested;}}
   event.state=row.pending_kind==='cancel'?'cancelled':'approved';published=JSON.stringify(event);
  }
  const status=data.action==='approve'?'approved':'rejected';

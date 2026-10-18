@@ -5,6 +5,9 @@ import { database } from './sqlite.mjs';
 import { localR2 } from './r2.mjs';
 import { token } from '../src/shared.mjs';
 import worker from '../src/worker.mjs';
+import { syncSite } from '../../scripts/sync-site.mjs';
+// Always prepare the same static files that will later be published.
+await syncSite();
 const port=Number(process.env.PORT||8787);
 const root=resolve(new URL('../../site/',import.meta.url).pathname);
 const runtime=resolve(process.env.CALENDAR_DATA_DIR||new URL('../.wrangler/local-portal/',import.meta.url).pathname);
@@ -21,7 +24,8 @@ const assets={async fetch(request){
   return new Response(await readFile(file),{headers:{'Content-Type':mime[extname(file)]||'application/octet-stream','Cache-Control':'no-store'}});
  }catch{return new Response('Siden findes ikke.',{status:404});}
 }};
-const env={DB,PDFS:localR2(resolve(runtime,'r2')),LOCAL_PREVIEW:'true',PUBLIC_ORIGIN:`http://localhost:${port}`,EDITOR_EMAIL:'teb-admin@example.test',EMAIL_FROM:'kalender@example.test',TEB_ADMIN_EMAILS:'teb-admin@example.test',MAIL_ENCRYPTION_KEY:mailKey,ASSETS:assets};
+const editorEmail=process.env.EDITOR_EMAIL||'tistrup.kalender@gmail.com';
+const env={DB,PDFS:localR2(resolve(runtime,'r2')),LOCAL_PREVIEW:'true',PUBLIC_ORIGIN:`http://localhost:${port}`,EDITOR_EMAIL:editorEmail,EMAIL_FROM:'kalender@example.test',TEB_ADMIN_EMAILS:process.env.TEB_ADMIN_EMAILS||editorEmail,MAIL_ENCRYPTION_KEY:mailKey,ASSETS:assets};
 const server=http.createServer(async(req,res)=>{
  try{
   const parts=[];let size=0;
@@ -36,5 +40,5 @@ const server=http.createServer(async(req,res)=>{
   res.writeHead(response.status,Object.fromEntries(response.headers));res.end(req.method==='HEAD'?undefined:Buffer.from(await response.arrayBuffer()));
  }catch{res.writeHead(500);res.end('Der opstod en fejl.');}
 });
-server.listen(port,'127.0.0.1',()=>console.log(`TEB lokal: ${env.PUBLIC_ORIGIN}/\nLokal testpostkasse: ${env.PUBLIC_ORIGIN}/api/kalender/local-mail\nTEB-login: teb-admin@example.test\nLokal SQLite og R2. Ingen e-mails sendes.`));
+server.listen(port,'127.0.0.1',()=>console.log(`TEB lokal: ${env.PUBLIC_ORIGIN}/\nLokal testpostkasse: ${env.PUBLIC_ORIGIN}/kalender-postkasse.html\nTEB-login: ${editorEmail}\nLokal SQLite og R2. Ingen e-mails sendes.`));
 for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>server.close(()=>{DB.close();process.exit();}));
