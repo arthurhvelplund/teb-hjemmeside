@@ -85,9 +85,9 @@ try{
  await print.locator('button[value="finalize"]').click();await admin.getByText('Printudgaven er gemt med',{exact:false}).waitFor();const editions=(await json(adminContext,'/editions')).editions;assert.equal(editions.length,1);
  const pdf1=await (await guestContext.request.get('/api/kalender/editions/'+editions[0].id+'/pdf')).body();assert.equal(pdf1.subarray(0,5).toString(),'%PDF-');await writeFile(resolve(output,'kalender-a3.pdf'),pdf1);
  await member.goto('/kalender.html?ret='+direct.id);const editMember=await mainForm(member);await fill(editMember,{title:'Rettet efter print'});await editMember.locator('button[type="submit"]').click();
- await member.getByText('Rettet efter print',{exact:true}).first().waitFor();const pdf2=await (await guestContext.request.get('/api/kalender/editions/'+editions[0].id+'/pdf')).body();assert.ok(pdf1.equals(pdf2));record('Published PDF bytes remain unchanged after event edit');
+ await member.getByText('Rettelsen er gemt og offentliggjort.',{exact:true}).waitFor();assert.equal((await published(guestContext,direct.id)).title,'Rettet efter print');const pdf2=await (await guestContext.request.get('/api/kalender/editions/'+editions[0].id+'/pdf')).body();assert.ok(pdf1.equals(pdf2));record('Published PDF bytes remain unchanged after event edit');
  await guest.goto('/forening.html');await guest.locator('.fp-card').first().waitFor();await guest.screenshot({path:resolve(output,'forening-desktop.png'),fullPage:true});
- await guest.goto('/kalender.html');await guest.locator('#calendar-content, #calendar-grid, .cal-month').first().waitFor();await guest.screenshot({path:resolve(output,'kalender-desktop.png'),fullPage:true});
+ await guest.goto('/kalender.html');await guest.locator('#calendar-events[aria-busy="false"]').waitFor();await guest.screenshot({path:resolve(output,'kalender-desktop.png'),fullPage:true});
  for(const width of [390,320]){
   await guest.setViewportSize({width,height:844});
   for(const path of ['/forening.html','/kalender.html','/kalender.html?opret=1','/nyt.html']){await guest.goto(path);await guest.waitForTimeout(150);assert.equal(await guest.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,path+' at '+width);}

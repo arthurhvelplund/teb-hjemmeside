@@ -19,6 +19,7 @@ const note = text => node('p', {class: 'fp-note'}, text);
 const eventPath = id => 'kalender.html?arrangement=' + encodeURIComponent(id);
 const publicURL = id => new URL(eventPath(id), location.href).href;
 const privateURL = (id, token) => new URL('kalender.html?privat=' + encodeURIComponent(id) + '#adgang=' + token, location.href).href;
+const loginURL = path => 'forening.html?return=' + encodeURIComponent(path) + '#login';
 const query = new URLSearchParams(location.search);
 const validDate = value => /^\d{4}-\d{2}-\d{2}$/.test(value || '') && Number.isFinite(Date.parse(value + 'T12:00:00Z')) && new Date(value + 'T12:00:00Z').toISOString().slice(0, 10) === value;
 const asDate = value => new Date(value + 'T12:00:00Z');
@@ -336,7 +337,7 @@ async function createEvent() {
       const {association} = await api('/associations/' + encodeURIComponent(selectedId));
       data = {association: association.name, associationId: association.id};
     }
-    if (guest) workspace.append(note('Du kan indsende uden login. TEB godkender, før arrangementet bliver synligt.'), node('p', {}, node('a', {href: 'forening.html'}, 'Har du foreningsadgang? Log ind her.')));
+    if (guest) workspace.append(note('Du kan indsende uden login. TEB godkender, før arrangementet bliver synligt.'), node('p', {}, node('a', {href: loginURL('kalender.html?opret=1')}, 'Har du foreningsadgang? Log ind her.')));
     workspace.append(eventForm({data, associations, selectedId, guest, email: session.user?.email || '', creating: true, onSave: async attempt => {
       const result = await api('/events', {body: attempt});
       if (!result.id) throw new Error('Kvitteringen mangler. Prøv samme indsendelse igen.');
@@ -347,7 +348,7 @@ async function createEvent() {
         history.replaceState(null, '', privateURL(result.id, attempt.authorToken));
         workspace.append(privateAccessLink(result.id, attempt.authorToken));
       } else if (published) workspace.append(node('a', {class: 'btn', href: eventPath(result.id)}, 'Se arrangementet'), node('p', {}, node('a', {href: 'kalender.html?ret=' + encodeURIComponent(result.id)}, 'Ret eller aflys arrangementet')));
-      else workspace.append(node('a', {href: 'forening.html'}, 'Se status i foreningsområdet'));
+      else workspace.append(node('a', {href: 'forening.html#arbejdsrum'}, 'Se status i foreningsområdet'));
       workspace.append(node('p', {}, node('a', {href: 'kalender.html?opret=1'}, 'Tilføj endnu et arrangement')), sharingChannels());
       await loadCalendar({quiet: true}); $('#workspace-heading')?.focus();
     }}), sharingChannels());
@@ -379,7 +380,7 @@ async function memberEdit(id) {
   try {
     const session = await getSession();
     if (!session.authenticated) {
-      openWorkspace('Log ind for at rette'); workspace.append(node('p', {}, 'Brug din verificerede foreningsadgang. Har du indsendt som gæst, skal du bruge det private link i din kvittering.'), node('a', {class: 'btn', href: 'forening.html'}, 'Gå til login')); return;
+      openWorkspace('Log ind for at rette'); workspace.append(node('p', {}, 'Brug din verificerede foreningsadgang. Har du indsendt som gæst, skal du bruge det private link i din kvittering.'), node('a', {class: 'btn', href: loginURL('kalender.html?ret=' + encodeURIComponent(id))}, 'Gå til login')); return;
     }
     // A public event cannot supply the private revision needed for an atomic update.
     const result = await api(session.user?.isAdmin ? '/admin/events' : '/me/events');
@@ -470,6 +471,7 @@ const route = query.has('privat') ? privateEvent(query.get('privat'))
   : query.get('opret') === '1' ? createEvent()
   : query.has('arrangement') ? publicDetails(query.get('arrangement')) : Promise.resolve();
 await Promise.allSettled([loadCalendar(), loadEditions(), route]);
+if (!query.has('opret') && !query.has('ret') && !query.has('privat')) $('#calendar-sharing')?.append(sharingChannels());
 if (!workspace.hidden) $('#workspace-heading')?.focus({preventScroll: true});
 
 // Refresh only visible pages, and never replace a form or a focused calendar link.

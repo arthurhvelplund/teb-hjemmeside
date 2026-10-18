@@ -38,5 +38,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: portal-checks
-          path: output/kalender-pilot/
+          path: output/portal-integreret/
           if-no-files-found: ignore

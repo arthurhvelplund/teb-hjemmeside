@@ -58,6 +58,13 @@ arrangementsdetaljer skal have brugbare titler og delbare links.
 
 ## Udgivelse og tilbagerulning
 
+Den samlede browsertest findes i `scripts/portal-browser-check.mjs` og kan køres
+fra projektroden med `node scripts/portal-browser-check.mjs`, efter backendens
+afhængigheder er installeret. Den starter sin egen server på port 8794 med
+en midlertidig database og rydder server og testdata op igen. Den bruger Chrome
+på macOS eller Playwrights Chromium på Linux. Resultater ligger i
+`output/portal-integreret/`. Den bruger kun lokal testmail.
+
 Kør backendtest, browsertest og Cloudflare dry-run før en udgivelse. Workflowet
 `portal-checks.yml` validerer ændringer uden at deploye. Det eksisterende Pages-
 workflow publicerer fra main; merge derfor først, når backend og konfiguration
