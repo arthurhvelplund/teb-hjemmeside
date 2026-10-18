@@ -1,8 +1,121 @@
 <!doctype html>
-<html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tistrup Kalenderen | TEB</title><meta name="description" content="Find arrangementer i Tistrup og Hodde. Send jeres forenings arrangement til byens fælles kalender."><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/foreningsportal.css"><link rel="icon" href="images/teb-trolde-haandtegnet.png"></head>
-<body class="portal-page"><header class="portal-header"><a href="kalender.html" class="portal-logo"><img src="images/teb-trolde-haandtegnet.png" alt="" width="76" height="60"><span>Tistrup<span>Kalenderen</span></span></a><a class="portal-back" href="foreningsportal.html">Tilføj et arrangement</a></header>
-<main class="portal-main calendar-main"><div class="portal-heading"><p class="calendar-kicker">Tistrup og Hodde · samlet af TEB</p><h1>Det sker <em>i Tistrup.</em></h1><p class="portal-intro">Find noget at glæde dig til.</p></div>
-<div class="calendar-toolbar"><label for="calendar-month">Vis arrangementer</label><select id="calendar-month"><option value="">Alle kommende</option></select><a href="#printudgaver">Hent printkalenderen</a></div><div id="calendar-message" aria-live="polite"></div><div id="calendar-events"><p>Henter kalenderen…</p></div>
-<section class="calendar-bottom" id="printudgaver"><h2>Kalenderen til opslagstavlen</h2><p>Her finder du de afsluttede printudgaver. Nye arrangementer og rettelser finder du altid i kalenderen ovenfor.</p><div id="calendar-editions"></div></section>
-<section class="portal-extra"><div><h2>Har jeres forening noget på programmet?</h2><p>Send arrangementet til TEBs godkendelse.</p></div><a class="portal-button" href="foreningsportal.html">Tilføj arrangement</a></section></main>
-<footer class="portal-footer"><a href="index.html">Tistrup Erhvervs- og Borgerforening</a><a href="kalender-redaktion.html">TEB · redaktion</a></footer><script type="module" src="js/kalender.js"></script></body></html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="same-origin">
+<title>Kalender for Tistrup og Hodde | TEB</title>
+<meta name="description" content="Find arrangementer i Tistrup og Hodde. Tilføj et arrangement, og hent byens printkalender.">
+<link rel="stylesheet" href="css/style.css?v=20261001-flat-menu">
+<link rel="stylesheet" href="css/portal.css">
+<link rel="stylesheet" href="css/kalender.css">
+<link rel="icon" href="images/teb-trolde-haandtegnet.png">
+</head>
+<body>
+<a class="cal-skip" href="#main">Gå til indhold</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo-link" aria-label="Tistrup Erhvervs- og Borgerforening – forsiden">
+      <img class="logo-mark" src="images/teb-trolde-haandtegnet.png" alt="">
+      <span class="logo-word">
+        <strong>TEB</strong>
+        <em>Tistrup Erhvervs- og Borgerforening</em>
+      </span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+    <nav class="nav" id="primary-nav" aria-label="Hovedmenu">
+      <a href="index.html">Forside</a>
+      <a href="erhverv.html">Erhverv</a>
+      <a href="om-tistrup.html">Om byen</a>
+      <a href="nyt.html">Det sker</a>
+      <a href="projekter.html">Projekter</a>
+      <a href="om-foreningen.html">Om TEB</a>
+      <a href="bliv-medlem.html" class="nav-cta">Bliv medlem</a>
+    </nav>
+    <a class="header-facebook" href="https://www.facebook.com/p/Tistrup-Erhvervs-og-Borgerforening-61594168058446/" target="_blank" rel="noopener" aria-label="Tistrup Erhvervs- og Borgerforening på Facebook (åbner i ny fane)" title="TEB på Facebook">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
+        <use href="images/facebook.svg#facebook"></use>
+      </svg>
+    </a>
+  </div>
+</header>
+<main id="main" class="fp-main" tabindex="-1">
+  <section class="fp-heading wrap">
+    <span class="eyebrow">Tistrup og Hodde</span>
+    <h1>Byens <em>kalender</em>.</h1>
+    <p class="lead">Find næste oplevelse, eller fortæl byen om jeres arrangement.</p>
+    <div class="fp-actions"><a class="btn" id="calendar-create-link" href="kalender.html?opret=1">Tilføj arrangement</a><a href="#printudgaver">Hent printkalenderen</a><a href="forening.html">Foreninger og login</a></div>
+  </section>
+  <div class="wrap">
+    <section id="calendar-workspace" hidden aria-label="Arrangement"></section>
+    <section id="calendar-public" aria-label="Offentlig kalender">
+      <div class="cal-toolbar fp-panel">
+        <div class="fp-actions" aria-label="Vælg periode"><button class="btn btn-secondary" id="calendar-prev" type="button" aria-label="Forrige periode">← Forrige</button><button class="btn btn-secondary" id="calendar-today" type="button">I dag</button><button class="btn btn-secondary" id="calendar-next" type="button" aria-label="Næste periode">Næste →</button></div>
+        <div class="fp-filter"><label for="calendar-date">Gå til dato</label><input id="calendar-date" type="date"></div>
+        <div class="cal-view-switch fp-actions" role="group" aria-label="Kalendervisning"><button id="calendar-month" class="btn btn-secondary" type="button" aria-pressed="true">Måned</button><button id="calendar-week" class="btn btn-secondary" type="button" aria-pressed="false">Uge</button></div>
+      </div>
+      <div class="fp-row cal-period"><h2 id="calendar-period" aria-live="polite"></h2><button class="cal-text-button" id="calendar-refresh" type="button">Opdatér kalenderen</button></div>
+      <div id="calendar-message" aria-live="polite"></div>
+      <div id="calendar-events" aria-busy="true"><p>Henter kalenderen…</p></div>
+      <p class="fp-note" id="calendar-updated"></p>
+    </section>
+    <section class="cal-archive" id="printudgaver" aria-labelledby="archive-heading">
+      <h2 id="archive-heading">Kalenderen til opslagstavlen</h2>
+      <p>Hent en afsluttet printudgave. Rettelser og aflysninger efter udgivelsen finder du i kalenderen ovenfor.</p>
+      <div id="calendar-editions" aria-live="polite"><p>Henter printudgaver…</p></div>
+      <details><summary>Ældre bykalender</summary><p><a href="downloads/kalender-september-oktober-2026.pdf" target="_blank" rel="noopener">September og oktober 2026 · PDF</a></p></details>
+    </section>
+  </div>
+  <noscript><p class="wrap fp-notice">Kalenderen kræver JavaScript for at hente de aktuelle arrangementer. Du kan stadig hente den ældre PDF eller <a href="kontakt.html">kontakte TEB</a>.</p></noscript>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="footer-mark">Tistrup Erhvervs-<br>og <em>Borgerforening</em></p>
+  </div>
+  <div class="footer-inner">
+    <div>
+      <h3>Foreningen</h3>
+      <p style="font-size:0.96rem;line-height:1.55;margin:0;">Stiftet 1904. Fusioneret med Tistrup Erhvervsråd i 2008.<br>CVR 31&nbsp;94&nbsp;02&nbsp;22<br>6862 Tistrup, Danmark</p>
+    </div>
+    <div>
+      <h3>Kontakt</h3>
+      <ul>
+        <li>Arthur Hvelplund<br><span style="font-size:0.85rem;opacity:0.7;">Formand</span></li>
+        <li><a href="tel:+4529228559">29 22 85 59</a></li>
+        <li><a href="mailto:afhvelplund@gmail.com">afhvelplund@gmail.com</a></li>
+        <li><a href="kontakt.html">Skriv til os</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>På siden</h3>
+      <ul>
+        <li><a href="index.html">Forside</a></li>
+        <li><a href="erhverv.html">Erhverv</a></li>
+        <li><a href="om-tistrup.html">Om byen</a></li>
+        <li><a href="nyt.html">Det sker</a></li>
+        <li><a href="projekter.html">Projekter</a></li>
+        <li><a href="om-foreningen.html">Om TEB</a></li>
+        <li><a href="bliv-medlem.html">Bliv medlem</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Genveje</h3>
+      <ul>
+        <li><a href="foreningsportal.html">Foreningsportal</a></li>
+        <li><a href="bliv-medlem.html">Bliv medlem</a></li>
+        <li><a href="dokumenter.html">Dokumenter</a></li>
+        <li><a href="bestyrelse.html">Bestyrelse</a></li>
+        <li><a href="https://tistrupnyt.dk/" target="_blank" rel="noopener">Tistrup Nyt</a></li>
+        <li><a href="https://www.facebook.com/p/Tistrup-Erhvervs-og-Borgerforening-61594168058446/" target="_blank" rel="noopener">Facebook-siden</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Tistrup Erhvervs- og Borgerforening</span>
+    <span>Byen i midten af det hele.</span>
+  </div>
+</footer>
+<script src="js/main.js?v=20261001-flat-menu"></script>
+<script type="module" src="js/kalender.js"></script>
+</body>
+</html>
