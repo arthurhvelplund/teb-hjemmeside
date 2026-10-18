@@ -50,7 +50,7 @@ try {
       await page.goto('/' + name);await page.locator('main').waitFor();
       const result = await page.evaluate(() => {
         const hero = document.querySelector('main > .hero-full, main > .page-hero');
-        const foreground = [...(hero?.querySelectorAll('.eyebrow,h1,.lead,.btn-row a,.fp-actions a,.fp-actions button') || [])].map(node => node.getBoundingClientRect());
+        const foreground = [...(hero?.querySelectorAll('.eyebrow,h1,.lead,a,button') || [])].map(node => node.getBoundingClientRect());
         const overlap = (a, b) => Math.min(a.right,b.right)-Math.max(a.left,b.left)>2 && Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>2;
         const collisions = hero?.classList.contains('hero-full') ? [] : [...(hero?.querySelectorAll('.halloween-decor img') || [])].filter(node => node.getClientRects().length).filter(node => foreground.some(box => overlap(node.getBoundingClientRect(),box))).map(node => node.parentElement.className);
         const bounds=hero.getBoundingClientRect(),decorBounds=hero.querySelector('[data-seasonal-decor]').getBoundingClientRect();

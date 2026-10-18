@@ -281,7 +281,7 @@ test('local R2 persists bytes, conditionally creates objects and rejects travers
 test('migration upgrades a pilot database once without changing original rows',async()=>{
  const path=await mkdtemp(join(tmpdir(),'teb-migrations-'));try{
   const file=join(path,'pilot.sqlite'),old=new DatabaseSync(file);old.exec(await readFile(new URL('../migrations/0001_calendar.sql',import.meta.url),'utf8'));old.prepare('INSERT INTO editions(id,month,deadline,data_json,created_at) VALUES(?,?,?,?,?)').run('original',month,copenhagenDate(),JSON.stringify({events:[]}),new Date().toISOString());old.close();
-  let db=database(file);assert.equal((await db.prepare('SELECT count(*) AS n FROM editions').first()).n,1);assert.equal((await db.prepare('SELECT count(*) AS n FROM d1_migrations').first()).n,3);db.close();db=database(file);assert.equal((await db.prepare('SELECT count(*) AS n FROM d1_migrations').first()).n,3);assert.equal((await db.prepare('SELECT id FROM editions').first()).id,'original');db.close();
+  let db=database(file);assert.equal((await db.prepare('SELECT count(*) AS n FROM editions').first()).n,1);assert.equal((await db.prepare('SELECT count(*) AS n FROM d1_migrations').first()).n,4);db.close();db=database(file);assert.equal((await db.prepare('SELECT count(*) AS n FROM d1_migrations').first()).n,4);assert.equal((await db.prepare('SELECT id FROM editions').first()).id,'original');db.close();
  }finally{await rm(path,{recursive:true,force:true});}
 });
 test('production worker never redirects root or exposes assets/site/CMS',async t=>{

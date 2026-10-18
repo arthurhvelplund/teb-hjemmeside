@@ -1,4 +1,5 @@
 import { parseDocument, DomUtils } from 'htmlparser2';
+import { validDate } from './shared.mjs';
 
 const SOURCE = { id: 'tistrup-nyt', name: 'Tistrup Nyt', url: 'https://tistrupnyt.dk/' };
 const CACHE_KEY = 'news/tistrup-nyt-v1.json';
@@ -68,11 +69,12 @@ async function readHtml(response) {
   } finally { reader.releaseLock(); }
 }
 
-export function createNewsService({ fetcher = fetch, clock = () => Date.now() } = {}) {
+export function createNewsService({ fetcher = fetch, clock = () => Date.now(), source = SOURCE, parser = parseTistrupNews } = {}) {
+  const cacheKey = source.id === SOURCE.id ? CACHE_KEY : `news/${source.id}-v1.json`;
   const pending = new WeakMap();
   async function load(bucket) {
     const now = clock();
-    const object = await bucket.get(CACHE_KEY);
+    const object = await bucket.get(cacheKey);
     let cached = null;
     if (object) {
       try { cached = JSON.parse(new TextDecoder().decode(await object.arrayBuffer())); }
@@ -82,23 +84,24 @@ export function createNewsService({ fetcher = fetch, clock = () => Date.now() } 
     if (cached && now < cached.nextCheckAt) return result(cached, now);
     let record;
     try {
-      const response = await fetcher(SOURCE.url, {
+      const response = await fetcher(source.url, {
         headers: { Accept: 'text/html', 'User-Agent': 'TEB-Tistrup-News/1.0 (+https://www.teb-tistrup.dk/)' },
         redirect: 'manual', signal: AbortSignal.timeout(12000)
       });
-      const items = parseTistrupNews(await readHtml(response));
-      record = { version: 1, items, fetchedAt: new Date(now).toISOString(), nextCheckAt: now + NEWS_TTL, failed: false };
+      const parsed = parser(await readHtml(response));
+      const {items, events = []} = Array.isArray(parsed) ? {items: parsed} : parsed;
+      record = { version: 1, items, events, fetchedAt: new Date(now).toISOString(), nextCheckAt: now + NEWS_TTL, failed: false };
     } catch {
-      record = { version: 1, items: cached?.items || [], fetchedAt: cached?.fetchedAt || null,
+      record = { version: 1, items: cached?.items || [], events: cached?.events || [], fetchedAt: cached?.fetchedAt || null,
         nextCheckAt: now + RETRY_DELAY, failed: true };
     }
-    await bucket.put(CACHE_KEY, new TextEncoder().encode(JSON.stringify(record)), {
+    await bucket.put(cacheKey, new TextEncoder().encode(JSON.stringify(record)), {
       httpMetadata: { contentType: 'application/json' }
     });
     return result(record, now);
   }
   function result(record, now) {
-    return { source: SOURCE, items: record.items, fetchedAt: record.fetchedAt,
+    return { source, items: record.items, events: record.events || [], fetchedAt: record.fetchedAt,
       stale: record.failed || now - Date.parse(record.fetchedAt) >= NEWS_TTL,
       nextCheckAt: new Date(record.nextCheckAt).toISOString() };
   }
@@ -112,11 +115,43 @@ export function createNewsService({ fetcher = fetch, clock = () => Date.now() } 
 }
 
 const news = createNewsService();
-export async function handleNews(request, env) {
+const pulsenSource = {id:'pulsen',name:'Pulsen i Vest',url:'https://pulsenivest.dk/by/tistrup'};
+const hasClass = (node,name) => (node.attribs?.class||'').split(/\s+/).includes(name);
+const byClass = (node,name) => DomUtils.findOne(n=>hasClass(n,name),node.children||[],true);
+const textOf = (node,max) => clean(node?DomUtils.textContent(node):'',max);
+function pulsenURL(value,image=false){
+ try{const url=new URL(value,pulsenSource.url);if(url.protocol!=='https:'||url.hostname!=='pulsenivest.dk'||url.username||url.password||url.port)return null;
+  if(image?!/^\/(?:image-cache\/variants|media\/puls)\//.test(url.pathname):!/^\/(?:nyhed|event)\//.test(url.pathname))return null;
+  url.hash='';return url.href;
+ }catch{return null;}
+}
+export function parsePulsen(html){
+ const document=parseDocument(html);
+ for(const name of ['script','style'])for(const node of DomUtils.getElementsByTagName(name,document))DomUtils.removeElement(node);
+ const items=[],events=[],seen=new Set();
+ for(const article of DomUtils.getElementsByTagName('article',document)){
+  const isEvent=hasClass(article,'city-event');if(!isEvent&&!hasClass(article,'city-story'))continue;
+  const heading=DomUtils.getElementsByTagName('h3',article)[0],link=heading&&DomUtils.getElementsByTagName('a',heading)[0];
+  const url=link&&pulsenURL(link.attribs.href),title=textOf(heading,240);if(!url||!title||seen.has(url))continue;
+  const summary=textOf(byClass(article,'city-teaser'),380),imageNode=DomUtils.getElementsByTagName('img',article)[0];
+  const item={id:url,title,summary,url,image:imageNode?pulsenURL(imageNode.attribs.src,true):null};
+  if(isEvent){
+   const stamp=DomUtils.getElementsByTagName('time',article)[0]?.attribs.datetime;
+   if(!/^20\d\d-\d\d-\d\dT(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d[+-]\d\d:\d\d$/.test(stamp||'')||!validDate(stamp.slice(0,10))||!Number.isFinite(Date.parse(stamp)))continue;
+   // The card's Copenhagen-local date/time is authoritative. Never infer dates from titles.
+   events.push({...item,date:stamp.slice(0,10),time:stamp.slice(11,16)==='00:00'?'':stamp.slice(11,16),description:summary,location:textOf(byClass(article,'city-card-meta'),180)});
+  }else if(items.length<12)items.push(item);
+  seen.add(url);
+ }
+ if(!items.length)throw new Error('No source article cards found');
+ return {items,events:events.slice(0,60)};
+}
+const pulsen = createNewsService({source:pulsenSource,parser:parsePulsen});
+export async function handleNews(request, env, sourceId = 'tistrup-nyt') {
   const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
   if (request.method !== 'GET') return Response.json({ error: 'Denne handling er ikke tilladt.' }, { status: 405, headers: { ...headers, Allow: 'GET' } });
   try {
-    const data = await news(env.PDFS);
+    const data = await (sourceId === 'pulsen' ? pulsen : news)(env.PDFS);
     return Response.json(data.items.length ? data : { ...data, error: 'Nyhederne kan ikke hentes lige nu.' }, {
       status: data.items.length ? 200 : 503, headers
     });

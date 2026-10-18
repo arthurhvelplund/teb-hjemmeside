@@ -1,6 +1,6 @@
 # Fælles sideramme og sæsontema
 
-Alle hjemmesidens 15 indholdssider bruger samme sideramme. HTML-filerne i
+Alle hjemmesidens indholdssider bruger samme sideramme. HTML-filerne i
 `site/` er færdige statiske sider. Browseren behøver ikke hente header eller
 footer bagefter, og indholdet virker uden en separat frontendserver.
 

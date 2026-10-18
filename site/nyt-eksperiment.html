@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Et samlet overblik over lokale nyheder og arrangementer i Tistrup og Hodde.">
+<title>Det sker · forsøg | TEB</title>
+<link rel="stylesheet" href="css/style.css?v=a37d3c51d78f">
+<link rel="stylesheet" href="css/layout.css?v=43e8a3bac517">
+<link rel="stylesheet" href="css/portal.css?v=17093cd2e634">
+<link rel="stylesheet" href="css/det-sker.css?v=de94d540b2eb">
+<link rel="icon" href="images/teb-trolde-haandtegnet.png">
+<link rel="stylesheet" href="css/seasonal-themes.css?v=a1ddd5609eb2">
+<script src="js/seasonal-theme.js?v=5a1758734788"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo-link" aria-label="Tistrup Erhvervs- og Borgerforening – forsiden">
+      <img class="logo-mark" src="images/teb-trolde-haandtegnet.png" alt="">
+      <span class="logo-word">
+        <strong>TEB</strong>
+        <em>Tistrup Erhvervs- og Borgerforening</em>
+      </span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+    <nav class="nav" id="primary-nav" aria-label="Hovedmenu">
+      <a href="index.html">Forside</a>
+      <a href="erhverv.html">Erhverv</a>
+      <a href="forening.html">Forening</a>
+      <a href="kalender.html">Kalender</a>
+      <a href="nyt.html" class="active" aria-current="page">Det sker</a>
+      <a href="om-tistrup.html">Om byen</a>
+      <a href="projekter.html">Projekter</a>
+      <a href="om-foreningen.html">Om TEB</a>
+      <a href="bliv-medlem.html" class="nav-cta">Bliv medlem</a>
+    </nav>
+    <a class="header-facebook" href="https://www.facebook.com/p/Tistrup-Erhvervs-og-Borgerforening-61594168058446/" target="_blank" rel="noopener" aria-label="Tistrup Erhvervs- og Borgerforening på Facebook (åbner i ny fane)" title="TEB på Facebook">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
+        <use href="images/facebook.svg#facebook"></use>
+      </svg>
+    </a>
+  </div>
+</header>
+<main class="site-main">
+ <section class="hero page-hero">
+  <div class="wrap page-heading ds-heading">
+   <span class="eyebrow">Tistrup og Hodde</span>
+   <div class="ds-heading-row"><div><h1>Det <em>sker.</em></h1><p class="lead">Historier fra byen. Noget at glæde sig til.</p></div><div class="ds-heading-actions"><button type="button" class="btn" id="ds-create">+ Del med byen</button><a id="ds-login" href="forening.html?return=nyt-eksperiment.html#login">Log ind →</a></div></div>
+  </div>
+ </section>
+ <div class="wrap ds-body">
+  <p class="ds-experiment">Forsøgsudgave. Nye prøveopslag bliver kun gemt her. <a href="nyt.html">Se den nuværende side</a></p>
+  <section id="ds-composer" class="ds-composer" aria-labelledby="ds-composer-heading" hidden></section>
+  <section id="ds-review" class="ds-review" aria-labelledby="ds-review-heading" hidden></section>
+  <nav class="ds-toolbar" aria-label="Vælg indhold"><div class="ds-tabs" role="group" aria-label="Visning"><button type="button" data-view="overview" aria-pressed="true">Overblik</button><button type="button" data-view="news" aria-pressed="false">Nyheder</button><button type="button" data-view="calendar" aria-pressed="false">Kalender</button></div><label class="ds-search"><span class="sr-only">Søg i nyheder og arrangementer</span><input type="search" id="ds-search" placeholder="Søg i byen…"></label><button type="button" class="ds-text-button" id="ds-refresh">Opdatér</button></nav>
+  <div id="ds-message" aria-live="polite"></div>
+  <div class="ds-columns" data-view="overview" id="ds-columns">
+   <section class="ds-news" aria-labelledby="ds-news-heading"><div class="ds-section-heading"><h2 id="ds-news-heading">Fra <em>byen</em></h2><label><span class="sr-only">Vælg kilde</span><select id="ds-source"><option value="all">Alle kilder</option><option value="tistrup-nyt">Tistrup Nyt</option><option value="pulsen">Pulsen i Vest</option><option value="local">Foreningernes prøveopslag</option></select></label></div><div id="ds-feed" aria-busy="true"><p>Henter historier…</p></div><button class="btn btn-secondary" id="ds-more" type="button" hidden>Vis flere historier</button><p class="ds-source-status" id="ds-source-status" role="status"></p></section>
+   <aside class="ds-calendar" aria-labelledby="ds-calendar-heading"><div class="ds-section-heading"><h2 id="ds-calendar-heading">Det <em>næste</em></h2><span class="ds-label">Kalender</span></div><div class="ds-period"><button id="ds-prev" type="button" aria-label="Forrige uge">←</button><strong id="ds-period"></strong><button id="ds-next" type="button" aria-label="Næste uge">→</button><button id="ds-today" type="button">I dag</button></div><div class="ds-calendar-modes" role="group" aria-label="Kalenderperiode"><button id="ds-week" type="button" aria-pressed="true">Uge</button><button id="ds-month" type="button" aria-pressed="false">Måned</button></div><div id="ds-events" aria-busy="true"><p>Henter arrangementer…</p></div><p id="ds-events-status" class="ds-source-status" role="status"></p><a class="ds-all-calendar" href="kalender.html">Åbn den fulde aktivitetskalender →</a><details class="ds-print"><summary>Kalenderen på papir</summary><p>Hent kalenderen til opslagstavlen. Afsluttede udgaver ændrer sig ikke, når noget rettes.</p><div id="ds-editions"></div><a href="downloads/kalender-september-oktober-2026.pdf" target="_blank" rel="noopener">September–oktober 2026 · PDF ↗</a><p>Nye prøveopslag indgår ikke i de eksisterende printudgaver.</p></details></aside>
+  </div>
+  <section id="ds-reach" class="ds-reach" aria-labelledby="ds-reach-heading"><div><span class="eyebrow">Når hele byen skal høre det</span><h2 id="ds-reach-heading">Nå flere <em>i byen.</em></h2><p>Nyheder og arrangementer starter her. Brug også byens fysiske steder og andre lokale medier.</p></div><div id="ds-channels"></div></section>
+  <section class="ds-sources" aria-labelledby="ds-sources-heading"><h2 id="ds-sources-heading">Direkte til de lokale kilder</h2><p>Læs hele historien hos dem, der har skrevet den. TEB’s egne Facebook-opslag finder du på <a href="index.html#facebook">forsiden</a>.</p><div><a href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer">Tistrup Nyt ↗</a><a href="https://pulsenivest.dk/by/tistrup" target="_blank" rel="noopener noreferrer">Pulsen i Vest ↗</a><a href="https://www.tistrupnews.dk/" target="_blank" rel="noopener noreferrer">Tistrupnews ↗</a><a href="https://vores-tistrup.dk/" target="_blank" rel="noopener noreferrer">VORES Tistrup ↗</a><a href="https://sundhedsfremme.vardekommune.dk/lokalsamfund/" target="_blank" rel="noopener noreferrer">Fællesskaber i Varde ↗</a></div></section>
+ </div>
+ <noscript><p class="wrap">Åbn <a href="kalender.html">aktivitetskalenderen</a> eller besøg de lokale medier via linkene ovenfor. Forsøgsvisningen kræver JavaScript.</p></noscript>
+</main>
+<dialog id="ds-detail" class="ds-dialog" aria-labelledby="ds-detail-heading"><button type="button" id="ds-detail-close" class="ds-close" aria-label="Luk opslag">Luk ×</button><div id="ds-detail-content"></div></dialog>
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="footer-mark">Tistrup Erhvervs-<br>og <em>Borgerforening</em></p>
+  </div>
+  <div class="footer-inner">
+    <div>
+      <h3>Foreningen</h3>
+      <p class="footer-about">Stiftet 1904. Fusioneret med Tistrup Erhvervsråd i 2008.<br>CVR 31&nbsp;94&nbsp;02&nbsp;22<br>6862 Tistrup, Danmark</p>
+    </div>
+    <div>
+      <h3>Kontakt</h3>
+      <ul>
+        <li>Arthur Hvelplund<br><span class="footer-role">Formand</span></li>
+        <li><a href="tel:+4529228559">29 22 85 59</a></li>
+        <li><a href="mailto:afhvelplund@gmail.com">afhvelplund@gmail.com</a></li>
+        <li><a href="kontakt.html">Skriv til os</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>På siden</h3>
+      <ul>
+        <li><a href="index.html">Forside</a></li>
+        <li><a href="erhverv.html">Erhverv</a></li>
+        <li><a href="om-tistrup.html">Om byen</a></li>
+        <li><a href="nyt.html">Det sker</a></li>
+        <li><a href="projekter.html">Projekter</a></li>
+        <li><a href="om-foreningen.html">Om TEB</a></li>
+        <li><a href="bliv-medlem.html">Bliv medlem</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Genveje</h3>
+      <ul>
+        <li><a href="forening.html">Forening</a></li>
+        <li><a href="kalender.html">Kalender</a></li>
+        <li><a href="bliv-medlem.html">Bliv medlem</a></li>
+        <li><a href="dokumenter.html">Dokumenter</a></li>
+        <li><a href="bestyrelse.html">Bestyrelse</a></li>
+        <li><a href="hodde-tistrup-prisen.html">Hodde-Tistrup Prisen</a></li>
+        <li><a href="https://tistrupnyt.dk/" target="_blank" rel="noopener">Tistrup Nyt</a></li>
+        <li><a href="https://www.facebook.com/p/Tistrup-Erhvervs-og-Borgerforening-61594168058446/" target="_blank" rel="noopener">Facebook-siden</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Tistrup Erhvervs- og Borgerforening</span>
+    <span>Byen i midten af det hele.</span>
+  </div>
+</footer>
+<script src="js/main.js?v=5cfc1e933733"></script>
+<script type="module" src="js/det-sker.js?v=0c1d446b9152"></script>
+</body>
+</html>

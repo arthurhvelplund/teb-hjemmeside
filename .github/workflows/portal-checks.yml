@@ -32,7 +32,7 @@ jobs:
       - name: Browser for integration tests
         run: npx playwright install --with-deps chromium
       - name: Browser integration checks
-        run: npm run test:browser && node ../scripts/mailbox-content-check.mjs && node ../scripts/site-layout-browser-check.mjs
+        run: npm run test:browser && node ../scripts/mailbox-content-check.mjs && node ../scripts/site-layout-browser-check.mjs && node ../scripts/det-sker-browser-check.mjs
       - name: Cloudflare build without deployment
         run: npm run build
       - name: Retain diagnostic screenshots and PDF
@@ -40,5 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: portal-checks
-          path: output/portal-integreret/
+          path: |
+            output/portal-integreret/
+            output/det-sker-eksperiment/
           if-no-files-found: ignore

@@ -46,10 +46,10 @@ function route() {
   const [name, params = ''] = location.hash.slice(1).split('?');
   return { page: name || query.get('side') || (query.has('id') || query.has('forening') ? 'profil' : 'oversigt'), params: new URLSearchParams(params), query };
 }
-// Only local calendar/association pages can receive a user after login.
+// Only explicitly allowed local portal pages can receive a user after login.
 function returnTarget() {
   const raw = new URLSearchParams(location.search).get('return');
-  if (!raw || !/^(?:kalender|forening)\.html(?:[?#]|$)/.test(raw) || /[\\\u0000-\u001f]/.test(raw)) return null;
+  if (!raw || !/^(?:kalender|forening|nyt-eksperiment)\.html(?:[?#]|$)/.test(raw) || /[\\\u0000-\u001f]/.test(raw)) return null;
   const target = new URL(raw, location.href);
   const expected = new URL(raw.split(/[?#]/)[0], location.href);
   if (target.origin !== location.origin || target.pathname !== expected.pathname) return null;

@@ -6,6 +6,7 @@ export const navigation = [
   ['bliv-medlem.html', 'Bliv medlem']
 ];
 export const parents = {
+  'nyt-eksperiment.html': 'nyt.html',
   'bestyrelse.html': 'om-foreningen.html', 'dokumenter.html': 'om-foreningen.html',
   'hodde-tistrup-prisen.html': 'om-tistrup.html'
 };
