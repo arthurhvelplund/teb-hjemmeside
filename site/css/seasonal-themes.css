@@ -111,3 +111,7 @@ html[data-seasonal-theme="halloween"] .audience-card:last-child::after{backgroun
   .halloween-decor{display:none!important}
   html[data-seasonal-theme="halloween"] .site-main{background:none}
 }
+
+/* Compact headings retain the common seasonal background with small corner webs. */
+html[data-seasonal-theme="halloween"] .page-hero--compact .halloween-secondary > *{display:none}
+html[data-seasonal-theme="halloween"] .page-hero--compact .halloween-secondary > .halloween-web{display:block;width:28px;height:28px}

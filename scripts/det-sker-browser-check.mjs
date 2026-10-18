@@ -18,7 +18,8 @@ const output=resolve(root,'output/det-sker-eksperiment');await mkdir(output,{rec
 const service=spawn(process.execPath,['scripts/dev.mjs'],{cwd:resolve(root,'calendar-worker'),env:{...process.env,PORT:String(port),CALENDAR_DATA_DIR:runtime},stdio:['ignore','ignore','pipe']});
 let browser,stderr='';service.stderr.on('data',x=>stderr+=x);const errors=[],checks=[];
 const check=(name,value=true)=>{assert.ok(value,name);checks.push(name);console.log('OK: '+name);};
-const date=copenhagenDate();
+const date=copenhagenDate(),future=new Date(date+'T12:00:00Z');future.setUTCDate(future.getUTCDate()+6);
+const futureDate=future.toISOString().slice(0,10);
 const news=Array.from({length:12},(_,i)=>({id:String(i),title:'Historie '+i+' fra den lokale testavis',summary:'En kort nyhed fra byen.',url:'https://tistrupnyt.dk/id/'+(100+i)+'/test'}));
 async function call(context,path,data){const r=await context.request.fetch(origin+'/api/kalender'+path,{...(data?{method:'POST',data}:{}),headers:{Origin:origin}});const body=await r.json();assert.ok(r.ok(),JSON.stringify(body));return body;}
 async function login(context,email){
@@ -29,7 +30,8 @@ async function login(context,email){
 async function context(){
  const ctx=await browser.newContext({baseURL:origin,viewport:{width:1440,height:1000},reducedMotion:'reduce'});
  await ctx.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
- await ctx.route('**/api/kalender/nyheder/*',route=>route.fulfill({json:{items:route.request().url().endsWith('/pulsen')?[]:news,events:route.request().url().endsWith('/pulsen')?[{id:'imported-event',title:'Arrangement fra Pulsen',date,time:'14:00',location:'Tistrup',url:'https://pulsenivest.dk/event/test/'+date}]:[],fetchedAt:new Date().toISOString(),stale:false}}));
+ await ctx.route('**/api/kalender/nyheder/*',route=>route.fulfill({json:{items:route.request().url().endsWith('/pulsen')?[]:news,events:route.request().url().endsWith('/pulsen')?[{id:'imported-event',title:'Arrangement fra Pulsen',date,time:'14:00',image:'https://images.example.test/event.jpg',location:'Tistrup',url:'https://pulsenivest.dk/event/test/'+date},{id:'next-week',title:'Arrangement om seks dage',date:futureDate,time:'12:00',location:'Tistrup',url:'https://pulsenivest.dk/event/future/'+futureDate}]:[],fetchedAt:new Date().toISOString(),stale:false}}));
+ await ctx.route('https://images.example.test/event.jpg',route=>route.fulfill({path:resolve(root,'site/images/tistrup-torv.jpg')}));
  ctx.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));return ctx;
 }
 try{
@@ -43,9 +45,16 @@ try{
  await page.locator('#ds-search').fill('Nothing matches');assert.equal(await page.locator('#ds-feed article').count(),0);await page.locator('#ds-search').fill('');
  assert.equal(await page.locator('#ds-feed article a').count(),9);assert.equal(await page.getByText('Læs historien',{exact:true}).count(),0);
  assert.equal(await page.locator('#ds-reach').count(),0);assert.equal(await page.getByRole('button',{name:'År',exact:true}).count(),0);
- assert.equal(await page.getByText('Se fysisk kalender',{exact:true}).count(),1);
+ assert.equal(await page.locator('.ds-print summary').count(),1);
+ assert.equal(await page.locator('#ds-week').getAttribute('aria-pressed'),'true');
+ const strip=await page.locator('.calendar-week-strip').boundingBox();assert.ok(strip.y<360,'upcoming days appear near the top');
+ await page.locator('.ds-print summary').click();assert.equal(await page.locator('.ds-print-archive').isVisible(),true);assert.ok(await page.locator('.ds-print summary img').count());await page.locator('.ds-print summary').click();
  const calendarTop=await page.locator('.ds-calendar').boundingBox(),newsTop=await page.locator('.ds-news').boundingBox();assert.ok(calendarTop.y<newsTop.y);
- check('real page: calendar first, direct news links, source search and no public sharing panel');
+ assert.equal(await page.locator('.calendar-week-strip button').count(),7);
+ assert.equal(await page.locator('.calendar-entry').filter({hasText:'Arrangement om seks dage'}).count(),1,'default week includes the next six days');
+ await page.locator('.calendar-entry-image').first().waitFor();
+ await page.locator('.calendar-week-strip button').first().click();assert.equal(await page.locator('.calendar-reset').isVisible(),true);await page.locator('.calendar-reset').click();
+ check('compact landing, next seven days, photos, day selection, physical archive and direct news links');
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:resolve(output,'feed-'+width+'.png'),fullPage:true});await page.screenshot({path:resolve(output,'feed-top-'+width+'.png')});}
  check('desktop and mobile layout at 1440, 390 and 320 pixels');
  await page.setViewportSize({width:1440,height:1000});await page.locator('#ds-create').click();await page.locator('#ds-field-title').waitFor();

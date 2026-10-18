@@ -16,7 +16,7 @@ const label=date=>dateText(date,{year:undefined});
 const shortDate=date=>new Intl.DateTimeFormat('da-DK',{day:'numeric',month:'short',timeZone:'Europe/Copenhagen'}).format(new Date(date+'T12:00:00Z'));
 const query=new URLSearchParams(location.search);
 let siteMode='offline';
-let session={authenticated:false,memberships:[]},posts=[],events=[],external=[],externalEvents=[],sourceStatus={},source='all',search='',visible=9,anchor=today(),mode='month',loading=false;
+let session={authenticated:false,memberships:[]},posts=[],events=[],external=[],externalEvents=[],sourceStatus={},source='all',search='',visible=9,anchor=today(),mode='week',loading=false;
 let sourceLoaded=false,eventLoaded=false,postLoaded=false;
 const localPath=id=>'nyt.html?opslag='+encodeURIComponent(id);
 const channels=[['flyers','Flyers i postkasser','Aftal omdeling, pris og frist med udbyderen.'],['portals','Analoge byportaler','Spørg om plads på byens portaler.'],['screens','Infoskærme','Kontakt udbyderen om format, pris og placering.'],['posters','Plakater i byen','Brug aftalte opslagstavler og pladser.']];
@@ -65,15 +65,16 @@ function allEvents(){
  return [...list,...externalEvents].filter(p=>/^\d{4}-\d{2}-\d{2}$/.test(p.date||'')).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')||a.title.localeCompare(b.title,'da'));
 }
 function renderCalendar(){
- const period=calendarBounds(anchor,mode),root=$('#ds-events');
- $('#ds-period').textContent=mode==='month'?dateText(period.from,{day:undefined,year:'numeric'}):shortDate(period.from)+' – '+shortDate(period.to);
+ const period=calendarBounds(anchor,mode,{rolling:true}),root=$('#ds-events');
+ $('#ds-period').textContent=mode==='month'?dateText(period.from,{day:undefined,year:'numeric'}):(period.from.slice(0,7)===period.to.slice(0,7)?Number(period.from.slice(-2))+'–'+shortDate(period.to):shortDate(period.from)+' – '+shortDate(period.to));
  for(const m of ['week','month'])$('#ds-'+m).setAttribute('aria-pressed',String(mode===m));
  for(const [id,text]of [['prev','Forrige '],['next','Næste ']])$('#ds-'+id).setAttribute('aria-label',text+(mode==='week'?'uge':'måned'));
  document.querySelector('.calendar-scroll-hint').hidden=mode==='week';
- const selected=allEvents().filter(matches);
+ const selected=allEvents().filter(matches).map(event=>({...event,image:event.image||external.find(story=>story.sourceId===event.sourceId&&story.title.trim().toLocaleLowerCase('da')===event.title.trim().toLocaleLowerCase('da'))?.image}));
  root.replaceChildren(calendarGrid({events:selected,bounds:period,mode,onOpen:openDetails,eventHref:p=>p.sourceId?p.url:p.standardEvent?'kalender.html?arrangement='+encodeURIComponent(p.id):localPath(p.id)}));
  if(eventLoaded&&!selected.some(p=>p.date<=period.to&&(p.endDate||p.date)>=period.from))root.append(el('p',{class:'ds-source-status'},search?'Ingen arrangementer passer til søgningen i denne periode.':'Ingen arrangementer i denne periode.'));
  root.setAttribute('aria-busy',String(!eventLoaded));
+ if(eventLoaded&&!$('#ds-events-status').textContent.includes('kunne')){const count=selected.filter(p=>p.date<=period.to&&(p.endDate||p.date)>=period.from).length;$('#ds-events-status').textContent=count+' '+(count===1?'arrangement':'arrangementer')+' · TEB og lokale kilder';}
 }
 $('#ds-search').addEventListener('input',e=>{search=e.target.value.trim().toLocaleLowerCase('da');visible=9;renderFeed();renderCalendar();});
 $('#ds-source').addEventListener('change',e=>{source=e.target.value;visible=9;renderFeed();});
@@ -103,7 +104,7 @@ async function loadLocal(){
  const id=query.get('opslag');if(id){try{const item=posts.find(p=>p.id===id)||(await api('/posts/'+encodeURIComponent(id))).post;openDetails(item);}catch{showMessage($('#ds-message'),'Opslaget er ikke offentligt. Det kan afvente godkendelse eller være fjernet.');}}
 }
 async function loadEvents(){
- try{const data=await api('/events?from='+shift(today(),-370)+'&to='+(Number(today().slice(0,4))+3)+'-12-31');events=data.events||[];$('#ds-events-status').textContent='Aktivitetskalenderen er opdateret.';}
+ try{const data=await api('/events?from='+shift(today(),-370)+'&to='+(Number(today().slice(0,4))+3)+'-12-31');events=data.events||[];$('#ds-events-status').textContent='';}
  catch(e){$('#ds-events-status').textContent='Aktivitetskalenderen kunne ikke opdateres. Viser eventuelle sidst hentede oplysninger.';}
  eventLoaded=true;renderCalendar();
 }

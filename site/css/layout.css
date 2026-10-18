@@ -8,3 +8,6 @@
 .page-heading .lead{max-width:54ch}
 .footer-about{font-size:.96rem;line-height:1.55;margin:0}
 .footer-role{font-size:.85rem;opacity:.7}
+
+/* A compact shared heading for pages where the content comes first. */
+.page-hero--compact > .wrap,.page-hero--compact > .wrap-narrow,.page-hero--compact > .hero-grid{padding-block:1.5rem}

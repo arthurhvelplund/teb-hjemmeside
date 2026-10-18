@@ -18,6 +18,11 @@ Det fælles design ligger i `css/style.css`; sæsonudsmykning ligger separat.
 Kalendergitteret deles af `nyt.html` og `kalender.html` via `js/calendar-grid.js`
 og `css/calendar-grid.css`. Delingsmuligheder vises kun under oprettelse.
 
+Det sker starter med de næste syv dage. Datoerne kan vælges enkeltvis, og
+arrangementer vises under deres dag med foto, når et foto er tilgængeligt.
+Månedsvisningen bevarer kalendergitteret. Den kompakte sideoverskrift er
+en fælles layoutvariant, og papirudgaver åbnes fra boksen med kalenderbilledet.
+
 Frontend kalder `/api/kalender/*`. Backend i `calendar-worker/` kontrollerer
 login, adgang, data og offentliggørelse. Der er ingen faste prøvekoder eller
 roller gemt i frontend. Gamle arrangementslinks viderestilles til de nye sider.
