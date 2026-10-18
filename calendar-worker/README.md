@@ -170,6 +170,26 @@ Reference: https://developers.cloudflare.com/email-service/api/send-emails/worke
 
 ## Print og uforanderlige PDF'er
 
+Print bruger skabelonen Farver og fællesskab med stor kondenseret overskrift,
+TEBs trolde, grønne og rosa månedsfelter, dato/ugedag og QR til netkalenderen.
+Skabelonen bruger de medfølgende OFL-skrifter Anton og Noto Sans. Lange tekster
+ombrydes, og fyldte sider fortsætter med månedsoverskrift på næste side.
+
+TEBs printfane på `forening.html#teb?fane=print` kræver et til-/fravalg ved
+hvert arrangement. Ingen arrangementer er valgt på forhånd. Redaktøren kan
+forkorte titel, praktiske oplysninger og arrangør alene til print. Datofelt og
+dato-note kan tilpasses til fx en ugentlig aktivitet. Det ændrer ikke den
+offentlige begivenhed eller dens dato. En ny korrektur kræves efter hver ændring.
+
+`GET /admin/editions/events` med periode, frist og format returnerer de mulige
+arrangementer og `reviewHash`. `POST /admin/editions/preview` og finalisering
+modtager samme parametre plus `eventIds`, `reviewHash` og valgfri
+`printOverrides: { [eventId]: {title,details,association,dateLabel,dateNote} }`.
+Finalisering kræver eksplicit udvælgelse. En ændring i kalendergrundlaget siden
+gennemgangen giver 409, før en ny udgave reserveres. Et genforsøg efter en
+usikker finalisering genbruger derimod det allerede reserverede snapshot.
+Det gamle GET-preview bevares til gennemgang af hele periodens grundlag.
+
 Print understøtter `start`, `end`, `deadline` og `format:poster|a3`.
 `poster` er 500 × 700 mm, A3 er 297 × 420 mm. Intervallet må dække højst et år.
 Legacy `month=YYYY-MM` dækker fortsat den måned og den næste. Preview tillader en
@@ -192,7 +212,7 @@ bevares; første PDF-hentning fryser filen i R2 én gang. Historiske PDF-filer i
 hjemmesidens øvrige arkiv berøres ikke. Konfigurér ikke en R2-livscyklusregel,
 som sletter færdige udgaver. DB og R2 skal sikkerhedskopieres sammen.
 
-Kun printskrifter og OFL-licens ligger i Workerens `assets/`. Interne font-fetches
+Kun printskrifter, OFL-licenser og TEBs printlogo ligger i Workerens `assets/`. Interne asset-fetches
 bruger ASSETS-bindingen. Workerens fetch-handler returnerer 404 uden for API,
 så den hverken serverer hovedsitet eller laver pilotens redirect/noindex.
 

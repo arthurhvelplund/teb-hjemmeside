@@ -25,7 +25,11 @@ const assets={async fetch(request){
  }catch{return new Response('Siden findes ikke.',{status:404});}
 }};
 const editorEmail=process.env.EDITOR_EMAIL||'tistrup.kalender@gmail.com';
-const env={DB,PDFS:localR2(resolve(runtime,'r2')),LOCAL_PREVIEW:'true',PUBLIC_ORIGIN:`http://localhost:${port}`,EDITOR_EMAIL:editorEmail,EMAIL_FROM:'kalender@example.test',TEB_ADMIN_EMAILS:process.env.TEB_ADMIN_EMAILS||editorEmail,MAIL_ENCRYPTION_KEY:mailKey,ASSETS:assets};
+const printRoot=resolve(new URL('../assets/',import.meta.url).pathname);
+const printAssets={async fetch(request){
+ try{const file=resolve(printRoot,'.'+decodeURIComponent(new URL(request.url).pathname));if(!file.startsWith(printRoot+'/'))return new Response(null,{status:404});return new Response(await readFile(file),{headers:{'Content-Type':mime[extname(file)]||'application/octet-stream'}});}catch{return new Response(null,{status:404});}
+}};
+const env={DB,PDFS:localR2(resolve(runtime,'r2')),LOCAL_PREVIEW:'true',PUBLIC_ORIGIN:`http://localhost:${port}`,EDITOR_EMAIL:editorEmail,EMAIL_FROM:'kalender@example.test',TEB_ADMIN_EMAILS:process.env.TEB_ADMIN_EMAILS||editorEmail,MAIL_ENCRYPTION_KEY:mailKey,ASSETS:printAssets};
 const server=http.createServer(async(req,res)=>{
  try{
   const parts=[];let size=0;

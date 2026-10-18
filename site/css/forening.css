@@ -25,3 +25,17 @@
 .fp-main button,.fp-main input,.fp-main select{scroll-margin-top:7rem}
 @media(max-width:560px){.fa-filter{grid-template-columns:1fr}.fa-member{align-items:stretch}.fa-member form{width:100%}.fa-review .btn{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fp-main *{transition:none!important}}
+
+/* Redaktionel udvælgelse til den enkelte printudgave. */
+[data-print-editor] h3 { margin-top: 1.5rem; }
+[data-print-editor] form > h3:first-child { margin-top: 0; }
+.fa-print-event { border-top: 1px solid var(--line); padding: 22px 0; }
+.fa-print-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(190px, .6fr); gap: 22px; align-items: start; }
+.fa-print-heading h4 { font-size: 22px; line-height: 1.3; margin: 0 0 8px; }
+.fa-print-heading p { overflow-wrap: anywhere; }
+.fa-print-event details { margin-top: 18px; }
+.fa-print-event summary { cursor: pointer; min-height: 44px; font-weight: 700; }
+.fa-print-event details > label { margin-top: 14px; }
+[data-print-proof] { padding: 18px; margin-top: 18px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: 6px; }
+[data-print-proof] a { display: inline-block; font-weight: 700; padding-block: 8px; }
+@media (max-width: 600px) { .fa-print-heading { grid-template-columns: 1fr; gap: 14px; } }

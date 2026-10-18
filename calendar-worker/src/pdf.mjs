@@ -3,93 +3,99 @@ import fontkit from '@pdf-lib/fontkit';
 import qrcode from 'qrcode-generator';
 import { HttpError } from './shared.mjs';
 const {PDFDocument,rgb}=pdfLib;
-
-const mm = value => value * 72 / 25.4;
-const colors = {ink:rgb(.09,.16,.12),mint:rgb(.87,.93,.88),rule:rgb(.77,.82,.76)};
-const monthName = value => new Intl.DateTimeFormat('da-DK',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(value+'-01T12:00:00Z'));
-let fontBytes;
-async function fonts(env) {
-  if(!fontBytes)fontBytes=Promise.all(['Regular','Bold'].map(async weight=>{
-    const response=await env.ASSETS.fetch(new Request(env.PUBLIC_ORIGIN+'/fonts/NotoSans-'+weight+'.ttf'));
-    if(!response.ok)throw new HttpError(503,'Skrifttypen til print kunne ikke indlæses.');
-    return new Uint8Array(await response.arrayBuffer());
-  })).catch(error=>{fontBytes=undefined;throw error;});
-  return fontBytes;
+const mm=value=>value*72/25.4;
+const width=mm(297),height=mm(420),margin=34,column=150,textWidth=width-column-42;
+const hex=value=>rgb(...value.match(/\w\w/g).map(v=>parseInt(v,16)/255));
+const colors={ink:hex('163B32'),muted:hex('405B52'),rule:hex('D9E3DD'),mint:hex('BCDCCE'),pink:hex('EACAD8'),mintLight:hex('ECF5F0'),pinkLight:hex('FAF0F4'),white:rgb(1,1,1)};
+const monthName=value=>new Intl.DateTimeFormat('da-DK',{month:'long',timeZone:'UTC'}).format(new Date(value+'-01T12:00:00Z')).toUpperCase();
+const weekday=value=>new Intl.DateTimeFormat('da-DK',{weekday:'long',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'));
+let assetBytes;
+async function assets(env){
+ if(!assetBytes)assetBytes=Promise.all(['/fonts/NotoSans-Regular.ttf','/fonts/NotoSans-Bold.ttf','/fonts/Anton-Regular.ttf','/images/teb-trolde.png'].map(async path=>{
+  const response=await env.ASSETS.fetch(new Request(env.PUBLIC_ORIGIN+path));
+  if(!response.ok)throw new HttpError(503,'Printskrifter eller TEBs logo kunne ikke indlæses.');
+  return new Uint8Array(await response.arrayBuffer());
+ })).catch(error=>{assetBytes=undefined;throw error;});
+ return assetBytes;
 }
-
-function wrap(text,font,size,width) {
-  const lines=[];let current='';
-  for(const word of text.split(/\s+/).filter(Boolean)) {
-    if(font.widthOfTextAtSize(word,size)>width) {
-      if(current){lines.push(current);current='';}
-      for(const char of word){if(current&&font.widthOfTextAtSize(current+char,size)>width){lines.push(current);current=char;}else current+=char;}
-    } else if(current&&font.widthOfTextAtSize(current+' '+word,size)>width){lines.push(current);current=word;}
-    else current+=(current?' ':'')+word;
-  }
-  if(current)lines.push(current);
-  return lines;
+function wrap(value,font,size,maxWidth){
+ const lines=[];let current='';
+ for(const word of String(value).split(/\s+/).filter(Boolean)){
+  if(font.widthOfTextAtSize(word,size)>maxWidth){
+   if(current){lines.push(current);current='';}
+   for(const char of word){if(current&&font.widthOfTextAtSize(current+char,size)>maxWidth){lines.push(current);current=char;}else current+=char;}
+  }else if(current&&font.widthOfTextAtSize(current+' '+word,size)>maxWidth){lines.push(current);current=word;}
+  else current+=(current?' ':'')+word;
+ }
+ if(current)lines.push(current);return lines;
 }
-
-export async function makeCalendarPdf(edition,env) {
-  const document=await PDFDocument.create();
-  document.registerFontkit(fontkit);
-  const [regular,bold]=await fonts(env);
-  const font=await document.embedFont(regular,{subset:true}),heavy=await document.embedFont(bold,{subset:true});
-  const supported=new Set(font.getCharacterSet());
-  for(const event of edition.events)for(const text of [event.title,event.association,event.location]) {
-    if([...text].some(char=>!supported.has(char.codePointAt(0))))throw new HttpError(422,'Et arrangement indeholder tegn, som printskrifttypen ikke kan vise. Ret teksten før tryk.');
+export function printDetails(event){return 'Kl. '+event.time.replace(':','.')+(event.endTime?' til '+event.endTime.replace(':','.'):'')+' · '+event.location;}
+export async function makeCalendarPdf(edition,env){
+ const document=await PDFDocument.create();document.registerFontkit(fontkit);
+ const [regular,bold,display,logoBytes]=await assets(env);
+ const font=await document.embedFont(regular,{subset:true}),heavy=await document.embedFont(bold,{subset:true}),headline=await document.embedFont(display,{subset:true}),logo=await document.embedPng(logoBytes);
+ const supported=new Set(font.getCharacterSet());
+ for(const event of edition.events)for(const value of [event.print?.title||event.title,event.print?.association||event.association,event.print?.details||printDetails(event),event.print?.dateLabel||'',event.print?.dateNote||'']){
+  if([...String(value)].some(char=>!supported.has(char.codePointAt(0))))throw new HttpError(422,'Et arrangement indeholder tegn, som printskrifttypen ikke kan vise. Ret teksten før tryk.');
+ }
+ const start=edition.start||edition.month+'-01',end=edition.end||new Date(Date.UTC(Number(edition.month.slice(0,4)),Number(edition.month.slice(5))+1,0)).toISOString().slice(0,10);
+ document.setTitle('Det sker i Tistrup og Hodde · '+start+' - '+end);document.setAuthor('Tistrup Erhvervs- og Borgerforening');
+ const qr=qrcode(0,'M');qr.addData(edition.calendarUrl);qr.make();
+ let page,y,activeMonth='';
+ const box=(x,top,w,h,color)=>page.drawRectangle({x,y:height-top-h,width:w,height:h,color});
+ const text=(value,x,top,size=14,type=font,color=colors.ink)=>page.drawText(value,{x,y:height-top-size*.8,size,font:type,color});
+ const rule=top=>page.drawLine({start:{x:column,y:height-top},end:{x:width-margin,y:height-top},color:colors.rule,thickness:.6});
+ function newPage(){
+  page=document.addPage([width,height]);
+  text('BYENS FÆLLES KALENDER',35,18,10.5,heavy);text('DET SKER!',30,42,88,headline);text('I TISTRUP OG HODDE',35,125,35,headline);
+  page.drawImage(logo,{x:665,y:height-126,width:130,height:104});
+  const range=start.slice(0,7)===end.slice(0,7)?monthName(start.slice(0,7)):monthName(start.slice(0,7))+' + '+monthName(end.slice(0,7));
+  const year=start.slice(0,4)===end.slice(0,4)?start.slice(0,4):start.slice(0,4)+' / '+end.slice(0,4);
+  text(range,635,134,Math.min(11,165/heavy.widthOfTextAtSize(range,1)),heavy);text(year,795-heavy.widthOfTextAtSize(year,15),151,15,heavy);
+  box(margin,1045,width-2*margin,117,colors.ink);
+  text('Har I noget på programmet?',51,1059,20,heavy,colors.white);text('tistrup.kalender@gmail.com',51,1091,18,heavy,colors.white);
+  text('Send senest den 15. i måneden før.',51,1119,12,font,colors.white);text('Tistrup Erhvervs- og Borgerforening',51,1143,11,font,hex('D2E6D9'));
+  // Keep a white quiet zone on all sides of the QR code.
+  const size=86,count=qr.getModuleCount(),unit=size/(count+8),quiet=4*unit,left=706,top=1055;
+  box(702,1052,94,94,colors.white);
+  for(let r=0;r<count;r++)for(let c=0;c<count;c++)if(qr.isDark(r,c))box(left+quiet+c*unit,top+quiet+r*unit,unit+.03,unit+.03,colors.ink);
+  text('Se kalenderen',705,1149,10,font,colors.white);
+  const status=env.LOCAL_PREVIEW==='true'?'PRØVEUDGAVE':edition.draft?'KORREKTUR':'FAST PRINTUDGAVE';
+  text(status+' · Indhold godkendt senest '+edition.deadline,35,1176,8.5,font,colors.muted);y=174;
+ }
+ const monthOffset=month=>(Number(month.slice(0,4))-Number(start.slice(0,4)))*12+Number(month.slice(5))-Number(start.slice(5,7));
+ function monthHeader(month,continued=false){
+  box(margin,y,width-2*margin,34,monthOffset(month)%2?colors.pink:colors.mint);
+  text(monthName(month)+(continued?' · FORTSAT':''),47,y+6,25,headline);text(month.slice(0,4),width-94,y+10,13,heavy);y+=34;activeMonth=month;
+ }
+ newPage();
+ if(!edition.events.length)text('Der er ingen valgte arrangementer i denne periode.',margin,y+25,18);
+ for(const event of edition.events){
+  const month=event.date.slice(0,7)<start.slice(0,7)?start.slice(0,7):event.date.slice(0,7),print=event.print||{};
+  const title=wrap(print.title||event.title,heavy,21.5,textWidth),details=wrap(print.details||printDetails(event),font,13.25,textWidth),association=wrap(print.association||event.association,font,11,textWidth);
+  const dateLines=print.dateLabel?wrap(print.dateLabel,heavy,13,78):[],noteLines=print.dateNote?wrap(print.dateNote,font,10.5,78):[];
+  const blockHeight=Math.max(56,4+title.length*23+details.length*15+association.length*14,16+dateLines.length*16+noteLines.length*13);
+  const needsHeader=month!==activeMonth;
+  if(y+blockHeight+(needsHeader?42:0)>1034){newPage();monthHeader(month,!needsHeader);}
+  else if(needsHeader){if(activeMonth)y+=8;monthHeader(month);}
+  if(y+blockHeight>1034)throw new HttpError(422,'Et arrangement er for langt til printskabelonen. Forkort printteksten.');
+  box(margin,y,96,blockHeight,monthOffset(month)%2?colors.pinkLight:colors.mintLight);
+  const first=event.date.slice(8),last=event.endDate&&event.endDate!==event.date?event.endDate.slice(8):'';
+  if(print.dateLabel){
+   dateLines.forEach((value,i)=>text(value,44,y+10+i*16,13,heavy));noteLines.forEach((value,i)=>text(value,44,y+12+dateLines.length*16+i*13,10.5,font,colors.muted));
+  }else if(last&&event.date.slice(0,7)!==event.endDate.slice(0,7)){
+   text(first+'/'+Number(event.date.slice(5,7)),47,y+5,19,heavy);text('til '+last+'/'+Number(event.endDate.slice(5,7)),47,y+33,13,font);
+  }else{
+   text(first+(last?'-'+last:''),47,y+5,last?25:30,headline);text(last?'flere dage':weekday(event.date),47,y+38,10.5,font,colors.muted);
   }
-  const start=edition.start||edition.month+'-01',end=edition.end||new Date(Date.UTC(Number(edition.month.slice(0,4)),Number(edition.month.slice(5))+1,0)).toISOString().slice(0,10);
-  document.setTitle('Det sker i Tistrup og Hodde · '+start+' - '+end);
-  document.setAuthor('Tistrup Erhvervs- og Borgerforening');
-  const width=mm(500),height=mm(700),margin=mm(24),column=margin+118;
-  const scale=edition.format==='a3'?297/500:1;
-  const textWidth=width-column-margin;
-  let page,y,activeMonth='',pageNumber=0;
-  const text=(value,x,at,size=22,strong=false)=>page.drawText(value,{x,y:at,size,font:strong?heavy:font,color:colors.ink});
-  function newPage(){
-    page=document.addPage([width,height]);pageNumber++;
-    text('DET SKER!',margin,height-margin-62,62,true);
-    text('I TISTRUP OG HODDE',margin,height-margin-112,39,true);
-    const dateLabel=value=>value.split('-').reverse().join('.');
-    text(dateLabel(start)+' - '+dateLabel(end),margin,height-margin-158,24);
-    y=height-margin-205;
-    const qr=qrcode(0,'M');qr.addData(edition.calendarUrl);qr.make();
-    const size=94,unit=size/qr.getModuleCount(),left=width-margin-size,top=margin+145;
-    for(let r=0;r<qr.getModuleCount();r++)for(let c=0;c<qr.getModuleCount();c++)if(qr.isDark(r,c))page.drawRectangle({x:left+c*unit,y:top-r*unit,width:unit+.05,height:unit+.05,color:colors.ink});
-    page.drawLine({start:{x:margin,y:margin+85},end:{x:width-margin-size-25,y:margin+85},thickness:1,color:colors.rule});
-    text('Find aktuelle arrangementer og ændringer i den levende kalender.',margin,margin+54,17);
-    const urlLines=wrap(edition.calendarUrl,font,15,width-2*margin-size-30);
-    urlLines.slice(0,2).forEach((line,i)=>text(line,margin,margin+27-i*20,15));
-    text((env.LOCAL_PREVIEW==='true'?'PRØVEUDGAVE · ':edition.draft?'FORHÅNDSVISNING · ':`Fast printudgave · Frist ${edition.deadline} · `)+'Samlet af TEB',margin,margin-17,15);
-  }
-  function monthHeader(month,continued=false){
-    page.drawRectangle({x:margin,y:y-47,width:width-2*margin,height:62,color:colors.mint});
-    text(monthName(month)+(continued?' · fortsat':''),margin+16,y-28,29,true);y-=88;activeMonth=month;
-  }
-  newPage();
-  if(!edition.events.length)text('Der er endnu ingen godkendte arrangementer i denne periode.',margin,y-30,25);
-  for(const event of edition.events) {
-    const month=event.date.slice(0,7)<start.slice(0,7)?start.slice(0,7):event.date.slice(0,7);
-    const titleLines=wrap(event.title,heavy,26,textWidth);
-    let dateText=String(Number(event.date.slice(8)))+'.';
-    if(event.endDate&&event.endDate!==event.date)dateText=event.endDate.slice(0,7)===event.date.slice(0,7)?dateText+'–'+Number(event.endDate.slice(8))+'.':Number(event.date.slice(8))+'/'+Number(event.date.slice(5,7))+'–'+Number(event.endDate.slice(8))+'/'+Number(event.endDate.slice(5,7));
-    const clock='Kl. '+event.time.replace(':','.')+(event.endTime?'–'+event.endTime.replace(':','.'):'');
-    const metaLines=wrap(clock+' · '+event.location,font,20,textWidth);
-    const associationLines=wrap(event.association,font,18,textWidth);
-    const blockHeight=titleLines.length*31+metaLines.length*26+associationLines.length*23+10;
-    const needsHeader=activeMonth!==month;
-    if(y-blockHeight-(needsHeader?88:0)<margin+155){newPage();monthHeader(month,!needsHeader);}
-    else if(needsHeader)monthHeader(month);
-    if(y-blockHeight<margin+155)throw new HttpError(422,'Et arrangement er for langt til printskabelonen. Forkort titel eller sted.');
-    text(dateText,margin+10,y-25,dateText.length>7?16:dateText.length>5?20:27,true);
-    for(const line of titleLines){text(line,column,y-25,26,true);y-=31;}
-    for(const line of metaLines){text(line,column,y-21,20);y-=26;}
-    for(const line of associationLines){text(line,column,y-19,18);y-=23;}
-    y-=10;
-    page.drawLine({start:{x:column,y:y+9},end:{x:width-margin,y:y+9},thickness:.6,color:colors.rule});
-  }
-  for(const [index,p] of document.getPages().entries())p.drawText(`Side ${index+1} af ${pageNumber}`,{x:width-margin-100,y:margin-17,size:14,font,color:colors.ink});
-  if(scale!==1)for(const p of document.getPages()){p.scaleContent(scale,scale);p.setSize(mm(297),mm(420));}
-  return {bytes:await document.save(),pages:pageNumber};
+  let at=y+4;
+  for(const value of title){text(value,column,at,21.5,heavy);at+=23;}
+  for(const value of details){text(value,column,at,13.25);at+=15;}
+  for(const value of association){text(value,column,at,11,font,colors.muted);at+=14;}
+  y+=blockHeight;rule(y);
+ }
+ const pages=document.getPages();
+ for(const [index,p] of pages.entries())p.drawText('Side '+(index+1)+' af '+pages.length,{x:width-100,y:height-1176-8.5*.8,size:8.5,font,color:colors.muted});
+ if(edition.format!=='a3')for(const p of pages){const w=mm(500),h=mm(700),scale=Math.min(w/width,h/height);p.scaleContent(scale,scale);p.translateContent((w-width*scale)/2,(h-height*scale)/2);p.setSize(w,h);}
+ return {bytes:await document.save(),pages:pages.length};
 }

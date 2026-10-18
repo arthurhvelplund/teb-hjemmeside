@@ -1,3 +1,4 @@
+import {printEditorHtml,mountPrintEditor} from './kalender-print.js';
 import { api, getSession, escapeHTML as esc, requestKey, today, dateText, showMessage, showMode, busy } from './portal-api.js';
 
 const content = document.querySelector('#forening-content');
@@ -10,7 +11,7 @@ let renderNumber = 0;
 let currentRoute;
 let localMode = false;
 let flash = '';
-const printRequests = new Map(); // A retry of the same edition keeps its requestKey in this tab.
+let disposePrintEditor = null;
 const associationRequests = new Map();
 const eventSnapshots = new Map();
 const profileFields = ['name', 'category', 'description', 'chair', 'email', 'phone', 'website', 'place'];
@@ -71,6 +72,7 @@ function navigation(page) {
     (authenticated() ? `<form data-action="logout"><button type="submit" class="btn btn-secondary">Log ud</button></form>` : '<a href="#login"' + (page === 'login' ? ' aria-current="page"' : '') + '>Log ind</a>');
 }
 async function render() {
+  disposePrintEditor?.(); disposePrintEditor = null;
   const sequence = ++renderNumber;
   const r = route();
   currentRoute = r;
@@ -94,6 +96,8 @@ async function render() {
     }
     if (sequence !== renderNumber) return;
     content.innerHTML = html;
+    const printRoot = content.querySelector('[data-print-editor]');
+    if (printRoot) disposePrintEditor = mountPrintEditor(printRoot);
     if (r.page === 'oversigt') filterDirectory();
     if (flash) { showMessage(notice, flash); flash = ''; }
   } catch (error) {
@@ -250,16 +254,8 @@ function editionLabel(e) {
 }
 async function printPage() {
   const { editions } = await api('/editions');
-  const now = today();
-  const [year, month] = now.split('-').map(Number);
-  const start = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
-  const end = new Date(Date.UTC(year, month + 2, 0)).toISOString().slice(0, 10);
-  return heading('Lav en printudgave', 'Vælg perioden og fristen. Gennemse PDF-filen, før du gemmer en fast udgave.') +
-    `<section class="fp-panel fa-form-narrow"><form class="fp-form" data-action="print-edition" action="/api/kalender/admin/editions/preview" method="get" target="_blank" rel="noopener">` +
-    `<div class="fp-form-row">${input('start', 'Fra dato', start, 'date', 'required')}${input('end', 'Til dato', end, 'date', 'required')}</div>` +
-    input('deadline', 'Indhold godkendt senest', now, 'date', `required max="${esc(now)}"`) +
-    `<label>Format<select name="format"><option value="poster">Plakat</option><option value="a3">A3</option></select></label><p class="fp-note">Kun indhold godkendt inden fristen kommer med. Senere rettelser ændrer ikke en gemt PDF.</p><div class="fp-actions">${button('Åbn PDF-forhåndsvisning', 'preview')}${button('Gem endelig printudgave', 'finalize')}</div>${resultBox()}</form></section>` +
-    `<section class="fa-section"><h2>Gemte printudgaver</h2>${editions.map(e => `<article class="fp-list-row"><h3>${esc(editionLabel(e))}</h3><p>Frist ${esc(dateLabel(e.deadline))}${e.eventCount !== undefined ? ` · ${esc(e.eventCount)} arrangementer` : ''}</p><a href="/api/kalender/editions/${idPath(e.id)}/pdf" target="_blank" rel="noopener">Åbn gemt PDF</a></article>`).join('') || empty('Der er ingen gemte printudgaver.')}</section>`;
+  return heading('Lav en printudgave', 'Vælg arrangementerne, ret printteksten, og gennemse PDF’en før udgivelse.') + printEditorHtml() +
+    `<section class="fa-section"><h2>Gemte printudgaver</h2><div data-print-archive>${editions.map(e => `<article class="fp-list-row" data-edition-id="${esc(e.id)}"><h3>${esc(editionLabel(e))}</h3><p>Frist ${esc(dateLabel(e.deadline))}${e.eventCount !== undefined ? ` · ${esc(e.eventCount)} arrangementer` : ''}</p><a href="/api/kalender/editions/${idPath(e.id)}/pdf" target="_blank" rel="noopener">Åbn gemt PDF</a></article>`).join('') || empty('Der er ingen gemte printudgaver.')}</div></section>`;
 }
 function values(form, names) {
   const data = new FormData(form);
@@ -294,14 +290,6 @@ async function onSubmit(event) {
   if (!form) return;
   const action = form.dataset.action;
   const submitter = event.submitter;
-  if (action === 'print-edition' && submitter?.value !== 'finalize') {
-    const data = values(form, ['start', 'end', 'deadline']);
-    if (data.start > data.end || data.deadline > today()) {
-      event.preventDefault();
-      showMessage(form.querySelector('.fa-form-result'), 'Slutdatoen skal være på eller efter startdatoen. Fristen må højst være i dag.', true);
-    }
-    return; // Native GET submission opens the PDF in a new tab without a popup race.
-  }
   event.preventDefault();
   if (form.dataset.pending === 'true') return;
   form.dataset.pending = 'true';
@@ -341,7 +329,7 @@ async function onSubmit(event) {
           challenge = null;
           ++renderNumber;
           eventSnapshots.clear();
-          printRequests.clear();
+          disposePrintEditor?.(); disposePrintEditor = null;
           flash = 'Du er logget ud.';
           // Replace the private view immediately after confirmed logout.
           navigation('oversigt');
@@ -412,24 +400,7 @@ async function onSubmit(event) {
           await refresh(decision === 'approve' ? 'Arrangementet er godkendt.' : 'Anmodningen er afvist. En eventuel offentliggjort version er bevaret.');
           break;
         }
-        case 'print-edition': {
-          const data = values(form, ['start', 'end', 'deadline', 'format']);
-          if (data.start > data.end || data.deadline > today()) throw new Error('Slutdatoen skal være på eller efter startdatoen. Fristen må højst være i dag.');
-          const key = JSON.stringify(data);
-          let request = printRequests.get(key);
-          if (!request) { request = { requestKey: requestKey() }; printRequests.set(key, request); }
-          if (!request.result) {
-            if (!window.confirm('Gem en fast printudgave? Kontrollér først PDF-forhåndsvisningen. Den gemte PDF ændres ikke senere.')) return;
-            request.result = await api('/admin/editions', { body: { ...data, requestKey: request.requestKey } });
-          }
-          const saved = request.result;
-          showMessage(box, `Printudgaven er gemt med ${saved.eventCount} arrangementer på ${saved.pages} sider.`);
-          const anchor = document.createElement('a');
-          anchor.href = '/api/kalender/editions/' + idPath(saved.id) + '/pdf';
-          anchor.target = '_blank'; anchor.rel = 'noopener'; anchor.textContent = 'Åbn den gemte PDF';
-          box.append(anchor);
-          break;
-        }
+
       }
     });
   } catch (error) {

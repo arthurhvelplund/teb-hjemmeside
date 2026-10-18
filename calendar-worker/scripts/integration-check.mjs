@@ -31,7 +31,9 @@ try{
  const own=(await api('/me/events')).events[0];await api('/member/events/'+own.id,{action:'cancel',revision:own.revision});
  assert.equal((await api('/events/'+own.id)).event.state,'cancelled');
  cookie=adminCookie;const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Copenhagen',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
- const edition=await api('/admin/editions',{start:publicBefore.events[0].date.slice(0,7)+'-01',end:publicBefore.events[0].date.slice(0,7)+'-28',deadline:today,format:'a3',requestKey:crypto.randomUUID()});
+ const options={start:publicBefore.events[0].date.slice(0,7)+'-01',end:publicBefore.events[0].date.slice(0,7)+'-28',deadline:today,format:'a3'};
+ const candidates=await api('/admin/editions/events?'+new URLSearchParams(options));
+ const edition=await api('/admin/editions',{...options,eventIds:candidates.events.map(e=>e.id),reviewHash:candidates.reviewHash,requestKey:crypto.randomUUID()});
  const a=new Uint8Array(await (await fetch(origin+'/api/kalender/editions/'+edition.id+'/pdf')).arrayBuffer());assert.equal(new TextDecoder().decode(a.slice(0,5)),'%PDF-');
  const b=new Uint8Array(await (await fetch(origin+'/api/kalender/editions/'+edition.id+'/pdf')).arrayBuffer());assert.deepEqual(a,b);
  console.log('HTTP integration passed: root index, Host restriction, repeatable fictional seed, local OTP for admin/member, guest approval, member edit/cancellation and stored PDF. No external mail sent.');
