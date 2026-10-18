@@ -1,7 +1,23 @@
-import {$,el,api,notice} from './kalender-faelles.js';
-async function load(){try{const {messages}=await api('/local-mail');const root=$('#mail-content');root.replaceChildren();if(!messages.length)root.append(el('p',{},'Ingen testmails endnu. Send et prøvearrangement gennem formularen.'));
-for(const message of messages){const item=el('details',{class:'calendar-review'},el('summary',{},message.subject),el('p',{class:'portal-note'},'Til: '+message.recipient));const text=el('div',{class:'calendar-mail-body'});for(const line of message.body.split('\n')){
-  if(/^https?:\/\//.test(line)&&new URL(line).origin===location.origin)text.append(el('p',{},el('a',{href:line},line.includes('kalender-redaktion')?'Åbn TEBs godkendelse':line.includes('mit-arrangement')?'Åbn foreningens private forhåndsvisning':'Åbn kalenderen')));
-  else text.append(el('p',{},line||' '));
-}item.append(text);root.append(item);}}catch(error){notice($('#mail-content'),'Testpostkassen er kun tilgængelig på den lokale pilotserver.',true);}}
-$('#mail-refresh').addEventListener('click',load);await load();
+import {api,showMessage,busy} from './portal-api.js';
+const root=document.querySelector('#mail-content');
+async function load(){
+ try{
+  const {messages}=await api('/local-mail');root.replaceChildren();
+  if(!messages.length){showMessage(root,'Ingen testmails endnu. Bed om en engangskode eller send et arrangement.');return;}
+  for(const message of messages){
+   const item=document.createElement('details');item.className='fp-panel fp-mail';
+   const title=document.createElement('summary');title.textContent=message.subject;item.append(title);
+   const recipient=document.createElement('p');recipient.className='fp-note';recipient.textContent='Til: '+message.recipient;item.append(recipient);
+   for(const line of message.body.split('\n')){
+    const p=document.createElement('p');
+    let url;try{url=new URL(line);}catch{}
+    if(url&&url.origin===location.origin&&['http:','https:'].includes(url.protocol)){
+      const a=document.createElement('a');a.href=url.href;a.textContent=url.pathname.includes('forening')?'Åbn Forening':url.hash.includes('adgang')?'Åbn dit private arrangementslink':'Åbn kalenderen';p.append(a);
+    }else p.textContent=line||' ';
+    item.append(p);
+   }root.append(item);
+  }
+ }catch{showMessage(document.querySelector('#mail-message'),'Testpostkassen er kun tilgængelig på den lokale server.',true);}
+}
+document.querySelector('#mail-refresh').addEventListener('click',event=>busy(event.currentTarget,load));
+await load();

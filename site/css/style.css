@@ -128,7 +128,7 @@ strong { font-weight: 700; }
 }
 
 .header-inner {
-  max-width: 1320px;
+  max-width: 1480px;
   margin: 0 auto;
   padding: 0.65rem 1.5rem;
   display: flex;
@@ -253,7 +253,7 @@ strong { font-weight: 700; }
   display: block;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1420px) {
   .header-inner { flex-wrap: wrap; }
   .nav-toggle {
     display: block;

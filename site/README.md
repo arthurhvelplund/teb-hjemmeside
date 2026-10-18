@@ -1,71 +1,57 @@
-# Tistrup Erhvervs- og Borgerforening – hjemmeside
+# Tistrup Erhvervs- og Borgerforening
 
-Statisk hjemmeside (HTML/CSS/JS) for [teb-tistrup.dk](https://teb-tistrup.dk).
+Den eksisterende hjemmeside ligger som HTML/CSS/JavaScript i `site/`.
+Cloudflare Pages publicerer den via `.github/workflows/deploy-cloudflare-pages.yml`.
+Det fælles design ligger i `css/style.css`; sæsonudsmykning ligger separat.
 
-## Sider
-- `index.html` – forside med hero, genveje, Facebook-embed
-- `om-tistrup.html` – om byen
-- `om-foreningen.html` – formål, bestyrelse, dokumenter
-- `bestyrelse.html` – oversigt over bestyrelsen (navne, roller, kontakt)
-- `bliv-medlem.html` – kontingent og indmeldelsesformular
-- `kontakt.html` – kontaktinfo og kontaktformular
-- `foreningsportal.html` – indsend arrangementer til TEBs godkendelse
-- `kalender.html` – godkendte arrangementer og printudgaver
-- `kalender-redaktion.html` – TEBs redaktion
-- `mit-arrangement.html` – privat forhåndsvisning og rettelser
+## Forening, Kalender og Det sker
 
-## Tistrup Kalenderen og foreningsportalen
+- `forening.html`: offentlige foreningsprofiler, e-mailkode-login og privat
+  arbejdsområde for foreninger og TEB.
+- `kalender.html`: måned/uge, arrangementsdetaljer, oprettelse med preview,
+  privat gæstestatus og printarkiv.
+- `nyt.html`: eksisterende Facebook-feed og links til eksterne kilder.
 
-Den fungerende pilot køres gennem `calendar-worker/`. Se
-[opsætning og afprøvning](../calendar-worker/README.md).
+Frontend kalder `/api/kalender/*`. Backend i `calendar-worker/` kontrollerer
+login, adgang, data og offentliggørelse. Der er ingen faste prøvekoder eller
+roller gemt i frontend. Gamle arrangementslinks viderestilles til de nye sider.
 
-```sh
-cd calendar-worker
-npm install
-npm run dev
-```
+## Lokalt preview
 
-Åbn http://localhost:8787/kalender.html. I en anden terminal kan
-`npm run seed` tilføje opdigtede eksempelarrangementer, hvis kalenderen er tom.
+Følg [backendens vejledning](../calendar-worker/README.md) for server og lokal
+seed. Åbn hele hjemmesiden gennem backendserveren. En ren statisk server viser
+kun layout og kan ikke håndtere login, database eller indsendelser.
 
-Foreninger indsender gennem `foreningsportal.html` og ser en privat
-forhåndsvisning. TEB godkender hvert opslag, hver rettelse og hver aflysning i
-`kalender-redaktion.html`. Kontaktmail og private links er ikke offentlige.
-Kun godkendte arrangementer vises i `kalender.html` og i PDF-udgaverne.
+Lokalt bruges SQLite og lokalt PDF-lager. Mails gemmes i
+`kalender-postkasse.html` og sendes ikke eksternt. Visningen er kun tilgængelig
+via lokal API på loopback. Den oprindelige pilots data bevares separat.
 
-I lokal drift gemmes mails i `kalender-postkasse.html`; ingen mails sendes.
-Data gemmes i en lokal SQLite-database under den git-ignorerede `tmp/`-mappe.
-Print bruger fælles kalenderdata og afsluttes som faste tomånedersudgaver.
+Den selvstændige browserprototype findes stadig i
+`output/foreningsportal-enkel/`. Den er en funktionsreference, ikke den rigtige
+portal eller en offentlig deployment.
 
-Det tidligere, statiske preview på
-https://preview.teb-foreningsportal-preview.pages.dev/ er stadig en ældre
-prototype. Det er ikke opdateret til denne fungerende pilot. Den nye backend,
-rigtig mail og offentlig pilot er endnu ikke aktiveret på Cloudflare.
+## Arbejdsgange
 
-En almindelig statisk webserver viser kun layoutet. Formularen lukker for
-indsendelse, når kalenderens API ikke er tilgængeligt.
+TEB godkender første foreningsansvarlige. Ansvarlige kan invitere redaktører.
+Godkendte foreningsbrugere kan rette egen profil og udgive egne arrangementer.
+Gæsteopslag, gæsterettelser og gæsteaflysninger kræver TEB. En ventende rettelse
+bevarer den offentlige version. TEBs arbejdsområde ligger på Forening efter
+login. Det eksisterende `/admin/` er fortsat hjemmesidens eget CMS.
 
-## Sådan kører du siden lokalt
-Åbn `index.html` i en browser – eller kør en lille webserver:
-```
-cd site
-python3 -m http.server 8000
-```
-og gå til http://localhost:8000
+Print dannes fra offentliggørelseshistorikken ved den valgte frist.
+En udgivet datakopi og PDF-fil gemmes fast. Fremtidige ændringer ændrer kun
+webkalenderen og kommende printudgaver.
 
-## Deployment til Vercel
-1. Opret en konto på [vercel.com](https://vercel.com).
-2. Læg mappen `site/` i et Git-repository (GitHub fx).
-3. Import projektet i Vercel – ingen build-step nødvendig, Vercel serverer filerne direkte.
-4. Tilføj `teb-tistrup.dk` som custom domain i Vercel-dashboard.
-5. Peg domænets DNS-records hen på Vercel (de giver præcise instruktioner).
+## Senere deployment
 
-## Formularer – Cloudflare
-Formularerne på `bliv-medlem.html` og `kontakt.html` sender til `/api/formular`.
-Ruten håndteres af Cloudflare Workeren i `cloudflare-form-worker/`, som sender beskeden
-til foreningens bekræftede modtageradresse gennem Cloudflare Email Service.
+Der er valgt lokalt preview nu. Se [driftsvejledningen](../docs/PORTAL_DRIFT.md)
+for staging, afsender, første administratorer, database, PDF-lager og backup.
+Ingen Cloudflare-ressourcer eller rigtig mail aktiveres automatisk af lokale
+kommandoer. Testworkflowet `portal-checks.yml` publicerer ikke hjemmesiden.
 
-## Indhold der skal opdateres
-- **Bestyrelsen** redigeres i `data/bestyrelsen.json` (eller via admin-panelet) og vises på `bestyrelse.html` og `om-foreningen.html`.
-- **Bestyrelsesbilleder** kan tilføjes i `images/` og indsættes i `.person`-blokke.
-- **Facebook-embed** virker kun hvis gruppen er offentlig; ellers skift til en simpel link-knap.
+## Øvrige dele af hjemmesiden
+
+Kontakt og indmeldelse sender fortsat til `/api/formular`, som håndteres af
+`cloudflare-form-worker/`. Portal-Workeren må ikke overtage den route.
+Bestyrelse og øvrige indholdsdata ligger fortsat i `site/data/`.
+Navigation vedligeholdes med `node scripts/sync-navigation.mjs` fra projektroden.
