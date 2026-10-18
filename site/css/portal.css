@@ -6,28 +6,5 @@
 
 .fp-heading.wrap{padding-inline:1.5rem}
 
-/* Portaloverskrifter har ingen billedkolonne til de store sæsonfigurer. */
-html[data-seasonal-theme="halloween"] .fp-main > .fp-heading.hero{
-  position:relative;
-  isolation:isolate;
-  background:none;
-}
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading > .halloween-decor{
-  z-index:-1;
-  overflow:hidden;
-}
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-decor::before,
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-decor::after,
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-web,
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-spider,
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .max-skeleton,
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .max-pumpkin-left,
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .max-bats-small,
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .max-fog{display:none}
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-pumpkins{
-  right:1rem;bottom:.25rem;font-size:1.75rem;filter:none;
-}
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-pumpkins span{font-size:1.25rem;margin-left:-.4rem}
-html[data-seasonal-theme="halloween"] .fp-main .fp-heading .max-bats{
-  left:auto;right:1rem;top:.65rem;font-size:1.5rem;letter-spacing:.4rem;opacity:.7;transform:none;
-}
+.fp-main .fp-hero{padding:0}
+.fp-hero > .fp-heading{padding-block:4rem 6rem}
