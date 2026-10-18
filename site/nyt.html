@@ -7,6 +7,7 @@
 <meta name="description" content="Nyt fra TEB og links til lokale medier, oplevelser og fællesskaber i Tistrup og Hodde.">
 <link rel="stylesheet" href="css/style.css?v=a37d3c51d78f">
 <link rel="stylesheet" href="css/layout.css?v=43e8a3bac517">
+<link rel="stylesheet" href="css/nyt.css?v=b191d7be7311">
 <link rel="stylesheet" href="css/seasonal-themes.css?v=a1ddd5609eb2">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
 <script src="js/seasonal-theme.js?v=5a1758734788"></script>
@@ -58,6 +59,19 @@
     </div>
   </section>
 
+
+  <section class="section" aria-labelledby="news-heading">
+    <div class="wrap">
+      <div class="news-heading">
+        <div><span class="eyebrow">Lokale historier</span><h2 id="news-heading">Seneste fra <em>Tistrup Nyt</em>.</h2>
+        <p>Nyheder fra Tistrup og Hodde. Læs hele historien hos Tistrup Nyt.</p></div>
+        <a class="text-link" href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer">Besøg Tistrup Nyt ↗</a>
+      </div>
+      <div id="local-news" class="news-grid" aria-busy="true"><p>Henter nyheder…</p></div>
+      <p id="local-news-status" class="news-status" role="status"></p>
+      <noscript><p>Læs de seneste historier på <a href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer">Tistrup Nyt</a>.</p></noscript>
+    </div>
+  </section>
 
   <section class="section facebook-section" id="facebook" aria-labelledby="facebook-heading">
     <div class="wrap facebook-layout">
@@ -142,6 +156,7 @@
 </footer>
 
 <script src="js/main.js?v=5cfc1e933733"></script>
+<script src="js/nyt.js?v=15652b00cdfb"></script>
 </body>
 </html>
 

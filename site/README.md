@@ -10,7 +10,8 @@ Det fælles design ligger i `css/style.css`; sæsonudsmykning ligger separat.
   arbejdsområde for foreninger og TEB.
 - `kalender.html`: måned/uge, arrangementsdetaljer, oprettelse med preview,
   privat gæstestatus og printarkiv.
-- `nyt.html`: eksisterende Facebook-feed og links til eksterne kilder.
+- `nyt.html`: Tistrup Nyt via backendens HTML-import og cache, Facebook-feed
+  og links til eksterne kilder. Se `../calendar-worker/README.md` om importen.
 
 Frontend kalder `/api/kalender/*`. Backend i `calendar-worker/` kontrollerer
 login, adgang, data og offentliggørelse. Der er ingen faste prøvekoder eller
