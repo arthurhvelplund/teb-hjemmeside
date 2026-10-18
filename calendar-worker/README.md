@@ -1,16 +1,12 @@
-# Tistrup Kalenderen, pilot
+# TEB foreninger og kalender
 
-Den aktive kalenderbackend ligger i `calendar-worker/`. Den bruger samme
-applikationskode med lokal SQLite og Cloudflare D1. Den separate PWA i `app/`
-er ikke ændret.
+Workerens kontrakt er `../docs/FORENING_IMPLEMENTATION.md`. Backend kører mod
+Cloudflare D1/R2 i drift og samme SQL via Node SQLite og en lokal R2-adapter under
+afprøvning. Den ændrer ikke hjemmesidens CMS, kontaktworker eller Pages-build.
 
-Alle indsendelser, rettelser og aflysninger skal godkendes af TEB. Hverken en
-oplyst forening eller en e-mailadresse behandles som verificeret medlemskab.
-Der oprettes ingen foreningskonti.
+## Lokal kørsel
 
-## Kør og prøv lokalt
-
-Kræver Node 24 eller nyere. SQLite i Node 24 kan vise en experimental-advarsel.
+Kræver Node 24.3 eller nyere og npm.
 
 ```sh
 cd calendar-worker
@@ -18,110 +14,208 @@ npm install
 npm run dev
 ```
 
-Åbn <http://localhost:8787/kalender.html>. Serveren binder kun til loopback og
-gemmer data i `tmp/kalender-pilot/calendar.sqlite`, som er ignoreret af git.
-Alle mails gemmes i den lokale testpostkasse. Ingen eksterne mails sendes.
+Serveren lytter kun på `127.0.0.1:8787`. Åbn `http://localhost:8787/` for den
+rigtige `site/index.html`. Resten af `site/` serveres uden pilotens root-redirect
+eller globale noindex. API ligger på `/api/kalender/*`.
 
-I en anden terminal kan `npm run seed` tilføje 14 opdigtede, godkendte
-arrangementer, én ventende indsendelse og en printudgave. Scriptet stopper, hvis
-kalenderen allerede har offentlige arrangementer, og kan kun køre lokalt.
+Den nye lokale database, PDF-filer og en krypteringsnøgle ligger under
+`calendar-worker/.wrangler/local-portal/`. Det oprindelige
+`tmp/kalender-pilot/calendar.sqlite` åbnes eller ændres ikke automatisk.
+`CALENDAR_DATA_DIR` og `PORT` kan vælge en anden lokal placering og port.
 
-- `/foreningsportal.html`: indsendelse og forhåndsvisning.
-- `/mit-arrangement.html`: privat link fra kvitteringen til rettelser/aflysning.
-- `/kalender-redaktion.html`: TEBs godkendelse og printudgaver.
-- `/kalender-postkasse.html`: lokal test af mails og adgangslinks.
-- `/kalender.html`: kun offentliggjorte arrangementer og afsluttede PDF-udgaver.
+```sh
+npm run seed
+```
 
-Test forløbet ved at indsende, åbne TEBs besked i testpostkassen, åbne redaktionen
-og trykke Godkend. At åbne et mail- eller adgangslink offentliggør ikke noget.
+Seed tilføjer kun opdigtede eksempeldata via loopback-API. Den kan køres igen
+uden at kopiere eksempelarrangementerne. Den opretter én forening, otte direkte
+udgivne arrangementer, én gæsteindsendelse og følgende fiktive mailadresser:
 
-## Godkendelse og adgang
+- `teb-admin@example.test`: TEB-administrator.
+- `ansvarlig@example.test`: foreningsansvarlig.
+- `redaktor@example.test`: inviteret redaktør, aktiveres ved sit første OTP-login.
 
-TEB får en mail for hver ny indsendelse og hver rettelse eller aflysning.
-Mailen indeholder oplyst forening, kontaktmail og et link til redaktionen.
-Adgangslinket kan bruges én gang og udløber efter 48 timer. Det giver en
-HttpOnly-session med SameSite=Strict i otte timer. Linkets hemmelige del står i
-URL-fragmentet, fjernes fra adresselinjen og sendes kun i en POST til serveren.
+Alle tre kan anmode om en tilfældig engangskode på `/auth/request` og logge ind
+med `/auth/verify`. Mail ses i `/api/kalender/local-mail`, som kræver både
+`LOCAL_PREVIEW=true`, loopback-URL og en loopback `PUBLIC_ORIGIN`. Serveren
+afviser desuden eksterne Host-headere. Lokal tilstand kalder aldrig en ekstern
+mailbinding, heller ikke hvis der ved en fejl er sat en binding.
 
-Afsenderens private link giver kun adgang til det pågældende arrangement.
-Databasen gemmer hashes af adgangsnøglerne. En ventende rettelse ændrer ikke den
-offentlige version. TEB kan rette teksten inden godkendelse. Afvisning kræver en
-begrundelse, og afvisning af en rettelse bevarer den hidtil godkendte version.
-Versionskontrol forhindrer godkendelse af et udkast, der er ændret undervejs.
+Der er ingen fast kode eller demo-session. Den lokale postkasse dekrypterer de
+lokale mailjobs ved læsning. Nye koder og private links ligger ikke i klartekst
+i SQLite. Den oprindelige pilots lokale postkasse bevares ved en eksplicit
+opgradering og er underlagt samme loopback-kontrol.
 
-Offentlige svar og PDF-filer indeholder ikke kontaktmail, adgangsnøgler eller
-interne bemærkninger. Mulige dubletter vises til redaktionen; systemet sletter
-eller sammenlægger dem ikke automatisk.
+## Adgang og revisioner
 
-## Print
+OTP har seks tilfældige cifre, ti minutters levetid og højst fem forsøg.
+Anmodninger begrænses pr. mail, IP og globalt. Verifikation begrænses pr.
+mail, IP og challenge. Ny kode ugyldiggør tidligere challenges og afventende
+mailjobs. Databasen gemmer en HMAC af kode og challenge-id, aldrig selve koden.
+Indløsning, brugeroprettelse, session og invitationsaccept sker atomisk.
 
-En udgave dækker to måneder og er 500 × 700 mm. Standardfristen er den 15. i
-måneden før udgivelsen. TEB vælger fristen, gennemser PDF og afslutter udgaven.
-En udgave kan ikke afsluttes med en fremtidig frist.
+Sessions er serverlagrede og har otte timers absolut levetid. Cookien er
+HttpOnly, SameSite=Strict og Secure ved HTTPS. Kun lokal loopback-drift tillader
+HTTP. Alle mutationer kræver samme Origin og JSON. Autorisation kontrolleres
+igen i selve SQL-skrivningen, så tilbagekaldte rettigheder ikke kan bruges af
+et gammelt browserfaneblad eller et allerede igangsat write.
 
-En afsluttet udgave er et uforanderligt snapshot af den senest godkendte version
-pr. fristdato i Europe/Copenhagen. TEB skal afslutte udgaven efter den aftalte
-indsendelsesfrist. Senere rettelser og aflysninger ændrer ikke en udgivet udgave.
-PDF-filen hentes fra snapshotdata, ikke fra den aktuelle kalender.
+`TEB_ADMIN_EMAILS` er en kommasepareret liste over de godkendte administratorers
+mailadresser. Et succesfuldt OTP-login til en af disse adresser opretter eller
+ophøjer den eksisterende bruger til TEB-admin. Ingen klientfelter kan sætte
+`isAdmin`. Fjernelse fra miljølisten alene tilbagekalder ikke en allerede tildelt
+administratorrolle. Ved fratrædelse skal en operatør også sætte den pågældende
+`users.is_admin=0` og udløbe brugerens sessions. Dette er ikke en offentlig API.
 
-Titel, forening, dato, tidspunkt og sted sættes automatisk. Lange beskrivelser
-bliver på hjemmesiden. Travle måneder giver flere sider ved samme skriftstørrelse;
-ingen arrangementer udelades. Tegn, skrifttypen ikke understøtter, giver en fejl
-inden udgivelse. Print gennemgås i alle tilfælde af TEB før tryk.
-Lokale PDF-filer mærkes PRØVEUDGAVE. Noto Sans er inkluderet med sin OFL-licens.
+Ukendt verificeret mail giver kun adgang til egne adgangsanmodninger. En TEB-
+godkendelse kræver `verified:true` og inviterer ansvarlig. Invitationen gælder
+syv dage. Kun en OTP, som blev anmodet efter invitationen til den samme mail,
+kan aktivere den. En gammel session eller en gammel kode aktiverer ikke en ny
+invitation. Invitationen kan accepteres én gang. Ansvarlig inviterer kun
+redaktører og kan kun fjerne redaktører. TEB kan tildele begge roller og fjerne
+ansvarlige. TEBs ændring af en rolle kræver en ny OTP fra modtageren; den gamle
+adgang ophører straks. Gentagen invitation med samme rolle genbruger den
+igangværende invitation uden en ny mail.
 
-## Validering
+Profiloplysninger til offentlig kontakt er adskilt fra loginmail og medlemsliste.
+Foreningsmedlemmer kan ændre egen profil og direkte udgive, rette og aflyse egne
+arrangementer. En gæsts oplyste forening giver aldrig medlemsrettigheder.
+
+Gæsteindsendelser, rettelser og aflysninger godkendes af TEB. En ventende eller
+afslået ændring erstatter ikke den offentliggjorte version. Privat adgang kræver
+Bearer-tokenet, hvis hash ligger i databasen. Mailens link har kun tokenet i
+URL-fragmentet: `kalender.html?id=...#adgang=...`. Frontend skal fjerne fragmentet
+fra adresselinjen efter læsning og må ikke sende det som query-parameter.
+
+Offentlig event-state hedder `approved` eller `cancelled`. Privat wrapper-status
+er `pending`, `approved` eller `rejected`. En godkendt aflysning har altså
+`status:approved` og `published.state:cancelled`. `pendingKind` er kun `new`,
+`edit`, `cancel` eller null. Gæste-POST accepterer både kontraktens `edit` og
+pilotens `update`. Revisionstal og atomiske writes forhindrer tabte ændringer
+og dobbeltgodkendelse. Database-triggers gemmer udgivelseshistorik i samme write.
+
+## Mail og sikker genafsendelse
+
+Mailjobs gemmes krypteret med AES-GCM i samme D1-transaktion som den tilhørende
+handling. `MAIL_ENCRYPTION_KEY` skal være en hemmelig 32-byte nøgle som 64
+hextegn. Den bruges også som HMAC-hemmelighed til OTP. Lokal server laver sin egen
+fil med rettighed 0600. En ny nøgle kan ikke dekryptere gamle mailjobs eller
+verificere gamle OTP'er. Bevar den derfor ved normal genstart og deployment.
+
+Tilstande er `pending`, `sent`, `local`, `failed`, `uncertain` og `cancelled`.
+`sent` betyder mailtjenestens accept, ikke bekræftet modtagelse i postkassen.
+Gæstens API-kvittering har `notificationState` og `receiptState`; invitation og
+OTP-anmodning har `deliveryState`. Frontend skal vise både `failed` og `uncertain`
+ærligt og bevare gemte indsendelser/private links.
+
+Workers Email Service understøtter den strukturerede `TEB_EMAIL.send()`-binding.
+Konkrete afvisninger før afsendelse, eksempelvis ikke-verificeret afsender eller
+rate limit, kan genafsendes. En manglende binding er også en sikker fejl før
+forsendelse. Cron hver tiende minut og admin-POST `/admin/mail/retry` genforsøger
+kun sådanne jobs, højst fem forsøg. Atomisk claim forhindrer samtidige afsendere.
+Udløbne OTP'er, ugyldiggjorte koder og tilbagekaldte invitationer genforsøges ikke.
+
+En timeout, en ukendt providerfejl, manglende messageId eller en afbrudt dispatch
+kan være accepteret hos udbyderen. Sådanne jobs bliver `uncertain` og sendes ikke
+automatisk igen. Cloudflares dokumenterede Workers-send-API har ingen
+idempotency-key. Derfor kan systemet ikke love sikker automatisk genafsendelse
+af tvetydige transporter. Undersøg leveringsloggen først. En bruger kan anmode
+om en ny OTP, som ugyldiggør den gamle kode. Gentagelse af et event-POST med samme
+`requestKey` genafsender aldrig mails og opretter ikke et nyt event.
+
+`GET /admin/mail` viser kun job-id, tilstand, forsøg og tidspunkt, aldrig
+mailindhold, modtager, kode eller private links. Applikationen logger ingen
+persondata eller secrets. Beskyt også Cloudflare-observability mod at opsamle
+request bodies og Authorization-/Cookie-headere.
+
+Reference: https://developers.cloudflare.com/email-service/api/send-emails/workers-api/
+
+## Print og uforanderlige PDF'er
+
+Print understøtter `start`, `end`, `deadline` og `format:poster|a3`.
+`poster` er 500 × 700 mm, A3 er 297 × 420 mm. Intervallet må dække højst et år.
+Legacy `month=YYYY-MM` dækker fortsat den måned og den næste. Preview tillader en
+tom udgave; finalisering kræver mindst ét godkendt event og en frist, som ikke er
+i fremtiden. Fristen omfatter hele datoen i Europe/Copenhagen, også ved sommertid.
+
+Snapshot vælger den senest offentliggjorte revision pr. event ved fristen, før
+intervallet filtreres. En senere flytning, rettelse eller aflysning kan derfor
+ikke ændre udgaven. Aflyste events ved fristen medtages ikke i printet.
+
+Frontend skal gemme og genbruge samme `requestKey` ved usikker finalisering.
+Snapshot reserveres én gang i D1, PDF sættes og gemmes med betinget oprettelse i
+R2, og først derefter afsluttes udgaven i D1. R2-fejl efterlader ingen offentlig
+færdig udgave. Samme nøgle genoptager det gemte snapshot. Et mistet svar efter
+R2-lagring kan derfor genprøves uden at overskrive filen. Udgavens SHA-256,
+objektnøgle og sidetal gemmes. GET henter de gemte bytes og regenererer dem ikke.
+
+Pilotens gamle D1-udgaver havde kun datakopi. Deres eksisterende snapshot og id
+bevares; første PDF-hentning fryser filen i R2 én gang. Historiske PDF-filer i
+hjemmesidens øvrige arkiv berøres ikke. Konfigurér ikke en R2-livscyklusregel,
+som sletter færdige udgaver. DB og R2 skal sikkerhedskopieres sammen.
+
+Kun printskrifter og OFL-licens ligger i Workerens `assets/`. Interne font-fetches
+bruger ASSETS-bindingen. Workerens fetch-handler returnerer 404 uden for API,
+så den hverken serverer hovedsitet eller laver pilotens redirect/noindex.
+
+## Migration og validering
+
+`0001_calendar.sql` er uændret. `0002_association_portal.sql` tilføjer tabeller,
+kolonner og historiktriggers. Den lokale SQLite-adapter bruger `d1_migrations`,
+anvender hver migration i én transaktion og kan genåbne en gammel pilotdatabase
+uden at ændre eksisterende event-/printindhold. Tag en backup før en operatør
+vælger at åbne en eksisterende database med `CALENDAR_DATA_DIR`.
 
 ```sh
 npm test
-npm run test:browser
-npm run build
+npm run test:integration
+npm run test:pdf
+npm run test:cloudflare
 ```
 
-Backendtests bruger en separat database i hukommelsen. Browsertesten bruger en
-isoleret lokal server på port 8788, en separat database og separate browserkonti
-for afsender og TEB. Den rydder sin server og database op bagefter. Den bruger
-en installeret Google Chrome på macOS; tilpas executablePath ved andre systemer.
-Ingen af testene sender rigtig mail.
+Backendtests bruger hver sin database i hukommelsen og mock-mail. HTTP-testen
+starter sin egen loopback-server, bruger en midlertidig database/R2, prøver seed
+to gange, OTP, rettigheder, gæstegodkendelse, aflysning og PDF. Den rydder server
+og data op efter sig. Den læser kun de eksisterende site-filer og er ingen
+frontend-/browsertest; den endelige UI-test sker efter integration af site-koden.
 
-## Offentlig pilot på Cloudflare
+PDF-testen kræver `pdftoppm` og `pdftotext` fra Poppler. Den laver poster/A3 med
+45 fiktive events, kontrollerer at alle findes i PDF-teksten og renderer alle
+sider til `calendar-worker/.wrangler/pdf-check/` til visuel kontrol.
+Cloudflare-testen laver først en Wrangler dry-run og kører derefter den faktiske
+workerd-motor med lokal D1/R2 og interne font-assets. Den dækker også historik-
+triggers og D1s batch-/ændringstællere. Den lokale adapter tæller triggerwrites
+på samme måde som D1. Intet uploades eller provisioneres.
 
-Der er endnu ikke oprettet en offentlig Worker, database eller mailopsætning til
-denne pilot. Den eksisterende TEB-produktion og Pages-preview er ikke ændret.
-Den senest kontrollerede Wrangler-login har kun Pages-rettigheder på Business
-and Fitness-kontoen. Konto og adgang til afsenderdomænet skal afklares først.
+`npm run build` kan desuden køres alene som en Wrangler dry-run.
 
-1. Bekræft korrekt Cloudflare-konto med `wrangler whoami`. Få Worker-, D1- og
-   Email Service-rettigheder på den konto, der skal drive piloten.
-2. Opret en separat database med `wrangler d1 create teb-kalender-pilot` og indsæt
-   dens rigtige `database_id` i `wrangler.jsonc`.
-3. Sæt `PUBLIC_ORIGIN` til pilotens præcise HTTPS-adresse, `EDITOR_EMAIL` til
-   TEBs godkendte modtageradresse og `EMAIL_FROM` til en verificeret afsender.
-   Brug ikke en offentlig localhost-adresse. `LOCAL_PREVIEW` skal være udeladt.
-4. Aktivér Cloudflare Email Service og verificér afsenderdomænet. Afsendelse til
-   foreningernes vilkårlige kontaktadresser kræver Workers Paid ifølge Cloudflare.
-   Login-adgang alene aktiverer ikke denne tjeneste eller levering.
-5. Kør `wrangler d1 migrations apply teb-kalender-pilot --remote` og derefter
-   `npm run deploy`. Konfigurationen har ingen route til produktionsdomænet.
-6. Test en konkret indsendelse, modtagelse hos TEB, eksplicit godkendelse,
-   kvittering, privat rettelse og PDF på den rigtige adresse. Bekræft levering i
-   postkassen; et messageId beviser kun mailtjenestens accept.
+## Staging og produktion
 
-Hvis mail ikke er konfigureret, er offentlig indsendelse lukket. Hvis en
-afsendelse fejler efter lagring, bevares indsendelsen, og fejlen vises i
-kvitteringen og redaktionen. En usikker indsendelse genbruges med samme nøgle,
-så et nyt klik ikke opretter et ekstra arrangement eller blindt sender mail igen.
+Ingen ressourcer oprettes af denne kodeleverance. `wrangler.jsonc` og
+`wrangler.staging.jsonc` har placeholder DB-id'er og ingen routes. `workers_dev`
+og preview-URL'er er deaktiveret. Erstat og kontrollér alle værdier før deployment.
 
-Reference for mailbindingen:
-<https://developers.cloudflare.com/email-service/api/send-emails/workers-api/>
+Hvert miljø kræver sin egen D1, R2, mailnøgle, verificerede afsender og godkendte
+TEB-administratorer. Staging har en eksplicit modtager-allowlist og skal bruge
+en særskilt origin. `LOCAL_PREVIEW` skal være `false` i begge miljøer.
 
-## Afgrænsning
+Operatørens rækkefølge efter separat godkendelse:
 
-Indsendelse pr. almindelig mail går stadig til den eksisterende Gmail-postkasse.
-TEB indtaster mailens arrangement gennem formularen og godkender det bagefter.
-Automatisk læsning af Gmail, Facebook-publicering, Tistrup Nyt-integration og
-partnerlinks er endnu ikke implementeret. De rigtige partnere skal oplyses først.
+1. Vælg den rigtige Cloudflare-konto og allerede provisionerede D1/R2-ressourcer.
+   Indsæt konto, database-id, bucket og den præcise same-origin HTTPS-adresse.
+2. Sæt `EDITOR_EMAIL`, `EMAIL_FROM`, `TEB_ADMIN_EMAILS` og den hemmelige
+   `MAIL_ENCRYPTION_KEY`. Bekræft Workers Email Service og afsenderverifikation.
+3. Tag backup, og anvend migrationerne med den valgte miljøkonfiguration.
+   Eksempel: `npx wrangler d1 migrations apply teb-kalender-staging --remote --config wrangler.staging.jsonc`.
+4. Tilføj KUN routen `det-valgte-domæne/api/kalender/*`, med korrekt zone.
+   Tilføj eventuelt samme route for et andet hostname kun hvis frontend faktisk
+   bruges dér og har samme valgte `PUBLIC_ORIGIN`. Overtag aldrig `/`, `/admin/`,
+   `/*` eller `/api/formular*`. Hjemmesiden bliver på den eksisterende Pages-drift.
+5. Deploy Worker og site som separate leverancer. Afprøv OTP til godkendte
+   modtagere, gæstegodkendelse, invitation, tilbagekaldelse og R2-download.
+   Kontroller også gammel kontaktformular, CMS og hjemmesideforside.
 
-En parallel implementering er bevaret lokalt i `tmp/kalender-alternativ/`. Den
-er ikke koblet til denne pilot. Produktions-CMS, kontakt-/indmeldelsesworker,
-gamle hjemmesidearkiver og PWA er bevaret.
+Lokal succes eller et dry-run beviser ikke reel maillevering, provisionerede
+Cloudflare-rettigheder, browseraccept eller produktionsdrift. De gamle
+`/admin/login` og `/admin/session` magic-link-endpoints er erstattet af OTP.
+Frontend skal bruge `/auth/request`, `/auth/verify`, `/auth/logout` og `/session`.

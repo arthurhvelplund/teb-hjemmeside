@@ -16,16 +16,16 @@ export function validDate(date) {
   const parsed=new Date(date+'T12:00:00Z');
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0,10)===date;
 }
-export function validateEvent(input) {
+export function validateEvent(input, { allowPast=false } = {}) {
   const result = {};
-  for (const [key, limit, required] of [['title',100,true],['association',100,true],['date',10,true],['time',5,true],['endDate',10,false],['endTime',5,false],['location',180,true],['description',1500,false],['link',500,false]]) {
+  for (const [key, limit, required] of [['title',100,true],['association',100,true],['date',10,true],['time',5,true],['endDate',10,false],['endTime',5,false],['location',180,true],['description',1500,false],['link',500,false],['price',100,false]]) {
     const value = typeof input[key] === 'string' ? input[key].trim() : '';
     ensure(!required || value, 400, 'Udfyld navn, forening, dato, tidspunkt og sted.');
     ensure(value.length <= limit && !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value), 400, 'Et felt indeholder for meget tekst eller ugyldige tegn.');
     result[key] = value;
   }
   ensure(validDate(result.date), 400, 'Vælg en gyldig dato.');
-  ensure(result.date >= copenhagenDate(), 400, 'Arrangementet skal ligge i dag eller senere.');
+  ensure(allowPast || result.date >= copenhagenDate(), 400, 'Arrangementet skal ligge i dag eller senere.');
   ensure(result.date <= String(Number(copenhagenDate().slice(0,4))+3) + '-12-31', 400, 'Vælg en dato inden for de næste tre år.');
   ensure(/^([01]\d|2[0-3]):[0-5]\d$/.test(result.time), 400, 'Vælg et gyldigt tidspunkt.');
   ensure(!result.endDate || (validDate(result.endDate) && result.endDate >= result.date), 400, 'Slutdatoen skal være samme dag eller senere.');

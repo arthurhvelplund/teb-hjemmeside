@@ -1,27 +1,35 @@
-import {mkdir,writeFile} from 'node:fs/promises';
-import {copenhagenDate,token} from '../src/shared.mjs';
-const origin='http://localhost:8787';
+// Explicit, fictional local seed. Uses only the loopback API and never email.
+import { copenhagenDate,token } from '../src/shared.mjs';
+const origin=process.env.CALENDAR_ORIGIN||'http://localhost:8787';
+if(!['localhost','127.0.0.1','[::1]'].includes(new URL(origin).hostname))throw new Error('Seed requires loopback.');
 let cookie='';
 async function call(path,data){
- const response=await fetch(origin+'/api/kalender'+path,{headers:{Origin:origin,'CF-Connecting-IP':'local-demo-seed',...(data?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{})},...(data?{method:'POST',body:JSON.stringify(data)}:{})});
- const result=await response.json();if(!response.ok)throw new Error(result.error||'Seed failed');return result;
+ const response=await fetch(origin+'/api/kalender'+path,{headers:{Origin:origin,...(data?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{})},...(data?{method:'POST',body:JSON.stringify(data)}:{})});
+ const result=await response.json();if(!response.ok)throw new Error(result.error||'Seed failed');
+ if(response.headers.get('Set-Cookie'))cookie=response.headers.get('Set-Cookie').split(';')[0];return result;
 }
-if((await call('/config')).mode!=='local')throw new Error('Eksempeldata må kun oprettes på den lokale pilot.');
-if((await call('/events')).events.length){console.log('Kalenderen har allerede arrangementer. Ingen eksempeldata tilføjet.');process.exit();}
-const next=new Date(copenhagenDate()+'T12:00:00Z');next.setUTCDate(1);next.setUTCMonth(next.getUTCMonth()+1);const month=next.toISOString().slice(0,7);
-const titles=['Banko og kaffe','Fællessang','Foredrag i forsamlingshuset','Fællesspisning i hallen','Kom og spil krolf','Julehygge på torvet','Klubdag med gæst','Åben hal for familien','Koncert i kirken','Fælles gåtur','Julebanko','Håndbold for hele familien','Juleafslutning','Frivilligaften'];
-const places=['Tistrup Plejecenter','Hodde Forsamlingshus','Hodde-Tistrup Hallen','Tistrup Torv'];
-for(let i=0;i<titles.length+1;i++){
- const date=new Date(next);if(i>=7)date.setUTCMonth(date.getUTCMonth()+1);date.setUTCDate(i%7*3+2);
- const data={title:titles[i]||'Nyt arrangement til godkendelse',association:'Eksempelforeningen',date:date.toISOString().slice(0,10),time:i%2?'19:00':'14:30',location:places[i%places.length],description:'Dette er et opdigtet eksempel til afprøvning af piloten. Arrangementet finder ikke sted.'};
- const result=await call('/events',{event:data,email:'demo@example.org',authorToken:token(),requestKey:crypto.randomUUID(),startedAt:Date.now()-5000});
- if(!cookie){
-  const {messages}=await call('/local-mail');const message=messages.find(m=>m.body.includes('#login='));const login=message.body.match(/#login=([a-f0-9]{64})/)[1];
-  const session=await fetch(origin+'/api/kalender/admin/session',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify({token:login})});if(!session.ok)throw new Error('Local login failed');cookie=session.headers.get('Set-Cookie').split(';')[0];
+async function login(email){
+ const challenge=await call('/auth/request',{email});
+ const {messages}=await call('/local-mail');const message=messages.find(m=>m.recipient===email&&m.subject==='Din engangskode til TEB');
+ await call('/auth/verify',{challengeId:challenge.challengeId,code:message.body.match(/\b\d{6}\b/)[0]});
+}
+if((await call('/config')).mode!=='local')throw new Error('Example data requires local mode.');
+await login('teb-admin@example.test');
+const existing=(await call('/associations')).associations;
+let association=existing.find(a=>a.name==='Eksempelforeningen Solsiden');
+if(!association)association=(await call('/admin/associations',{association:{name:'Eksempelforeningen Solsiden',category:'Fritid',description:'Opdigtet forening til lokal afprøvning. Ingen af arrangementerne finder sted.',chair:'Eksempel Formand',email:'kontakt@example.test',place:'Eksempelhuset'}})).association;
+const roster=(await call('/associations/'+association.id+'/members')).members;
+for(const [email,name,role] of [['ansvarlig@example.test','Eksempel Ansvarlig','manager'],['redaktor@example.test','Eksempel Redaktør','editor']]){
+ if(!roster.some(m=>m.email===email))await call('/admin/associations/'+association.id+'/members',{email,name,role});
+}
+const publicEvents=(await call('/events?from=2000-01-01&to=2099-12-31')).events;
+if(!publicEvents.some(e=>e.associationId===association.id)){
+ await login('ansvarlig@example.test');
+ const next=new Date(copenhagenDate()+'T12:00:00Z');next.setUTCDate(1);next.setUTCMonth(next.getUTCMonth()+1);
+ for(let i=0;i<8;i++){
+  const date=new Date(next);date.setUTCDate(2+i*3);
+  await call('/events',{associationId:association.id,requestKey:crypto.randomUUID(),event:{title:['Fællesspisning','Fællessang','Banko og kaffe','Åben hal','Frivilligaften','Fælles gåtur','Foredrag','Klubdag'][i],association:association.name,date:date.toISOString().slice(0,10),time:'18:00',location:'Eksempelhuset',description:'Opdigtet lokalt eksempel.',price:'50 kr.'}});
  }
- if(i<titles.length)await call('/admin/events/'+result.id,{action:'approve',revision:1});
+ await call('/events',{event:{title:'Gæstens forslag til godkendelse',association:'Eksempelgæsterne',date:next.toISOString().slice(0,10),time:'19:00',location:'Eksempelhuset'},email:'gaest@example.test',authorToken:token(),requestKey:crypto.randomUUID(),startedAt:Date.now()-5000});
 }
-const edition=await call('/admin/editions',{month,deadline:copenhagenDate()});
-const pdf=await fetch(origin+'/api/kalender/editions/'+edition.id+'/pdf');if(!pdf.ok)throw new Error('PDF could not be generated');
-const output=new URL('../../output/kalender-pilot/',import.meta.url);await mkdir(output,{recursive:true});await writeFile(new URL('tistrup-kalender-pilot.pdf',output),new Uint8Array(await pdf.arrayBuffer()));
-console.log('14 opdigtede arrangementer er godkendt. Ét afventer godkendelse. Printudgaven er oprettet. Ingen e-mails er sendt.');
+console.log('Fiktive lokale data klar. OTP-login: teb-admin@example.test, ansvarlig@example.test og redaktor@example.test. Koder findes kun i /api/kalender/local-mail. Ingen e-mails sendes.');
