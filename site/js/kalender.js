@@ -451,7 +451,6 @@ const route = query.has('privat') ? privateEvent(query.get('privat'))
   : query.get('opret') === '1' ? createEvent()
   : query.has('arrangement') ? publicDetails(query.get('arrangement')) : Promise.resolve();
 await Promise.allSettled([loadCalendar(), loadEditions(), route]);
-if (!query.has('opret') && !query.has('ret') && !query.has('privat')) $('#calendar-sharing')?.append(sharingChannels());
 if (!workspace.hidden) $('#workspace-heading')?.focus({preventScroll: true});
 
 // Refresh only visible pages, and never replace a form or a focused calendar link.

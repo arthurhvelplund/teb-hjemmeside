@@ -30,7 +30,7 @@ function openDetails(item){
  if(item.description)root.append(el('p',{},item.description));
  if(item.body)root.append(el('p',{},item.body));
  if(item.price)root.append(el('p',{},'Pris: '+item.price));
- if(safeURL(item.link))root.append(el('a',{href:item.link,target:'_blank',rel:'noopener noreferrer'},'Læs mere eller tilmeld dig ↗'));
+ if(safeURL(item.link)&&(!item.sourceId||item.link!==item.url))root.append(el('a',{href:item.link,target:'_blank',rel:'noopener noreferrer'},'Læs mere eller tilmeld dig ↗'));
  if(item.sourceId&&safeURL(item.url))root.append(el('a',{href:item.url,target:'_blank',rel:'noopener noreferrer'},'Se arrangementet hos '+item.sourceName+' ↗'));
  if(item.standardEvent)root.append(el('a',{href:'kalender.html?arrangement='+encodeURIComponent(item.id)},'Se arrangementet i aktivitetskalenderen →'));
  if(!$('#ds-detail').open)$('#ds-detail').showModal();
