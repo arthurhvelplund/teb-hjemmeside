@@ -72,12 +72,20 @@ Dette aktiverer ikke deployment.
 
 ## Adgang og revisioner
 
-Det lokale forsøg med samlet nyhedsfeed/kalender findes på
-`/nyt-eksperiment.html`. Det genbruger login, mailkø og kildecache og har sin
-egen `experiment_posts`-tabel. De tilhørende API-ruter er lukkede i produktion.
-Pulsen i Vest leverer desuden nyheds- og arrangementskort via
+Den samlede side er nu `/nyt.html`. Den bruger `GET/POST /posts` og
+`GET /admin/posts` samt `POST /admin/posts/:id` til TEBs godkendelse.
+Migration `0005_posts.sql` tilføjer rigtige opslag uden at flytte forsøgsdata.
+Gæster afventer godkendelse; godkendte foreningsmedlemmer og TEB udgiver straks.
+Et arrangementsopslag opretter sin kanoniske kalenderpost atomisk ved udgivelse.
+Det har samme id i nyheder og kalender, og rettelser/aflysninger følger kalenderen.
+Valget af fysisk kalender gemmes som `printRequested`, som printarkivet respekterer.
+Allerede afsluttede PDF-filer ændres ikke. Ekstern deling bestilles ikke automatisk.
+
+Den gamle `/experiment/*`-API og `experiment_posts` bevares som et separat,
+kun lokalt sandkasselager. De er ikke datakilden til den rigtige side.
+Pulsen i Vest leverer nyheds- og arrangementskort via
 `GET /api/kalender/nyheder/pulsen`, cached separat fra Tistrup Nyt.
-Se [forsøgets dokumentation](../docs/DET_SKER_EXPERIMENT.md).
+Importen dækker kildernes viste kort, ikke komplette årsarkiver.
 
 OTP har seks tilfældige cifre, ti minutters levetid og højst fem forsøg.
 Anmodninger begrænses pr. mail, IP og globalt. Verifikation begrænses pr.

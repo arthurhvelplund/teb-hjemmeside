@@ -2,18 +2,19 @@
 <html lang="da">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Et samlet overblik over lokale nyheder og arrangementer i Tistrup og Hodde.">
 <title>Det sker i Tistrup | TEB</title>
-<meta name="description" content="Lokale nyheder, oplevelser og fællesskaber i Tistrup og Hodde.">
 <link rel="stylesheet" href="css/style.css?v=a37d3c51d78f">
 <link rel="stylesheet" href="css/layout.css?v=43e8a3bac517">
-<link rel="stylesheet" href="css/nyt.css?v=b191d7be7311">
-<link rel="stylesheet" href="css/seasonal-themes.css?v=a1ddd5609eb2">
+<link rel="stylesheet" href="css/portal.css?v=17093cd2e634">
+<link rel="stylesheet" href="css/calendar-grid.css?v=cb48a344f306">
+<link rel="stylesheet" href="css/det-sker.css?v=9e4de5694d6d">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
+<link rel="stylesheet" href="css/seasonal-themes.css?v=a1ddd5609eb2">
 <script src="js/seasonal-theme.js?v=5a1758734788"></script>
 </head>
 <body>
-
 <header class="site-header">
   <div class="header-inner">
     <a href="index.html" class="logo-link" aria-label="Tistrup Erhvervs- og Borgerforening – forsiden">
@@ -42,56 +43,30 @@
     </a>
   </div>
 </header>
-
 <main class="site-main">
-
-  <section class="hero page-hero">
-    <div class="hero-grid">
-      <div class="hero-text">
-        <span class="eyebrow">Nyt og oplevelser</span>
-        <h1>Det sker<br>i <em>Tistrup</em>.</h1>
-        <p class="lead">Følg med hos de lokale medier. Find også oplevelser og fællesskaber i området.</p>
-        <div class="btn-row"><a class="btn" href="nyt-eksperiment.html">Prøv nyheder og kalender samlet</a><a class="btn btn-secondary" href="kalender.html">Se byens kalender</a></div>
-      </div>
-      <div class="hero-image">
-        <img src="images/torvet-optraeden.png" alt="Optræden på Tistrup Torv">
-      </div>
-    </div>
+ <section class="hero page-hero">
+  <div class="wrap page-heading ds-heading">
+   <span class="eyebrow">Tistrup og Hodde</span>
+   <div class="ds-heading-row"><div><h1>Det <em>sker.</em></h1><p class="lead">Historier fra byen. Noget at glæde sig til.</p></div><div class="ds-heading-actions"><button type="button" class="btn" id="ds-create">+ Del med byen</button><a id="ds-login" href="forening.html?return=nyt.html#login">Log ind →</a></div></div>
+  </div>
+ </section>
+ <div class="wrap ds-body">
+  <section id="ds-composer" class="ds-composer" aria-labelledby="ds-composer-heading" hidden></section>
+  <section id="ds-review" class="ds-review" aria-labelledby="ds-review-heading" hidden></section>
+  <div class="ds-toolbar"><label class="ds-search"><span class="sr-only">Søg i nyheder og arrangementer</span><input type="search" id="ds-search" placeholder="Søg i arrangementer og nyheder…"></label><button type="button" class="ds-text-button" id="ds-refresh">Opdatér</button></div>
+  <div id="ds-message" aria-live="polite"></div>
+  <section class="ds-calendar" aria-labelledby="ds-calendar-heading">
+   <div class="ds-section-heading"><div><span class="ds-label">TEB aktivitetskalender</span><h2 id="ds-calendar-heading">Det sker <em>i kalenderen.</em></h2></div><details class="ds-print"><summary>Se fysisk kalender</summary><p>Se de færdige udgaver til byens opslagstavler. Udgivne PDF-filer ændrer sig ikke.</p><div id="ds-editions"></div><a href="downloads/kalender-september-oktober-2026.pdf" target="_blank" rel="noopener">September–oktober 2026 · PDF ↗</a></details></div>
+   <div class="ds-calendar-toolbar"><div class="ds-period"><button id="ds-prev" type="button" aria-label="Forrige periode">←</button><strong id="ds-period" aria-live="polite"></strong><button id="ds-next" type="button" aria-label="Næste periode">→</button><button id="ds-today" type="button">I dag</button></div><div class="ds-calendar-modes" role="group" aria-label="Kalenderperiode"><button id="ds-week" type="button" aria-pressed="false">Uge</button><button id="ds-month" type="button" aria-pressed="true">Måned</button></div></div>
+   <p class="calendar-scroll-hint">Rul kalenderen til siden, eller vælg Uge for mere plads.</p>
+   <div id="ds-events" aria-busy="true"><p>Henter arrangementer…</p></div><p id="ds-events-status" class="ds-source-status" role="status"></p>
   </section>
-
-
-  <section class="section" aria-labelledby="news-heading">
-    <div class="wrap">
-      <div class="news-heading">
-        <div><span class="eyebrow">Lokale historier</span><h2 id="news-heading">Seneste fra <em>Tistrup Nyt</em>.</h2>
-        <p>Nyheder fra Tistrup og Hodde. Læs hele historien hos Tistrup Nyt.</p></div>
-        <a class="text-link" href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer">Besøg Tistrup Nyt ↗</a>
-      </div>
-      <div id="local-news" class="news-grid" aria-busy="true"><p>Henter nyheder…</p></div>
-      <p id="local-news-status" class="news-status" role="status"></p>
-      <noscript><p>Læs de seneste historier på <a href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer">Tistrup Nyt</a>.</p></noscript>
-    </div>
-  </section>
-
-
-
-  <section class="section" aria-labelledby="local-sources-heading">
-    <div class="wrap">
-      <span class="eyebrow">Følg med omkring os</span>
-      <h2 id="local-sources-heading">Flere veje til det <em>lokale liv</em>.</h2>
-      <p>Her finder du andres nyheder, kalender og tilbud. Hver side har sit eget indhold og åbner i en ny fane.</p>
-      <div class="calendar-grid">
-        <article class="calendar-card"><h3>Pulsen i Vest</h3><p>Arrangementer, oplevelser og lokale historier i området.</p><a class="text-link" href="https://pulsenivest.dk/by/tistrup" target="_blank" rel="noopener noreferrer">Besøg Pulsen i Vest →</a></article>
-        <article class="calendar-card"><h3>Tistrup Nyt</h3><p>Nyheder og kalender for Tistrup og Hodde.</p><a class="text-link" href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer">Besøg Tistrup Nyt →</a></article>
-        <article class="calendar-card"><h3>Tistrupnews</h3><p>Nyheder, foreningsliv og historier fra lokalområdet.</p><a class="text-link" href="https://www.tistrupnews.dk/" target="_blank" rel="noopener noreferrer">Besøg Tistrupnews →</a></article>
-        <article class="calendar-card"><h3>VORES Tistrup</h3><p>Lokale nyheder og livet omkring os.</p><a class="text-link" href="https://vores-tistrup.dk/" target="_blank" rel="noopener noreferrer">Besøg VORES Tistrup →</a></article>
-        <article class="calendar-card"><h3>Fællesskaber i Varde</h3><p>Varde Kommunes indgang til lokale fællesskaber og tilbud.</p><a class="text-link" href="https://sundhedsfremme.vardekommune.dk/lokalsamfund/" target="_blank" rel="noopener noreferrer">Besøg Fællesskaber i Varde →</a></article>
-      </div>
-    </div>
-  </section>
-
+  <section class="ds-news" aria-labelledby="ds-news-heading"><div class="ds-section-heading"><h2 id="ds-news-heading">Nyt <em>fra byen.</em></h2><label><span class="sr-only">Vælg kilde</span><select id="ds-source"><option value="all">Alle kilder</option><option value="tistrup-nyt">Tistrup Nyt</option><option value="pulsen">Pulsen i Vest</option><option value="local">Foreningernes opslag</option></select></label></div><div id="ds-feed" aria-busy="true"><p>Henter historier…</p></div><button class="btn btn-secondary" id="ds-more" type="button" hidden>Vis flere nyheder</button><p class="ds-source-status" id="ds-source-status" role="status"></p></section>
+  <section class="ds-sources" aria-labelledby="ds-sources-heading"><h2 id="ds-sources-heading">Direkte til de lokale kilder</h2><p>Læs hele historien hos dem, der har skrevet den. TEB’s egne Facebook-opslag finder du på <a href="index.html#facebook">forsiden</a>.</p><div><a href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer">Tistrup Nyt ↗</a><a href="https://pulsenivest.dk/by/tistrup" target="_blank" rel="noopener noreferrer">Pulsen i Vest ↗</a><a href="https://www.tistrupnews.dk/" target="_blank" rel="noopener noreferrer">Tistrupnews ↗</a><a href="https://vores-tistrup.dk/" target="_blank" rel="noopener noreferrer">VORES Tistrup ↗</a><a href="https://sundhedsfremme.vardekommune.dk/lokalsamfund/" target="_blank" rel="noopener noreferrer">Fællesskaber i Varde ↗</a></div></section>
+ </div>
+ <noscript><p class="wrap">Åbn <a href="kalender.html">aktivitetskalenderen</a> eller besøg de lokale medier via linkene ovenfor. Kalenderen og nyhederne kræver JavaScript.</p></noscript>
 </main>
-
+<dialog id="ds-detail" class="ds-dialog" aria-labelledby="ds-detail-heading"><button type="button" id="ds-detail-close" class="ds-close" aria-label="Luk opslag">Luk ×</button><div id="ds-detail-content"></div></dialog>
 <footer class="site-footer">
   <div class="wrap">
     <p class="footer-mark">Tistrup Erhvervs-<br>og <em>Borgerforening</em></p>
@@ -141,9 +116,7 @@
     <span>Byen i midten af det hele.</span>
   </div>
 </footer>
-
 <script src="js/main.js?v=5cfc1e933733"></script>
-<script src="js/nyt.js?v=15652b00cdfb"></script>
+<script type="module" src="js/det-sker.js?v=7cacd567b5ab"></script>
 </body>
 </html>
-

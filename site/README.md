@@ -10,10 +10,13 @@ Det fælles design ligger i `css/style.css`; sæsonudsmykning ligger separat.
   arbejdsområde for foreninger og TEB.
 - `kalender.html`: måned/uge, arrangementsdetaljer, oprettelse med preview,
   privat gæstestatus og printarkiv.
-- `nyt.html`: Tistrup Nyt via backendens HTML-import og cache samt eksterne links.
+- `nyt.html`: fælles uge-/månedskalender med arrangementer i dagene, nyheder fra
+  Tistrup Nyt og Pulsen i Vest, direkte kildekort og fælles oprettelse.
 - `index.html#facebook`: TEBs eget Facebook-feed.
-- `nyt-eksperiment.html`: isoleret lokalt forsøg med samlet nyhedsfeed, kalender
-  og oprettelse. Se `../docs/DET_SKER_EXPERIMENT.md` for omfang og begrænsninger.
+- `nyt-eksperiment.html`: viderestilling til den rigtige Det sker-side.
+
+Kalendergitteret deles af `nyt.html` og `kalender.html` via `js/calendar-grid.js`
+og `css/calendar-grid.css`. Delingsmuligheder vises kun under oprettelse.
 
 Frontend kalder `/api/kalender/*`. Backend i `calendar-worker/` kontrollerer
 login, adgang, data og offentliggørelse. Der er ingen faste prøvekoder eller

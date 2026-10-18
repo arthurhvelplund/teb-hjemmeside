@@ -5,6 +5,7 @@ import {localR2} from '../scripts/r2.mjs';
 import {handleApi} from '../src/api.mjs';
 import {token,copenhagenDate} from '../src/shared.mjs';
 import {parsePulsen,createNewsService} from '../src/news.mjs';
+import {snapshot} from '../src/editions.mjs';
 import {groupNewsSources} from '../../site/js/feed-data.js';
 
 function fixture(t){
@@ -92,4 +93,32 @@ test('syndicated long headlines retain both source links while generic short tit
   {title:'Generalforsamling',sourceId:'b',url:'https://example.test/b'}];
  const grouped=groupNewsSources(items);assert.equal(grouped.length,3);assert.equal(grouped[0].alsoSources[0].url,items[1].url);
  assert.equal(grouped[0].sourceName,'Tistrup Nyt');assert.equal(items[0].alsoSources,undefined);
+});
+
+test('real posts share a canonical event and print history; sandbox remains separate',async t=>{
+ const f=fixture(t),p=payload(),saved=await ok(await f.guest.call('/posts',p),201);
+ assert.equal((await ok(await f.guest.call('/events'))).events.length,0);
+ assert.equal((await f.guest.call('/posts/'+saved.id)).status,404);
+ await f.admin.login();await ok(await f.admin.call('/admin/posts/'+saved.id,{action:'approve',revision:1}));
+ let events=(await ok(await f.guest.call('/events'))).events;
+ assert.equal(events.length,1);assert.equal(events[0].id,saved.id);assert.equal(events[0].printRequested,true);
+ assert.equal((await ok(await f.guest.call('/posts/'+saved.id))).post.body,p.post.body);
+ assert.equal((await ok(await f.guest.call('/experiment/posts'))).posts.length,0);
+ assert.equal((await snapshot(f.env,{start:p.post.date,end:p.post.date,deadline:copenhagenDate()})).events.length,1);
+ const row=await f.DB.prepare('SELECT revision FROM events WHERE id=?').bind(saved.id).first();
+ await ok(await f.admin.call('/member/events/'+saved.id,{action:'update',revision:row.revision,event:{...events[0],title:'Rettet i kalenderen'}}));
+ const publicPost=(await ok(await f.guest.call('/posts'))).posts[0];assert.equal(publicPost.title,'Rettet i kalenderen');assert.equal(publicPost.body,p.post.body);assert.equal(publicPost.printRequested,true);
+ await ok(await f.admin.call('/admin/posts/'+saved.id,{action:'withdraw',revision:2}));
+ assert.equal((await ok(await f.guest.call('/posts'))).posts.length,0);assert.equal((await ok(await f.guest.call('/events'))).events[0].state,'cancelled');
+});
+test('real member publication is idempotent; print opt-out and news-only publication work',async t=>{
+ const f=fixture(t);await f.admin.login();const p=payload();p.post.print=false;
+ const saved=await ok(await f.admin.call('/posts',p),201);await ok(await f.admin.call('/posts',p));
+ assert.equal((await ok(await f.guest.call('/events'))).events.length,1);
+ assert.equal((await snapshot(f.env,{start:p.post.date,end:p.post.date,deadline:copenhagenDate()})).events.length,0);
+ const news=payload();news.post={kind:'news',title:'En nyhed',author:'TEB',description:'Kun i nyhederne'};
+ await ok(await f.admin.call('/posts',news),201);assert.equal((await ok(await f.guest.call('/events'))).events.length,1);
+ assert.equal((await ok(await f.guest.call('/posts'))).posts.length,2);
+ assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM publications WHERE event_id=?').bind(saved.id).first()).n,1);
+ f.env.LOCAL_PREVIEW='false';assert.equal((await f.guest.call('/posts')).status,200);assert.equal((await f.guest.call('/experiment/posts')).status,404);
 });

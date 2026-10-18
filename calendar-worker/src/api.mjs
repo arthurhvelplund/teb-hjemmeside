@@ -5,6 +5,7 @@ import { associations, saveAssociation, createAssociation, members, invite, revo
 import { publicEvents, createEvent, author, privateData, guestUpdate, memberUpdate, review, myEvents, adminEvents } from './events.mjs';
 import { previewEdition, finalizeEdition, listEditions, editionPdf } from './editions.mjs';
 import { localMailbox, flushMail } from './mail.mjs';
+import { handlePosts } from './posts.mjs';
 import { experiment } from './experiment.mjs';
 const base='/api/kalender';
 async function body(request,env){
@@ -27,6 +28,7 @@ async function api(request,env){
  if(route==='/auth/verify'&&method==='POST')return verifyOtp(request,env,data);
  if(['/auth/logout','/admin/logout'].includes(route)&&method==='POST')return logout(request,env);
  const auth=await identity(request,env);
+ if(route==='/posts'||route.startsWith('/posts/')||route.startsWith('/admin/posts'))return handlePosts(request,env,auth,route,data);
  if(route.startsWith('/experiment/'))return experiment(request,env,auth,route,data);
  if(route==='/session'&&method==='GET')return json(await sessionData(env,auth));
  if(route==='/associations'&&method==='GET')return associations(env);

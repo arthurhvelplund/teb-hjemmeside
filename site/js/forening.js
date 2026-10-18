@@ -49,7 +49,7 @@ function route() {
 // Only explicitly allowed local portal pages can receive a user after login.
 function returnTarget() {
   const raw = new URLSearchParams(location.search).get('return');
-  if (!raw || !/^(?:kalender|forening|nyt-eksperiment)\.html(?:[?#]|$)/.test(raw) || /[\\\u0000-\u001f]/.test(raw)) return null;
+  if (!raw || !/^(?:kalender|forening|nyt|nyt-eksperiment)\.html(?:[?#]|$)/.test(raw) || /[\\\u0000-\u001f]/.test(raw)) return null;
   const target = new URL(raw, location.href);
   const expected = new URL(raw.split(/[?#]/)[0], location.href);
   if (target.origin !== location.origin || target.pathname !== expected.pathname) return null;

@@ -95,6 +95,7 @@ export async function memberUpdate(env,auth,id,data){
  ensure(!associationId||a,404,'Foreningen findes ikke.');
  const event=data.action==='cancel'?JSON.parse(row.published_json):validateEvent({...data.event,...(a?{association:a.name}:{})},{allowPast:true});
  if(associationId)event.associationId=associationId;
+ if(row.published_json){const previous=JSON.parse(row.published_json);if(previous.postId){event.postId=previous.postId;event.printRequested=previous.printRequested;}}
  event.state=data.action==='cancel'?'cancelled':'approved';
  const result=await stmt(env,`UPDATE events SET published_json=?,pending_json=NULL,pending_kind=NULL,status=?,moderation_note='',revision=revision+1,association_id=?,updated_at=? WHERE id=? AND revision=? AND ${g.sql}`,
  JSON.stringify(event),event.state==='cancelled'?'approved':event.state,associationId,now(),id,row.revision,...g.args).run();
@@ -109,6 +110,7 @@ export async function review(env,auth,id,data){
  let published=row.published_json,event=JSON.parse(row.pending_json||row.published_json);
  if(data.action==='approve'){
   event=row.pending_kind==='cancel'?JSON.parse(row.published_json):validateEvent(data.event||event,{allowPast:true});
+  if(row.published_json){const previous=JSON.parse(row.published_json);if(previous.postId){event.postId=previous.postId;event.printRequested=previous.printRequested;}}
   event.state=row.pending_kind==='cancel'?'cancelled':'approved';published=JSON.stringify(event);
  }
  const status=data.action==='approve'?'approved':'rejected';

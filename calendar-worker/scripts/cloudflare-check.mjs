@@ -52,5 +52,11 @@ try{
  const edition=await api('/admin/editions',{month,deadline:copenhagenDate(),format:'a3',requestKey:crypto.randomUUID()});assert.equal(edition.eventCount,2);
  const pdf=await mf.dispatchFetch(origin+'/api/kalender/editions/'+edition.id+'/pdf');assert.equal(pdf.status,200);assert.equal(new TextDecoder().decode(new Uint8Array(await pdf.arrayBuffer()).slice(0,5)),'%PDF-');
  assert.equal((await db.prepare('SELECT count(*) AS n FROM publications').first()).n,3);
+ // The real Det sker composer must create the same canonical calendar entry on D1.
+ const postPayload={post:{kind:'both',title:'Fælles opslag',author:'TEB',description:'Nyhed og arrangement',body:'Hele historien',date:month+'-13',time:'18:00',location:'Torvet',print:true},requestKey:crypto.randomUUID()};
+ const post=await api('/posts',postPayload);assert.equal(post.published,true);
+ await api('/posts',postPayload);assert.equal((await api('/events')).events.filter(e=>e.id===post.id).length,1);
+ const rows=await api('/posts');assert.equal(rows.posts[0].id,post.id);assert.equal(rows.posts[0].body,'Hele historien');
+ await api('/admin/posts/'+post.id,{action:'withdraw',revision:1});assert.equal((await api('/events/'+post.id)).event.state,'cancelled');
  console.log('Cloudflare local runtime passed: workerd Worker, D1 migrations/triggers/batches, OTP/invitation, direct/member/guest publishing and R2 PDF. No network mail.');
 }finally{await mf.dispose();}

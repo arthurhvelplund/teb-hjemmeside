@@ -1,4 +1,5 @@
 import {api,getSession,today,dateText,randomToken,requestKey,showMessage,showMode} from './portal-api.js';
+import {calendarGrid,calendarBounds} from './calendar-grid.js';
 import {groupNewsSources} from './feed-data.js';
 
 const $=s=>document.querySelector(s);
@@ -14,38 +15,35 @@ const shift=(date,days)=>{const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.get
 const label=date=>dateText(date,{year:undefined});
 const shortDate=date=>new Intl.DateTimeFormat('da-DK',{day:'numeric',month:'short',timeZone:'Europe/Copenhagen'}).format(new Date(date+'T12:00:00Z'));
 const query=new URLSearchParams(location.search);
-let session={authenticated:false,memberships:[]},posts=[],events=[],external=[],externalEvents=[],sourceStatus={},view='overview',source='all',search='',visible=8,anchor=today(),mode='week',selectedDay='',loading=false;
+let siteMode='offline';
+let session={authenticated:false,memberships:[]},posts=[],events=[],external=[],externalEvents=[],sourceStatus={},source='all',search='',visible=9,anchor=today(),mode='month',loading=false;
 let sourceLoaded=false,eventLoaded=false,postLoaded=false;
-const localPath=id=>'nyt-eksperiment.html?opslag='+encodeURIComponent(id);
+const localPath=id=>'nyt.html?opslag='+encodeURIComponent(id);
 const channels=[['flyers','Flyers i postkasser','Aftal omdeling, pris og frist med udbyderen.'],['portals','Analoge byportaler','Spørg om plads på byens portaler.'],['screens','Infoskærme','Kontakt udbyderen om format, pris og placering.'],['posters','Plakater i byen','Brug aftalte opslagstavler og pladser.']];
-$('#ds-channels').append(el('div',{class:'ds-channel-grid'},channels.map(([,title,text])=>el('article',{class:'ds-channel'},el('h3',{},title),el('p',{},text+' Kontaktoplysninger afventer TEBs aftaler.')))),el('p',{class:'ds-source-status'},'I kontakter selv udbyderne. Der bliver ikke automatisk bestilt, betalt eller delt noget.'));
 function photo(url,cls){const valid=safeURL(url);if(!valid)return null;return el('img',{src:valid,alt:'',class:cls,loading:'lazy',decoding:'async',referrerPolicy:'no-referrer',onError:e=>e.target.remove()});}
 function when(p){return shortDate(p.date)+(p.time?' · kl. '+p.time.replace(':','.'):'')+(p.endDate&&p.endDate!==p.date?' til '+shortDate(p.endDate):'');}
 function openDetails(item){
  const root=$('#ds-detail-content');root.replaceChildren();
- root.append(el('span',{class:'ds-meta'},item.sourceName||item.author||item.association||'Prøveopslag'),el('h2',{id:'ds-detail-heading'},item.title));
+ root.append(el('span',{class:'ds-meta'},item.sourceName||item.author||item.association||'Opslag'),el('h2',{id:'ds-detail-heading'},item.title));
  const img=photo(item.image,'');if(img)root.append(img);
  if(item.date)root.append(el('p',{class:'ds-event-chip'},(item.state==='cancelled'?'Aflyst · ':'')+when(item)+(item.location?' · '+item.location:'')));
  if(item.description)root.append(el('p',{},item.description));
  if(item.body)root.append(el('p',{},item.body));
  if(item.price)root.append(el('p',{},'Pris: '+item.price));
  if(safeURL(item.link))root.append(el('a',{href:item.link,target:'_blank',rel:'noopener noreferrer'},'Læs mere eller tilmeld dig ↗'));
+ if(item.sourceId&&safeURL(item.url))root.append(el('a',{href:item.url,target:'_blank',rel:'noopener noreferrer'},'Se arrangementet hos '+item.sourceName+' ↗'));
  if(item.standardEvent)root.append(el('a',{href:'kalender.html?arrangement='+encodeURIComponent(item.id)},'Se arrangementet i aktivitetskalenderen →'));
- if(item.channels?.length||item.print)root.append(el('p',{class:'ds-source-status'},'Ønsker til deling: '+[item.print?'Analog kalender':null,...channels.filter(([key])=>item.channels?.includes(key)).map(([,name])=>name)].filter(Boolean).join(', ')+'. I forsøget bliver der ikke bestilt ekstern deling eller lavet nye papirudgaver.'));
  if(!$('#ds-detail').open)$('#ds-detail').showModal();
 }
 $('#ds-detail-close').addEventListener('click',()=>$('#ds-detail').close());
 $('#ds-detail').addEventListener('click',e=>{if(e.target===$('#ds-detail')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}});
 function card(item,{preview=false}={}){
- const news=item.sourceId,article=el('article',{class:'ds-story'}),img=photo(item.image,'ds-story-image');if(img)article.append(img);
- const body=el('div',{class:'ds-story-content'},el('span',{class:'ds-meta'},item.sourceName||item.author||item.association||'Afsender'),el('h3',{},item.title||'Din overskrift'));
- body.append(el('p',{},item.summary||item.description||'Her kommer den korte beskrivelse.'));
- if(item.date)body.append(el('a',{class:'ds-event-chip',href:preview?'#':item.standardEvent?'kalender.html?arrangement='+encodeURIComponent(item.id):localPath(item.id),onClick:preview?e=>e.preventDefault():e=>{e.preventDefault();openDetails(item);}},(item.state==='cancelled'?'Aflyst · ':'')+when(item)+(item.location?' · '+item.location:'')));
- if(!preview){
-  if(news&&safeURL(item.url)){body.append(el('a',{href:item.url,target:'_blank',rel:'noopener noreferrer'},'Læs hos '+item.sourceName+' ↗'));for(const other of item.alsoSources||[])if(safeURL(other.url))body.append(el('p',{class:'ds-also-source'},el('a',{href:other.url,target:'_blank',rel:'noopener noreferrer'},'Også hos '+other.name+' ↗')));}
-  else body.append(button(item.kind==='event'?'Se arrangementet →':'Læs historien →',()=>openDetails(item),'ds-read'));
- }
- article.append(body);return article;
+ const href=item.sourceId?safeURL(item.url):localPath(item.id);
+ const article=el('article',{class:'ds-story'}),link=el(preview?'div':'a',{class:'ds-story-link',...(preview?{}:{href:href||'#',...(item.sourceId?{target:'_blank',rel:'noopener noreferrer'}:{onClick:e=>{if(!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey){e.preventDefault();openDetails(item);}}})})});
+ const img=photo(item.image,'ds-story-image');if(img)link.append(img);
+ const body=el('div',{class:'ds-story-content'},el('span',{class:'ds-meta'},[item.sourceName||item.author||item.association||'Afsender',...(item.alsoSources||[]).map(s=>s.name)].join(' · ')),el('h3',{},item.title||'Din overskrift'),el('p',{},item.summary||item.description||'Her kommer den korte beskrivelse.'));
+ if(item.date)body.append(el('span',{class:'ds-event-chip'},(item.state==='cancelled'?'Aflyst · ':'')+when(item)+(item.location?' · '+item.location:'')));
+ link.append(body);article.append(link);return article;
 }
 function matches(item){return !search||[item.title,item.summary,item.description,item.body,item.location,item.author,item.association,item.sourceName].filter(Boolean).join(' ').toLocaleLowerCase('da').includes(search);}
 function renderFeed(){
@@ -60,47 +58,30 @@ function renderFeed(){
  root.setAttribute('aria-busy',String(!sourceLoaded||!postLoaded));
  $('#ds-source-status').textContent=Object.values(sourceStatus).join(' ');
 }
-function allEvents(){return [...events.map(e=>({...e,standardEvent:true,sourceName:'TEB aktivitetskalender'})),...externalEvents,...posts.filter(p=>p.kind!=='news')].filter(p=>/^\d{4}-\d{2}-\d{2}$/.test(p.date||'')).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')||a.title.localeCompare(b.title,'da'));}
-function bounds(){
- if(mode==='week')return {from:anchor,to:shift(anchor,6)};
- const d=new Date(anchor+'T12:00:00Z');d.setUTCDate(1);const from=d.toISOString().slice(0,10);d.setUTCMonth(d.getUTCMonth()+1);return {from,to:shift(d.toISOString().slice(0,10),-1)};
+function allEvents(){
+ const linked=new Map(posts.filter(p=>p.kind!=='news').map(p=>[p.id,p]));
+ const list=events.map(e=>({...e,...linked.get(e.id),standardEvent:true,sourceName:'TEB aktivitetskalender'}));
+ for(const p of linked.values())if(!events.some(e=>e.id===p.id))list.push(p);
+ return [...list,...externalEvents].filter(p=>/^\d{4}-\d{2}-\d{2}$/.test(p.date||'')).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')||a.title.localeCompare(b.title,'da'));
 }
-const overlaps=(e,from,to)=>e.date<=to&&(e.endDate||e.date)>=from;
 function renderCalendar(){
- const period=bounds(),root=$('#ds-events');root.replaceChildren();
+ const period=calendarBounds(anchor,mode),root=$('#ds-events');
  $('#ds-period').textContent=mode==='month'?dateText(period.from,{day:undefined,year:'numeric'}):shortDate(period.from)+' – '+shortDate(period.to);
- $('#ds-week').setAttribute('aria-pressed',String(mode==='week'));$('#ds-month').setAttribute('aria-pressed',String(mode==='month'));
- const inPeriod=allEvents().filter(p=>overlaps(p,period.from,period.to)&&matches(p));
- if(mode==='month'){
-  const grid=el('div',{class:'ds-month-grid','aria-label':'Vælg en dag'});
-  for(const day of ['M','T','O','T','F','L','S'])grid.append(el('span',{'aria-hidden':'true'},day));
-  const start=shift(period.from,-((new Date(period.from+'T12:00:00Z').getUTCDay()+6)%7));
-  for(let i=0;i<42;i++){
-   const day=shift(start,i),count=inPeriod.filter(e=>overlaps(e,day,day)).length;
-   grid.append(el('button',{type:'button',class:(day===today()?'is-today ':'')+(day<period.from||day>period.to?'is-outside':''),'aria-label':label(day)+(count?' · '+count+' arrangementer':''),'aria-pressed':String(day===selectedDay),onClick:()=>{if(day<period.from||day>period.to)anchor=day;selectedDay=selectedDay===day?'':day;renderCalendar();}},String(Number(day.slice(-2))),count?el('i',{'aria-hidden':'true'},'•'):null));
-  }
-  root.append(grid);if(selectedDay)root.append(button('Vis hele måneden',()=>{selectedDay='';renderCalendar();},'ds-text-button'));
- }
- const selected=selectedDay?inPeriod.filter(e=>overlaps(e,selectedDay,selectedDay)):inPeriod;
- if(!selected.length)root.append(el('p',{class:'ds-empty'},eventLoaded?'Ingen arrangementer '+(search?'passer til din søgning.':'i denne periode. Prøv næste uge, eller del jeres arrangement.'):'Henter arrangementer…'));
- for(const p of selected){
-  const item=el('article',{class:'ds-agenda-item'+(p.state==='cancelled'?' is-cancelled':'')},el('time',{class:'ds-date',dateTime:p.date},el('b',{},String(Number(p.date.slice(-2)))),el('span',{},new Intl.DateTimeFormat('da-DK',{month:'short'}).format(new Date(p.date+'T12:00:00Z')))));
-  const body=el('div',{},el('span',{class:'ds-meta'},p.sourceName||p.author||p.association||'Prøveopslag'),el('h3',{},button((p.state==='cancelled'?'Aflyst: ':'')+p.title,()=>openDetails(p),'')),el('p',{},(p.time?'Kl. '+p.time.replace(':','.')+' · ':'')+(p.location||'')));
-  if(p.sourceId&&safeURL(p.url))body.append(el('a',{href:p.url,target:'_blank',rel:'noopener noreferrer',class:'ds-external-event'},'Læs hos '+p.sourceName+' ↗'));
-  else if(p.kind==='both')body.append(el('p',{},'Med historie og billeder'));
-  item.append(body);root.append(item);
- }
+ for(const m of ['week','month'])$('#ds-'+m).setAttribute('aria-pressed',String(mode===m));
+ for(const [id,text]of [['prev','Forrige '],['next','Næste ']])$('#ds-'+id).setAttribute('aria-label',text+(mode==='week'?'uge':'måned'));
+ document.querySelector('.calendar-scroll-hint').hidden=mode==='week';
+ const selected=allEvents().filter(matches);
+ root.replaceChildren(calendarGrid({events:selected,bounds:period,mode,onOpen:openDetails,eventHref:p=>p.sourceId?p.url:p.standardEvent?'kalender.html?arrangement='+encodeURIComponent(p.id):localPath(p.id)}));
+ if(eventLoaded&&!selected.some(p=>p.date<=period.to&&(p.endDate||p.date)>=period.from))root.append(el('p',{class:'ds-source-status'},search?'Ingen arrangementer passer til søgningen i denne periode.':'Ingen arrangementer i denne periode.'));
  root.setAttribute('aria-busy',String(!eventLoaded));
 }
-function setView(next){view=next;$('#ds-columns').dataset.view=view;for(const b of document.querySelectorAll('button[data-view]'))b.setAttribute('aria-pressed',String(b.dataset.view===view));}
-for(const b of document.querySelectorAll('.ds-tabs button'))b.addEventListener('click',()=>setView(b.dataset.view));
-$('#ds-search').addEventListener('input',e=>{search=e.target.value.trim().toLocaleLowerCase('da');visible=8;renderFeed();renderCalendar();});
-$('#ds-source').addEventListener('change',e=>{source=e.target.value;visible=8;renderFeed();});
-$('#ds-more').addEventListener('click',()=>{visible+=8;renderFeed();});
-function changePeriod(direction){if(mode==='week')anchor=shift(anchor,7*direction);else{const d=new Date(anchor+'T12:00:00Z');d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+direction);anchor=d.toISOString().slice(0,10);}selectedDay='';renderCalendar();}
+$('#ds-search').addEventListener('input',e=>{search=e.target.value.trim().toLocaleLowerCase('da');visible=9;renderFeed();renderCalendar();});
+$('#ds-source').addEventListener('change',e=>{source=e.target.value;visible=9;renderFeed();});
+$('#ds-more').addEventListener('click',()=>{visible+=9;renderFeed();});
+function changePeriod(direction){if(mode==='week')anchor=shift(anchor,7*direction);else{const d=new Date(anchor+'T12:00:00Z');d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+direction);anchor=d.toISOString().slice(0,10);}renderCalendar();}
 $('#ds-prev').addEventListener('click',()=>changePeriod(-1));$('#ds-next').addEventListener('click',()=>changePeriod(1));
-$('#ds-today').addEventListener('click',()=>{anchor=today();selectedDay='';renderCalendar();});
-for(const m of ['week','month'])$('#ds-'+m).addEventListener('click',()=>{mode=m;selectedDay='';renderCalendar();});
+$('#ds-today').addEventListener('click',()=>{anchor=today();renderCalendar();});
+for(const m of ['week','month'])$('#ds-'+m).addEventListener('click',()=>{mode=m;renderCalendar();});
 async function loadSources(){
  const results=await Promise.allSettled([api('/nyheder/tistrup-nyt'),api('/nyheder/pulsen')]);
  const groups=[],previousEvents=externalEvents;externalEvents=[];
@@ -116,10 +97,10 @@ async function loadSources(){
  sourceLoaded=true;renderFeed();renderCalendar();
 }
 async function loadLocal(){
- try{const data=await api('/experiment/posts');posts=data.posts||[];$('#ds-message').replaceChildren();}
- catch(e){showMessage($('#ds-message'),'Prøveopslag kunne ikke hentes. '+e.message,true);}
+ try{const data=await api('/posts');posts=data.posts||[];$('#ds-message').replaceChildren();}
+ catch(e){showMessage($('#ds-message'),'Opslag kunne ikke hentes. '+e.message,true);}
  postLoaded=true;renderFeed();renderCalendar();
- const id=query.get('opslag');if(id){const item=posts.find(p=>p.id===id);if(item)openDetails(item);else showMessage($('#ds-message'),'Opslaget er ikke offentligt. Det kan afvente godkendelse eller være fjernet.');}
+ const id=query.get('opslag');if(id){try{const item=posts.find(p=>p.id===id)||(await api('/posts/'+encodeURIComponent(id))).post;openDetails(item);}catch{showMessage($('#ds-message'),'Opslaget er ikke offentligt. Det kan afvente godkendelse eller være fjernet.');}}
 }
 async function loadEvents(){
  try{const data=await api('/events?from='+shift(today(),-370)+'&to='+(Number(today().slice(0,4))+3)+'-12-31');events=data.events||[];$('#ds-events-status').textContent='Aktivitetskalenderen er opdateret.';}
@@ -135,8 +116,8 @@ async function review(){
  const root=$('#ds-review');root.hidden=false;
  root.replaceChildren(el('h2',{id:'ds-review-heading'},'TEB · til godkendelse'));
  try{
-  const data=await api('/experiment/admin/posts');
-  if(!data.posts?.length)root.append(el('p',{},'Ingen prøveopslag afventer godkendelse.'));
+  const data=await api('/admin/posts');
+  if(!data.posts?.length)root.append(el('p',{},'Ingen opslag afventer godkendelse.'));
   for(const p of data.posts||[]){
    const row=el('article',{},el('p',{class:'ds-meta'},'Oplyst afsender: '+p.author+' · ikke verificeret'),el('h3',{},p.title),el('p',{},p.description));
    if(p.body)row.append(el('p',{},p.body));if(p.date)row.append(el('p',{},when(p)+' · '+p.location));
@@ -145,7 +126,7 @@ async function review(){
    const message=el('div',{'aria-live':'polite'}),actions=el('div',{class:'fp-actions'});
    for(const [action,text]of[['approve','Godkend og udgiv'],['reject','Afvis']])actions.append(button(text,async()=>{
     for(const b of actions.querySelectorAll('button'))b.disabled=true;
-    try{await api('/experiment/admin/posts/'+p.id,{body:{action,revision:p.revision}});await Promise.all([review(),loadLocal()]);}
+    try{await api('/admin/posts/'+p.id,{body:{action,revision:p.revision}});await Promise.all([review(),loadLocal(),loadEvents()]);}
     catch(e){showMessage(message,e.message,true);for(const b of actions.querySelectorAll('button'))b.disabled=false;}
    },action==='approve'?'btn':'btn btn-secondary'));
    row.append(actions,message);root.append(row);
@@ -160,8 +141,8 @@ async function compose(initialKind='both'){
  let kind=initialKind,attempt=null,submitting=false,startedAt=Date.now();
  const message=el('div',{'aria-live':'polite'}),preview=el('aside',{class:'ds-preview','aria-label':'Privat forhåndsvisning'}),form=el('form',{class:'ds-form'}),inputs={};
  root.replaceChildren(el('div',{class:'ds-composer-head'},el('h2',{id:'ds-composer-heading',tabIndex:-1},'Del med byen'),button('Luk ×',()=>{root.hidden=true;$('#ds-create').focus();},'ds-text-button')));
- if(!direct)root.append(el('p',{},'Du kan indsende uden login. TEB godkender, før opslaget bliver synligt. ',el('a',{href:'forening.html?return=nyt-eksperiment.html#login'},'Har du foreningsadgang? Log ind.')));
- else root.append(el('p',{},'Du udgiver med din verificerede adgang. Opslaget bliver synligt i forsøgsudgaven med det samme.'));
+ if(!direct)root.append(el('p',{},'Du kan indsende uden login. TEB godkender, før opslaget bliver synligt. ',el('a',{href:'forening.html?return=nyt.html#login'},'Har du foreningsadgang? Log ind.')));
+ else root.append(el('p',{},'Du udgiver med din verificerede adgang. Opslaget bliver synligt med det samme.'));
  const types=el('div',{class:'ds-type-choice',role:'group','aria-label':'Hvad vil du dele?'});
  for(const[k,name]of[['event','Arrangement'],['news','Nyhed'],['both','Begge dele']])types.append(el('button',{type:'button','aria-pressed':String(k===kind),onClick:()=>{kind=k;for(const b of types.children)b.setAttribute('aria-pressed',String(b.textContent===name));update();}},name));
  root.append(types);
@@ -180,13 +161,13 @@ async function compose(initialKind='both'){
  field('link','Link til tilmelding eller mere information','url',false,500);inputs.link.placeholder='https://…';
  if(!direct){field('email','Din e-mail','email',true,254);inputs.email.autocomplete='email';inputs.email.value=session.user?.email||'';inputs.email.after(el('small',{},'Bruges kun til kvittering. Vises ikke offentligt.'));}
  const print=el('input',{type:'checkbox',id:'ds-print-choice'}),printLabel=el('label',{htmlFor:print.id},print,'Med på den analoge kalender');
- const sharing=el('fieldset',{},el('legend',{},'Hvor vil I gerne nå ud?'),printLabel);
+ const sharing=el('fieldset',{},el('legend',{},'Nå flere i byen'),printLabel);
  const checks=[];
- for(const[key,name]of channels){const input=el('input',{type:'checkbox',value:key,id:'ds-share-'+key});checks.push(input);sharing.append(el('label',{htmlFor:input.id},input,name));}
- sharing.append(el('small',{},'Ønskerne gemmes sammen med opslaget. Flyers, skærme og portaler aftaler I selv med udbyderne. Print er et ønske til en kommende udgave, ikke en garanti. I forsøget laves ingen nye papirudgaver.'));
+ for(const[key,name,description]of channels){const input=el('input',{type:'checkbox',value:key,id:'ds-share-'+key});checks.push(input);sharing.append(el('label',{htmlFor:input.id},input,el('span',{},name,el('small',{},description))));}
+ sharing.append(el('small',{},'Ønskerne gemmes sammen med opslaget. Flyers, skærme og portaler aftaler I selv med udbyderne. Print er et ønske til en kommende udgave, ikke en garanti.'));
  form.append(sharing);
  const trap=el('input',{type:'text',name:'website',tabIndex:-1,autocomplete:'off'});form.append(el('div',{class:'ds-honeypot','aria-hidden':'true'},trap));
- const submit=el('button',{type:'submit',class:'btn'},direct?'Udgiv prøveopslag':'Send til TEBs godkendelse');
+ const submit=el('button',{type:'submit',class:'btn'},direct?'Udgiv opslag':'Send til TEBs godkendelse');
  form.append(el('div',{},message,submit));root.append(el('div',{class:'ds-compose-layout'},form,preview));
  function value(){const data={kind,...Object.fromEntries(Object.entries(inputs).filter(([k])=>!['email','associationId'].includes(k)).map(([k,n])=>[k,n.value.trim()])),print:kind!=='news'&&print.checked,channels:checks.filter(n=>n.checked).map(n=>n.value)};if(associations.length)data.author=associations.find(a=>a.id===inputs.associationId.value)?.name||'';if(kind==='news')for(const key of ['date','time','endDate','endTime','location','price'])delete data[key];if(kind==='event'){data.body='';data.image='';}return data;}
  function update(){
@@ -206,14 +187,14 @@ async function compose(initialKind='both'){
   if(!attempt)attempt={post,requestKey:requestKey(),startedAt,website:trap.value,...(direct?{associationId:inputs.associationId?.value}:{email:inputs.email.value.trim(),authorToken:randomToken()})};
   submitting=true;for(const n of [...form.elements,...types.querySelectorAll('button')])n.disabled=true;submit.textContent='Gemmer…';
   try{
-   const result=await api('/experiment/posts',{body:attempt});if(!result.id)throw new Error('Kvitteringen mangler. Prøv samme indsendelse igen.');
-   draft=null;root.replaceChildren(el('h2',{},result.published?'Opslaget er udgivet':'Tak. TEB har modtaget det.'),el('p',{},result.published?'Prøveopslaget kan nu ses i forsøgets feed'+(kind!=='news'?' og kalender.':'.'):'Prøveopslaget bliver synligt, når TEB har godkendt det. Din forhåndsvisning står herunder.'),card(post,{preview:true}),el('p',{class:'fp-notice'},'Lokal afprøvning. Ingen e-mails er sendt. '+(result.notificationState==='failed'?'Beskeden til TEB kunne ikke oprettes. Opslaget er gemt.':'')),el('div',{class:'fp-actions'},button('Del noget mere',()=>compose()),button('Tilbage til overblikket',()=>{root.hidden=true;$('#ds-create').focus();})),el('p',{},el('a',{href:'#ds-reach'},'Se mulighederne for at nå flere i byen →')));
-   await Promise.all([loadLocal(),review()]);
+   const result=await api('/posts',{body:attempt});if(!result.id)throw new Error('Kvitteringen mangler. Prøv samme indsendelse igen.');
+   draft=null;root.replaceChildren(el('h2',{},result.published?'Opslaget er udgivet':'Tak. TEB har modtaget det.'),el('p',{},result.published?'Opslaget kan nu ses på siden'+(kind!=='news'?' og kalender.':'.'):'Opslaget bliver synligt, når TEB har godkendt det. Din forhåndsvisning står herunder.'),card(post,{preview:true}),el('p',{class:'fp-notice'},(siteMode==='local'?'Lokal afprøvning. Ingen e-mails er sendt. ':'')+({failed:'Beskeden til TEB kunne ikke sendes. Opslaget er gemt. Kontakt TEB.',pending:'Beskeden til TEB afventer afsendelse.',uncertain:'Opslaget er gemt. Vi kan ikke bekræfte, om beskeden til TEB blev sendt.'}[result.notificationState]||'')),el('div',{class:'fp-actions'},button('Del noget mere',()=>compose()),button('Tilbage til overblikket',()=>{root.hidden=true;$('#ds-create').focus();})));
+   await Promise.all([loadLocal(),loadEvents(),review()]);
   }catch(error){
    const uncertain=!error.status||error.status>=500;
    if(!uncertain){attempt=null;for(const n of [...form.elements,...types.querySelectorAll('button')])n.disabled=false;update();}
    else submit.disabled=false;
-   submit.textContent=uncertain?'Prøv samme indsendelse igen':direct?'Udgiv prøveopslag':'Send til TEBs godkendelse';
+   submit.textContent=uncertain?'Prøv samme indsendelse igen':direct?'Udgiv opslag':'Send til TEBs godkendelse';
    showMessage(message,error.message+(uncertain?' Prøv igen med samme indsendelse for at undgå dubletter.':''),true);
   }finally{submitting=false;}
  });
@@ -222,7 +203,8 @@ async function compose(initialKind='both'){
 $('#ds-create').addEventListener('click',()=>compose());
 async function refresh(){if(loading)return;loading=true;$('#ds-refresh').disabled=true;try{await Promise.allSettled([loadSources(),loadLocal(),loadEvents(),loadEditions(),review()]);}finally{loading=false;$('#ds-refresh').disabled=false;}}
 $('#ds-refresh').addEventListener('click',refresh);
-await showMode();
+siteMode=(await showMode()).mode;
 try{session=await getSession();if(session.authenticated){$('#ds-login').textContent=session.user.isAdmin?'TEB · administration →':'Mit foreningsområde →';}}catch{/* Reading public content remains available without login. */}
 await refresh();
+if(query.has('opret'))compose();
 setInterval(()=>{if(document.visibilityState==='visible'&&$('#ds-composer').hidden&&!$('#ds-detail').open&&!window.getSelection()?.toString())refresh();},60000);

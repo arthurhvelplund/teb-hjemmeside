@@ -1,3 +1,7 @@
+> Afløst af den rigtige `site/nyt.html`. Forsøgs-URLen viderestiller nu dertil.
+> Den aktuelle løsning er beskrevet i `calendar-worker/README.md`. Nedenstående
+> beskriver kun det tidligere, isolerede forsøg og dets bevarede API-data.
+
 # Samlet Det sker, lokalt forsøg
 
 Den gemte portal før forsøget er commit `137c149` på `tistrup-kalender`.

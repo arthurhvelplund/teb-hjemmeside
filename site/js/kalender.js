@@ -1,5 +1,7 @@
 import {api, getSession, randomToken, requestKey, today, dateText, showMessage, showMode, busy} from './portal-api.js';
 
+import {calendarGrid} from './calendar-grid.js';
+
 // Identity, publication and revisions always come from the Worker.
 const $ = selector => document.querySelector(selector);
 function node(tag, attrs = {}, ...children) {
@@ -132,33 +134,9 @@ function periodLabel(bounds) {
 }
 const overlaps = (event, from, to = from) => event.date <= to && (event.endDate || event.date) >= from;
 function renderCalendar(bounds) {
-  const root = $('#calendar-events');
-  root.replaceChildren();
-  const grid = node('div', {class: 'cal-month-grid', 'aria-label': periodLabel(bounds)});
-  if (view === 'month') {
-    for (const day of ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag']) grid.append(node('div', {class: 'cal-weekday', 'aria-hidden': 'true'}, day));
-    for (let day = bounds.loadFrom; day <= bounds.loadTo; day = shiftDate(day, 1)) {
-      const items = events.filter(event => overlaps(event, day));
-      const cell = node('div', {class: 'cal-day' + (day < bounds.from || day > bounds.to ? ' cal-outside' : '') + (day === today() ? ' cal-today' : '')},
-        node('time', {dateTime: day, 'aria-label': dateText(day)}, String(asDate(day).getUTCDate())));
-      for (const event of items) cell.append(node('a', {href: eventPath(event.id), class: 'cal-day-event' + (event.state === 'cancelled' ? ' is-cancelled' : '')},
-        event.state === 'cancelled' ? 'Aflyst · ' : '', event.date === day ? event.time + ' ' : 'Fortsætter · ', event.title));
-      grid.append(cell);
-    }
-    root.append(grid);
-  }
-  const list = node('div', {class: 'cal-week-list' + (view === 'week' ? ' cal-week-only' : '')});
-  const selected = events.filter(event => overlaps(event, bounds.from, bounds.to));
-  if (!selected.length) list.append(node('div', {class: 'fp-empty'}, node('h3', {}, 'Ingen arrangementer i perioden'), node('p', {}, 'Vælg en anden periode, eller tilføj jeres arrangement.'), node('a', {href: 'kalender.html?opret=1'}, 'Tilføj arrangement')));
-  for (let start = monday(bounds.from); start <= bounds.to; start = shiftDate(start, 7)) {
-    const end = shiftDate(start, 6), from = start < bounds.from ? bounds.from : start, to = end > bounds.to ? bounds.to : end;
-    const items = selected.filter(event => overlaps(event, from, to));
-    if (!items.length) continue;
-    const group = node('section', {class: 'cal-week-group'}, node('h3', {class: 'cal-week-heading'}, dateText(start, {year: undefined}) + ' til ' + dateText(end, {year: undefined})));
-    group.append(node('div', {class: 'cal-event-list'}, items.map(event => eventCard(event)))); list.append(group);
-  }
-  if (!selected.length && view === 'month') grid.after(node('p', {class: 'cal-grid-empty fp-note'}, 'Ingen arrangementer i denne måned.'));
-  root.append(list);
+ const root=$('#calendar-events');
+ root.replaceChildren(calendarGrid({events,bounds,mode:view,eventHref:event=>eventPath(event.id)}));
+ if(!events.some(event=>overlaps(event,bounds.from,bounds.to)))root.append(note('Ingen arrangementer i perioden. Vælg en anden periode, eller tilføj jeres arrangement.'));
 }
 async function loadCalendar({quiet = false} = {}) {
   const serial = ++calendarRequest, bounds = period(), key = bounds.loadFrom + bounds.loadTo;
