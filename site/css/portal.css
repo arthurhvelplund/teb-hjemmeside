@@ -3,3 +3,31 @@
 .fp-mail{margin-bottom:1rem;overflow-wrap:anywhere}.fp-mail summary{font-weight:600;cursor:pointer}.fp-mail p{white-space:pre-wrap}.fp-mail[open] summary{margin-bottom:1rem}.fp-footer-about{font-size:.96rem;line-height:1.55;margin:0}.fp-footer-role{font-size:.85rem;opacity:.7}
 @media(max-width:850px){.fp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fp-split{grid-template-columns:1fr}}
 @media(max-width:560px){.fp-grid,.fp-form .fp-form-row{grid-template-columns:1fr}.fp-heading{padding-top:2rem}.fp-panel,.fp-card{padding:1.1rem}.fp-controls{align-items:stretch}.fp-tabs{gap:1rem;font-size:.9rem}.fp-actions .btn{max-width:100%}}
+
+.fp-heading.wrap{padding-inline:1.5rem}
+
+/* Portaloverskrifter har ingen billedkolonne til de store sæsonfigurer. */
+html[data-seasonal-theme="halloween"] .fp-main > .fp-heading.hero{
+  position:relative;
+  isolation:isolate;
+  background:radial-gradient(ellipse at 0 100%,#ed873a40,transparent 48%),radial-gradient(ellipse at 100% 0,#b36eaa26,transparent 55%);
+}
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading > .halloween-decor{
+  z-index:-1;
+  overflow:hidden;
+}
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-decor::before,
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-decor::after,
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-web,
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-spider,
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .max-skeleton,
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .max-pumpkin-left,
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .max-bats-small,
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .max-fog{display:none}
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-pumpkins{
+  right:1rem;bottom:.25rem;font-size:1.75rem;filter:none;
+}
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .halloween-pumpkins span{font-size:1.25rem;margin-left:-.4rem}
+html[data-seasonal-theme="halloween"] .fp-main .fp-heading .max-bats{
+  left:auto;right:1rem;top:.65rem;font-size:1.5rem;letter-spacing:.4rem;opacity:.7;transform:none;
+}
