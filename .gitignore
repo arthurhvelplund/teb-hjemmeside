@@ -45,3 +45,6 @@ local-agent-mode-sessions/
 # Agent tooling (lokalt / valgfrit at dele)
 .grok/skills/
 skills-lock.json
+
+# Lokale Worker-variabler
+.dev.vars

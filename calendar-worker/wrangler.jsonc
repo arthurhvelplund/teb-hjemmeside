@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "teb-kalender-pilot",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-09-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "assets": { "directory": "../site", "binding": "ASSETS", "run_worker_first": ["/api/kalender/*"] },
+  "d1_databases": [{ "binding": "DB", "database_name": "teb-kalender-pilot", "migrations_dir": "migrations" }],
+  "send_email": [{ "name": "TEB_EMAIL" }]
+  // Sæt PUBLIC_ORIGIN, EDITOR_EMAIL og EMAIL_FROM før offentlig drift.
+  // Tilføj database_id efter oprettelse af den separate pilotdatabase.
+}

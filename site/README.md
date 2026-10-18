@@ -9,35 +9,41 @@ Statisk hjemmeside (HTML/CSS/JS) for [teb-tistrup.dk](https://teb-tistrup.dk).
 - `bestyrelse.html` – oversigt over bestyrelsen (navne, roller, kontakt)
 - `bliv-medlem.html` – kontingent og indmeldelsesformular
 - `kontakt.html` – kontaktinfo og kontaktformular
-- `foreningsportal.html` – enkel prototype til indsendelse af arrangementer
+- `foreningsportal.html` – indsend arrangementer til TEBs godkendelse
+- `kalender.html` – godkendte arrangementer og printudgaver
+- `kalender-redaktion.html` – TEBs redaktion
+- `mit-arrangement.html` – privat forhåndsvisning og rettelser
 
-## Foreningsportal, prototype
+## Tistrup Kalenderen og foreningsportalen
 
-Delbart preview: https://preview.teb-foreningsportal-preview.pages.dev/
+Den fungerende pilot køres gennem `calendar-worker/`. Se
+[opsætning og afprøvning](../calendar-worker/README.md).
 
-Previewet er udgivet i det separate Cloudflare Pages-projekt
-`teb-foreningsportal-preview` på Business and Fitness-kontoen, branch `preview`.
-Det indeholder kun portalen og dens nødvendige billeder, CSS og JavaScript.
-Links til forsiden, kontakt og kalenderen går til den offentlige TEB-hjemmeside.
-Previewet har `noindex` og kræver ikke login. TEB's eksisterende projekt er ikke
-ændret af denne preview-udgivelse.
+```sh
+cd calendar-worker
+npm install
+npm run dev
+```
 
-Portalen findes fra forsiden, fra “Det sker” og i sidernes genveje. Den består af
-én kort formular med store felter til arrangement, forening, dato, klokkeslæt,
-sted, valgfri beskrivelse og kontaktmail. Ved siden af vises et kalenderkort, som
-opdateres, mens brugeren skriver. Kontaktmailen vises ikke på kortet. En e-mailknap og et telefonnummer er
-alternativer for dem, der hellere vil kontakte TEB direkte.
+Åbn http://localhost:8787/kalender.html. I en anden terminal kan
+`npm run seed` tilføje opdigtede eksempelarrangementer, hvis kalenderen er tom.
 
-Formularen er en lokal prøve. Den sender eller gemmer ingen oplysninger og
-opdaterer hverken kalenderen, Facebook eller print. Ved indsendelse vises en kort
-prøvekvittering. Brugeren kan gå tilbage uden at miste sine oplysninger.
-E-mailknappen åbner en mailkladde til `tistrup.kalender@gmail.com` med de felter,
-brugeren allerede har udfyldt. Brugeren sender selv mailen.
+Foreninger indsender gennem `foreningsportal.html` og ser en privat
+forhåndsvisning. TEB godkender hvert opslag, hver rettelse og hver aflysning i
+`kalender-redaktion.html`. Kontaktmail og private links er ikke offentlige.
+Kun godkendte arrangementer vises i `kalender.html` og i PDF-udgaverne.
 
-Før rigtig indsendelse aktiveres, skal modtagelse, redaktionens godkendelse og en
-fælles datakilde til aktiviteterne aftales. Kalender, Facebook, print og senere
-AI-hjælp kan derefter bruge de samme oplysninger. Ekstra hjælp med flyers,
-plakater og grafik er samlet i en kort kontaktsektion. Partnerlisten mangler endnu.
+I lokal drift gemmes mails i `kalender-postkasse.html`; ingen mails sendes.
+Data gemmes i en lokal SQLite-database under den git-ignorerede `tmp/`-mappe.
+Print bruger fælles kalenderdata og afsluttes som faste tomånedersudgaver.
+
+Det tidligere, statiske preview på
+https://preview.teb-foreningsportal-preview.pages.dev/ er stadig en ældre
+prototype. Det er ikke opdateret til denne fungerende pilot. Den nye backend,
+rigtig mail og offentlig pilot er endnu ikke aktiveret på Cloudflare.
+
+En almindelig statisk webserver viser kun layoutet. Formularen lukker for
+indsendelse, når kalenderens API ikke er tilgængeligt.
 
 ## Sådan kører du siden lokalt
 Åbn `index.html` i en browser – eller kør en lille webserver:
