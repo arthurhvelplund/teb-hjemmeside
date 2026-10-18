@@ -91,7 +91,8 @@ publicering. Det sker viser links til kilderne og eksisterende Facebook-feed.
 
 Valideret 18. oktober 2026: 42 backendtests, HTTP-integration, lokal
 Cloudflare-runtime med D1/R2 og 16 browserforløb. Browserkontrollen omfatter
-faktiske kvitteringslinks, genforsøg efter mistet svar, rettigheder,
+faktiske kvitteringslinks, genforsøg efter mistede, afkortede og ufuldstændige
+svar uden dubletter, rettigheder,
 forhåndsvisning og gemt PDF samt 320 og 390 px mobilbredde. Plakat og A3 er
 gennemset visuelt, også med 45 arrangementer fordelt over flere sider.
 

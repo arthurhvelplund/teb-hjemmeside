@@ -369,6 +369,7 @@ async function onSubmit(event) {
           const fingerprint = JSON.stringify(data);
           if (!associationRequests.has(fingerprint)) associationRequests.set(fingerprint, requestKey());
           const { association } = await api('/admin/associations', { body: { association: data, requestKey: associationRequests.get(fingerprint) } });
+          if (typeof association?.id !== 'string' || !association.id.trim()) throw new Error('Oprettelsen kunne ikke bekræftes. Prøv igen. Foreningen kan allerede være gemt.');
           associationRequests.delete(fingerprint);
           flash = 'Foreningen er oprettet. Tilknyt en ansvarlig nedenfor.';
           location.hash = adminURL('foreninger', association.id);

@@ -4,7 +4,10 @@ export async function api(path,{body,token,method,signal,...options}={}) {
   const response=await fetch('/api/kalender'+path,{credentials:'same-origin',signal:signal||AbortSignal.timeout(25000),...options,
     method:method||(body!==undefined?'POST':'GET'),headers:{Accept:'application/json',...(body!==undefined?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{})},
     ...(body!==undefined?{body:JSON.stringify(body)}:{})});
-  const result=await response.json().catch(()=>({error:'Forbindelsen kunne ikke gennemføres. Prøv igen.'}));
+  let result;
+  try { result=await response.json(); }
+  catch { throw new ApiError('Svaret fra serveren kunne ikke læses. Prøv igen. Oplysningerne kan allerede være gemt.',response.ok?502:response.status); }
+  if(!result||typeof result!=='object'||Array.isArray(result))throw new ApiError('Svaret fra serveren kunne ikke læses. Prøv igen. Oplysningerne kan allerede være gemt.',response.ok?502:response.status);
   if(!response.ok)throw new ApiError(result.error||'Der opstod en fejl.',response.status);
   return result;
 }

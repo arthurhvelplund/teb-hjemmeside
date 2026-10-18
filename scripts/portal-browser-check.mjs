@@ -54,15 +54,21 @@ try{
  await login(admin,adminEmail);record('TEB email-code login');
  await admin.goto('/forening.html#teb?fane=foreninger&forening=ny');
  const create=admin.locator('form[data-action="create-association"]');await fill(create,{name:'Integrationens eksempelforening',category:'Fællesskab',description:'Kun testdata i en isoleret database.',chair:'Eksempel Formand',email:'kontakt@example.org',phone:'12 34 56 78',place:'Eksempelhallen'});
- let loseCreationResponse=true;
+ let creationAttempt=0;const creationKeys=[];
  await admin.route('**/api/kalender/admin/associations',async route=>{
-  if(!loseCreationResponse)return route.continue();
-  loseCreationResponse=false;const response=await route.fetch();assert.ok(response.ok());await route.abort('failed');
+  creationKeys.push(route.request().postDataJSON().requestKey);creationAttempt++;
+  if(creationAttempt>3)return route.continue();
+  const response=await route.fetch();assert.ok(response.ok());
+  if(creationAttempt===1)return route.abort('failed');
+  return route.fulfill({response,body:creationAttempt===2?'{"association":':'{}'});
  });
  await create.locator('button[type="submit"]').click();await create.getByText('Der er ikke forbindelse til serveren.',{exact:false}).waitFor();
+ await create.locator('button[type="submit"]').click();await create.getByText('Svaret fra serveren kunne ikke læses.',{exact:false}).waitFor();
+ await create.locator('button[type="submit"]').click();await create.getByText('Oprettelsen kunne ikke bekræftes.',{exact:false}).waitFor();
  await create.locator('button[type="submit"]').click();await admin.locator('form[data-action="admin-member"]').waitFor();
  const matchingAssociations=(await json(adminContext,'/associations')).associations.filter(a=>a.name==='Integrationens eksempelforening');assert.equal(matchingAssociations.length,1);const association=matchingAssociations[0];
- await admin.unroute('**/api/kalender/admin/associations');record('Lost creation response and UI retry create only one association');
+ assert.equal(creationKeys.length,4);assert.equal(new Set(creationKeys).size,1);
+ await admin.unroute('**/api/kalender/admin/associations');record('Lost, truncated and incomplete creation responses retain one key and create one association');
  record('TEB creates a real association record');
  const membership=admin.locator('form[data-action="admin-member"]');await fill(membership,{name:'Foreningsansvarlig',email:memberEmail,role:'manager'});await membership.locator('[name="verified"]').check();
  await membership.locator('button').click();await admin.getByText('Adgangen er gemt.',{exact:false}).waitFor();
