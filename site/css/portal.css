@@ -10,7 +10,7 @@
 html[data-seasonal-theme="halloween"] .fp-main > .fp-heading.hero{
   position:relative;
   isolation:isolate;
-  background:radial-gradient(ellipse at 0 100%,#ed873a40,transparent 48%),radial-gradient(ellipse at 100% 0,#b36eaa26,transparent 55%);
+  background:none;
 }
 html[data-seasonal-theme="halloween"] .fp-main .fp-heading > .halloween-decor{
   z-index:-1;
