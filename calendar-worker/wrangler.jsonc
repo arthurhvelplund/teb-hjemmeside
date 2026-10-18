@@ -1,13 +1,19 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "teb-kalender-pilot",
-  "main": "src/worker.mjs",
-  "compatibility_date": "2026-09-04",
-  "compatibility_flags": ["nodejs_compat"],
-  "workers_dev": true,
-  "assets": { "directory": "../site", "binding": "ASSETS", "run_worker_first": ["/api/kalender/*"] },
-  "d1_databases": [{ "binding": "DB", "database_name": "teb-kalender-pilot", "migrations_dir": "migrations" }],
-  "send_email": [{ "name": "TEB_EMAIL" }]
-  // Sæt PUBLIC_ORIGIN, EDITOR_EMAIL og EMAIL_FROM før offentlig drift.
-  // Tilføj database_id efter oprettelse af den separate pilotdatabase.
+ "$schema": "node_modules/wrangler/config-schema.json",
+ "name": "teb-kalender-api",
+ "main": "src/worker.mjs",
+ "compatibility_date": "2026-09-04",
+ "compatibility_flags": ["nodejs_compat"],
+ "workers_dev": false,
+ "preview_urls": false,
+ "assets": { "directory": "assets", "binding": "ASSETS", "run_worker_first": true },
+ "d1_databases": [{"binding":"DB","database_name":"teb-kalender-production","database_id":"00000000-0000-0000-0000-000000000000","migrations_dir":"migrations"}],
+ "r2_buckets": [{"binding":"PDFS","bucket_name":"teb-kalender-production-pdfs"}],
+ "send_email": [{"name":"TEB_EMAIL"}],
+ "vars": {"PUBLIC_ORIGIN":"https://www.teb-tistrup.dk","LOCAL_PREVIEW":"false"},
+ "triggers": {"crons":["*/10 * * * *"]}
+ // Set the actual DB ID, account, verified EMAIL_FROM, EDITOR_EMAIL and
+ // TEB_ADMIN_EMAILS before deployment. Set MAIL_ENCRYPTION_KEY as a secret.
+ // Deliberately no route by default. Add ONLY the confirmed site's
+ // /api/kalender/* route; never /*, /admin/* or /api/formular*.
 }

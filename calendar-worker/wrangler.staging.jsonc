@@ -1,0 +1,17 @@
+{
+ "$schema": "node_modules/wrangler/config-schema.json",
+ "name": "teb-kalender-staging-api",
+ "main": "src/worker.mjs",
+ "compatibility_date": "2026-09-04",
+ "compatibility_flags": ["nodejs_compat"],
+ "workers_dev": false,
+ "preview_urls": false,
+ "assets": {"directory":"assets","binding":"ASSETS","run_worker_first":true},
+ "d1_databases": [{"binding":"DB","database_name":"teb-kalender-staging","database_id":"00000000-0000-0000-0000-000000000000","migrations_dir":"migrations"}],
+ "r2_buckets": [{"binding":"PDFS","bucket_name":"teb-kalender-staging-pdfs"}],
+ "send_email": [{"name":"TEB_EMAIL","allowed_destination_addresses":["staging-recipient@example.test"]}],
+ "vars": {"PUBLIC_ORIGIN":"https://staging.example.test","LOCAL_PREVIEW":"false","EDITOR_EMAIL":"staging-recipient@example.test","EMAIL_FROM":"verified-sender@example.test","TEB_ADMIN_EMAILS":"staging-recipient@example.test"},
+ "triggers": {"crons":["*/10 * * * *"]}
+ // Replace placeholders, and attach ONLY staging.example.test/api/kalender/*.
+ // Staging must use its own mail key, D1, R2 and recipient allowlist.
+}

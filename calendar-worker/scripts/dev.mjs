@@ -1,18 +1,40 @@
 import http from 'node:http';
-import { readFile, mkdir } from 'node:fs/promises';
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { database } from './sqlite.mjs';
+import { localR2 } from './r2.mjs';
+import { token } from '../src/shared.mjs';
 import worker from '../src/worker.mjs';
 const port=Number(process.env.PORT||8787);
 const root=resolve(new URL('../../site/',import.meta.url).pathname);
-const runtime=resolve(process.env.CALENDAR_DATA_DIR||new URL('../../tmp/kalender-pilot/',import.meta.url).pathname);
+const runtime=resolve(process.env.CALENDAR_DATA_DIR||new URL('../.wrangler/local-portal/',import.meta.url).pathname);
 await mkdir(runtime,{recursive:true});
 const DB=database(resolve(runtime,'calendar.sqlite'));
-const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.ttf':'font/ttf','.pdf':'application/pdf'};
-const env={DB,LOCAL_PREVIEW:'true',PUBLIC_ORIGIN:`http://localhost:${port}`,EDITOR_EMAIL:'tistrup.kalender@gmail.com',EMAIL_FROM:'kalender@teb-tistrup.dk',
-  TEB_EMAIL:{async send(message){await DB.prepare('INSERT INTO local_mail(recipient,subject,body,created_at) VALUES(?,?,?,?)').bind(message.to,message.subject,message.text,new Date().toISOString()).run();return {messageId:'local-only'};}},
-  ASSETS:{async fetch(request){try{const url=new URL(request.url);let path=decodeURIComponent(url.pathname);if(path==='/')path='/kalender.html';const file=resolve(root,'.'+path);if(!file.startsWith(root+'/'))return new Response('Ikke fundet',{status:404});return new Response(await readFile(file),{headers:{'Content-Type':mime[extname(file)]||'application/octet-stream','Cache-Control':'no-store'}});}catch{return new Response('Siden findes ikke.',{status:404});}}}
-};
-const server=http.createServer(async(req,res)=>{try{const parts=[];let size=0;for await(const part of req){size+=part.length;if(size>20000){res.writeHead(413);res.end('For stor forespørgsel');return;}parts.push(part);}const request=new Request(`${env.PUBLIC_ORIGIN}${req.url}`,{method:req.method,headers:req.headers,...(!['GET','HEAD'].includes(req.method)?{body:Buffer.concat(parts),duplex:'half'}:{})});const response=await worker.fetch(request,env);res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));}catch{res.writeHead(500);res.end('Der opstod en fejl.');}});
-server.listen(port,'127.0.0.1',()=>console.log(`Kalenderpilot: ${env.PUBLIC_ORIGIN}/kalender.html\nLokal testpostkasse: ${env.PUBLIC_ORIGIN}/kalender-postkasse.html\nLokal SQLite. Ingen e-mails sendes.`));
+const secretFile=resolve(runtime,'mail-key');
+let mailKey;
+try{mailKey=(await readFile(secretFile,'utf8')).trim();}catch(error){if(error.code!=='ENOENT')throw error;mailKey=token();await writeFile(secretFile,mailKey,{flag:'wx',mode:0o600});}
+const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.ttf':'font/ttf','.woff2':'font/woff2','.pdf':'application/pdf','.ico':'image/x-icon'};
+const assets={async fetch(request){
+ try{
+  const url=new URL(request.url);let path=decodeURIComponent(url.pathname);if(path.endsWith('/'))path+='index.html';
+  const file=resolve(root,'.'+path);if(!file.startsWith(root+'/'))return new Response('Siden findes ikke.',{status:404});
+  return new Response(await readFile(file),{headers:{'Content-Type':mime[extname(file)]||'application/octet-stream','Cache-Control':'no-store'}});
+ }catch{return new Response('Siden findes ikke.',{status:404});}
+}};
+const env={DB,PDFS:localR2(resolve(runtime,'r2')),LOCAL_PREVIEW:'true',PUBLIC_ORIGIN:`http://localhost:${port}`,EDITOR_EMAIL:'teb-admin@example.test',EMAIL_FROM:'kalender@example.test',TEB_ADMIN_EMAILS:'teb-admin@example.test',MAIL_ENCRYPTION_KEY:mailKey,ASSETS:assets};
+const server=http.createServer(async(req,res)=>{
+ try{
+  const parts=[];let size=0;
+  for await(const part of req){size+=part.length;if(size>20000){res.writeHead(413);res.end('For stor forespørgsel');return;}parts.push(part);}
+  // Keep the actual Host for loopback-only endpoints. A forwarded external Host
+  // must not become localhost merely because the server binds to loopback.
+  const host=req.headers.host||`localhost:${port}`;
+  if(![`localhost:${port}`,`127.0.0.1:${port}`,`[::1]:${port}`].includes(host)){res.writeHead(403);res.end('Kun lokal adgang.');return;}
+  const request=new Request(`http://${host}${req.url}`,{method:req.method,headers:req.headers,...(!['GET','HEAD'].includes(req.method)?{body:Buffer.concat(parts),duplex:'half'}:{})});
+  const pathname=new URL(request.url).pathname;
+  const response=pathname==='/api/kalender'||pathname.startsWith('/api/kalender/')?await worker.fetch(request,env):await assets.fetch(request);
+  res.writeHead(response.status,Object.fromEntries(response.headers));res.end(req.method==='HEAD'?undefined:Buffer.from(await response.arrayBuffer()));
+ }catch{res.writeHead(500);res.end('Der opstod en fejl.');}
+});
+server.listen(port,'127.0.0.1',()=>console.log(`TEB lokal: ${env.PUBLIC_ORIGIN}/\nLokal testpostkasse: ${env.PUBLIC_ORIGIN}/api/kalender/local-mail\nTEB-login: teb-admin@example.test\nLokal SQLite og R2. Ingen e-mails sendes.`));
 for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>server.close(()=>{DB.close();process.exit();}));

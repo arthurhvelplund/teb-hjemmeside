@@ -5,10 +5,12 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "test": "node --test test/*.test.mjs",
-    "test:browser": "node scripts/browser-check.mjs",
     "seed": "node scripts/seed.mjs",
-    "build": "wrangler deploy --dry-run --outdir ../tmp/kalender-worker-build",
-    "deploy": "wrangler deploy"
+    "build": "wrangler deploy --dry-run --outdir .wrangler/build",
+    "deploy": "wrangler deploy",
+    "test:pdf": "node scripts/pdf-check.mjs",
+    "test:integration": "node scripts/integration-check.mjs",
+    "test:cloudflare": "npm run build && node scripts/cloudflare-check.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "1.1.1",
@@ -16,6 +18,7 @@
     "qrcode-generator": "1.4.4"
   },
   "devDependencies": {
-    "playwright": "1.64.1"
+    "miniflare": "5.20261012.1-beta",
+    "wrangler": "4.151.1"
   }
 }

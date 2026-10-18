@@ -39,9 +39,11 @@ export async function makeCalendarPdf(edition,env) {
   for(const event of edition.events)for(const text of [event.title,event.association,event.location]) {
     if([...text].some(char=>!supported.has(char.codePointAt(0))))throw new HttpError(422,'Et arrangement indeholder tegn, som printskrifttypen ikke kan vise. Ret teksten før tryk.');
   }
-  document.setTitle('Det sker i Tistrup og Hodde · '+monthName(edition.month));
+  const start=edition.start||edition.month+'-01',end=edition.end||new Date(Date.UTC(Number(edition.month.slice(0,4)),Number(edition.month.slice(5))+1,0)).toISOString().slice(0,10);
+  document.setTitle('Det sker i Tistrup og Hodde · '+start+' - '+end);
   document.setAuthor('Tistrup Erhvervs- og Borgerforening');
   const width=mm(500),height=mm(700),margin=mm(24),column=margin+118;
+  const scale=edition.format==='a3'?297/500:1;
   const textWidth=width-column-margin;
   let page,y,activeMonth='',pageNumber=0;
   const text=(value,x,at,size=22,strong=false)=>page.drawText(value,{x,y:at,size,font:strong?heavy:font,color:colors.ink});
@@ -49,9 +51,8 @@ export async function makeCalendarPdf(edition,env) {
     page=document.addPage([width,height]);pageNumber++;
     text('DET SKER!',margin,height-margin-62,62,true);
     text('I TISTRUP OG HODDE',margin,height-margin-112,39,true);
-    const first=new Date(edition.month+'-01T12:00:00Z'),second=new Date(first);second.setUTCMonth(second.getUTCMonth()+1);
-    const end=second.toISOString().slice(0,7);
-    text(monthName(edition.month)+' · '+monthName(end),margin,height-margin-158,24);
+    const dateLabel=value=>value.split('-').reverse().join('.');
+    text(dateLabel(start)+' - '+dateLabel(end),margin,height-margin-158,24);
     y=height-margin-205;
     const qr=qrcode(0,'M');qr.addData(edition.calendarUrl);qr.make();
     const size=94,unit=size/qr.getModuleCount(),left=width-margin-size,top=margin+145;
@@ -69,7 +70,7 @@ export async function makeCalendarPdf(edition,env) {
   newPage();
   if(!edition.events.length)text('Der er endnu ingen godkendte arrangementer i denne periode.',margin,y-30,25);
   for(const event of edition.events) {
-    const month=event.date.slice(0,7)<edition.month?edition.month:event.date.slice(0,7);
+    const month=event.date.slice(0,7)<start.slice(0,7)?start.slice(0,7):event.date.slice(0,7);
     const titleLines=wrap(event.title,heavy,26,textWidth);
     let dateText=String(Number(event.date.slice(8)))+'.';
     if(event.endDate&&event.endDate!==event.date)dateText=event.endDate.slice(0,7)===event.date.slice(0,7)?dateText+'–'+Number(event.endDate.slice(8))+'.':Number(event.date.slice(8))+'/'+Number(event.date.slice(5,7))+'–'+Number(event.endDate.slice(8))+'/'+Number(event.endDate.slice(5,7));
@@ -89,5 +90,6 @@ export async function makeCalendarPdf(edition,env) {
     page.drawLine({start:{x:column,y:y+9},end:{x:width-margin,y:y+9},thickness:.6,color:colors.rule});
   }
   for(const [index,p] of document.getPages().entries())p.drawText(`Side ${index+1} af ${pageNumber}`,{x:width-margin-100,y:margin-17,size:14,font,color:colors.ink});
+  if(scale!==1)for(const p of document.getPages()){p.scaleContent(scale,scale);p.setSize(mm(297),mm(420));}
   return {bytes:await document.save(),pages:pageNumber};
 }
