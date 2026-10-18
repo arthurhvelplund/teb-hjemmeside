@@ -91,7 +91,7 @@
 .cal-month-grid{display:none}
 .cal-week-list{display:block}
 .cal-event{break-inside:avoid}
-.fp-heading{padding-top:0}
+.page-heading{padding-top:0}
 .cal-archive{display:none}
 }
 .cal-toolbar .btn::after{content:none}

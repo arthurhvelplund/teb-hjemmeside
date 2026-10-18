@@ -5,6 +5,9 @@ import { database } from './sqlite.mjs';
 import { localR2 } from './r2.mjs';
 import { token } from '../src/shared.mjs';
 import worker from '../src/worker.mjs';
+import { syncSite } from '../../scripts/sync-site.mjs';
+// Always prepare the same static files that will later be published.
+await syncSite();
 const port=Number(process.env.PORT||8787);
 const root=resolve(new URL('../../site/',import.meta.url).pathname);
 const runtime=resolve(process.env.CALENDAR_DATA_DIR||new URL('../.wrangler/local-portal/',import.meta.url).pathname);

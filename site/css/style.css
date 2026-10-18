@@ -753,6 +753,8 @@ main { display: block; }
   border-right: 1px solid var(--line);
 }
 .fact:last-child { border-right: 0; }
+.fact { min-width: 0; }
+.fact .label { overflow-wrap: anywhere; }
 .fact .num {
   font-family: 'Fraunces', serif;
   font-weight: 300;
@@ -774,6 +776,11 @@ main { display: block; }
   .facts { grid-template-columns: repeat(2, 1fr); }
   .fact:nth-child(2n) { border-right: 0; }
   .fact:nth-child(1), .fact:nth-child(2) { border-bottom: 1px solid var(--line); }
+}
+@media (max-width: 380px) {
+  .facts { grid-template-columns: minmax(0, 1fr); }
+  .fact { border-right: 0; border-bottom: 1px solid var(--line); }
+  .fact:last-child { border-bottom: 0; }
 }
 
 /* Pullquote ------------------------------------------------ */

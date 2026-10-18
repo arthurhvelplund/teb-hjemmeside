@@ -1,5 +1,7 @@
 <!doctype html>
-<html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Lokal testpostkasse | TEB</title><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/portal.css"><link rel="icon" href="images/teb-trolde-haandtegnet.png"><link rel="stylesheet" href="css/seasonal-themes.css?v=20261009-haunted-v5">
+<html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Lokal testpostkasse | TEB</title><link rel="stylesheet" href="css/style.css?v=a37d3c51d78f">
+<link rel="stylesheet" href="css/layout.css?v=43e8a3bac517"><link rel="stylesheet" href="css/portal.css?v=17093cd2e634"><link rel="icon" href="images/teb-trolde-haandtegnet.png"><link rel="stylesheet" href="css/seasonal-themes.css?v=a1ddd5609eb2">
+<script src="js/seasonal-theme.js?v=5a1758734788"></script>
 </head><body><header class="site-header">
   <div class="header-inner">
     <a href="index.html" class="logo-link" aria-label="Tistrup Erhvervs- og Borgerforening – forsiden">
@@ -27,19 +29,35 @@
       </svg>
     </a>
   </div>
-</header><main class="wrap fp-main"><div class="fp-heading"><span class="eyebrow">Kun på denne computer</span><h1>Test mailforløbet.</h1><p class="lead">Her ligger de mails, som systemet ville have sendt. Åbn en besked for at finde en engangskode eller et privat link.</p><p class="fp-note">Der sendes ingen rigtige mails. Denne postkasse findes kun på den lokale server.</p><button type="button" class="btn" id="mail-refresh">Hent nye testmails</button></div><div id="mail-message" aria-live="polite"></div><div id="mail-content"></div></main><footer class="site-footer">
+</header><main class="fp-main site-main">
+  <section class="hero page-hero">
+    <div class="page-heading wrap">
+      <span class="eyebrow">Kun på denne computer</span>
+      <h1>Testpostkasse</h1>
+      <p class="lead">Find engangskoder, invitationer og kvitteringer fra den lokale afprøvning.</p>
+      <p>Der sendes ingen rigtige mails. Postkassen opdateres automatisk.</p>
+      <div class="fp-actions"><button type="button" class="btn" id="mail-refresh">Hent nye testmails</button><a href="forening.html#login">Tilbage til login</a></div>
+    </div>
+  </section>
+  <div class="wrap">
+    <p id="mail-updated" class="fp-note" role="status"></p>
+    <div id="mail-message" aria-live="polite"></div>
+    <div id="mail-content" aria-busy="true"><p>Henter testmails…</p></div>
+    <noscript><p>Slå JavaScript til for at hente lokale testmails.</p></noscript>
+  </div>
+</main><footer class="site-footer">
   <div class="wrap">
     <p class="footer-mark">Tistrup Erhvervs-<br>og <em>Borgerforening</em></p>
   </div>
   <div class="footer-inner">
     <div>
       <h3>Foreningen</h3>
-      <p class="fp-footer-about">Stiftet 1904. Fusioneret med Tistrup Erhvervsråd i 2008.<br>CVR 31&nbsp;94&nbsp;02&nbsp;22<br>6862 Tistrup, Danmark</p>
+      <p class="footer-about">Stiftet 1904. Fusioneret med Tistrup Erhvervsråd i 2008.<br>CVR 31&nbsp;94&nbsp;02&nbsp;22<br>6862 Tistrup, Danmark</p>
     </div>
     <div>
       <h3>Kontakt</h3>
       <ul>
-        <li>Arthur Hvelplund<br><span class="fp-footer-role">Formand</span></li>
+        <li>Arthur Hvelplund<br><span class="footer-role">Formand</span></li>
         <li><a href="tel:+4529228559">29 22 85 59</a></li>
         <li><a href="mailto:afhvelplund@gmail.com">afhvelplund@gmail.com</a></li>
         <li><a href="kontakt.html">Skriv til os</a></li>
@@ -75,5 +93,5 @@
     <span>© 2026 Tistrup Erhvervs- og Borgerforening</span>
     <span>Byen i midten af det hele.</span>
   </div>
-</footer><script src="js/main.js"></script><script type="module" src="js/kalender-postkasse.js"></script><script src="js/seasonal-theme.js?v=20261009-haunted-v5" defer></script>
+</footer><script src="js/main.js?v=5cfc1e933733"></script><script type="module" src="js/kalender-postkasse.js?v=cbe4a4acff16"></script>
 </body></html>

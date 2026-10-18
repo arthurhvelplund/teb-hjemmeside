@@ -31,9 +31,12 @@ async function login(page,email){
  const request=page.locator('form[data-action="request-code"]');await request.waitFor();await fill(request,{email});
  const response=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');
  await request.locator('button[type="submit"]').click();assert.ok((await response).ok());
- const {messages}=await json(page.context(),'/local-mail');
- const code=messages.filter(m=>m.recipient.toLowerCase()===email.toLowerCase()).map(m=>m.body.match(/\b\d{6}\b/)?.[0]).find(Boolean);
- assert.ok(code,'Local mailbox contains requested OTP');
+ const mailbox=await page.context().newPage();mailbox.on('pageerror',error=>errors.push(error.message));
+ await mailbox.goto('/kalender-postkasse.html');
+ const message=mailbox.locator('details.fp-mail').filter({has:mailbox.locator('summary').filter({hasText:email})}).filter({hasText:'Din engangskode til TEB'}).first();
+ await message.locator('summary').click();
+ const code=(await message.innerText()).match(/\b\d{6}\b/)?.[0];
+ assert.ok(code,'Requested OTP is readable through the actual local mailbox page');await mailbox.close();
  const verify=page.locator('form[data-action="verify-code"]');await verify.waitFor();await fill(verify,{code});await verify.locator('button').click();
  await page.waitForURL(url=>!url.hash.startsWith('#login'));
  const session=await json(page.context(),'/session');assert.equal(session.user.email.toLowerCase(),email.toLowerCase());

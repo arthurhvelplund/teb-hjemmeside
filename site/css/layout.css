@@ -1,0 +1,10 @@
+/* Fælles sideramme. Indholdssider bruger .page-hero med .wrap eller .hero-grid. */
+.site-main{min-width:0}
+.page-hero{position:relative;padding:0;isolation:isolate}
+.page-hero > .wrap,.page-hero > .wrap-narrow,.page-hero > .hero-grid,.page-hero > .thank-you__inner{
+  position:relative;z-index:1;padding-block:4rem 6rem;
+}
+.page-heading h1{max-width:18ch}
+.page-heading .lead{max-width:54ch}
+.footer-about{font-size:.96rem;line-height:1.55;margin:0}
+.footer-role{font-size:.85rem;opacity:.7}

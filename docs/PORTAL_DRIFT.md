@@ -101,3 +101,11 @@ bevares som viderestillinger. Prototypen og pilotens lokale data er bevaret.
 
 Resultater og skærmbilleder findes lokalt i `output/portal-integreret/`.
 Der er ikke sendt eksterne mails, pushet commits eller deployet ressourcer.
+
+## Fælles sideramme
+
+Header, footer, navigation, overskriftslayout og sæsontema vedligeholdes
+centralt. Se [kilder, ny side og kontroller](SHARED_SITE_LAYOUT.md).
+Den lokale server forbereder siderne ved opstart. CI afviser manglende
+siderammer eller forældede assetversioner. Browserkontrollen gennemgår alle
+15 sider ved tre bredder, samt temaets start/slut og postkassens mailforløb.
