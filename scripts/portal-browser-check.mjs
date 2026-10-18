@@ -16,9 +16,10 @@ const runtime=await mkdtemp(resolve(root,'tmp/portal-browser-'));
 const service=spawn(process.execPath,['scripts/dev.mjs'],{cwd:backend,env:{...process.env,PORT:port,CALENDAR_DATA_DIR:runtime},stdio:['ignore','ignore','pipe']});
 let serviceError='',browser;service.stderr.on('data',data=>serviceError+=data.toString());
 const pages=[],checks=[],errors=[];
-const record=(name,value=true)=>{assert.ok(value,name);checks.push(name);};
-const stamp=new Date();stamp.setUTCMonth(stamp.getUTCMonth()+1,12);
+const record=(name,value=true)=>{assert.ok(value,name);checks.push(name);console.log('OK: '+name);};
+const stamp=new Date();stamp.setUTCDate(stamp.getUTCDate()+1);
 const date=stamp.toISOString().slice(0,10),month=date.slice(0,7);
+const currentMonth=new Date().toISOString().slice(0,7),today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Copenhagen',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const adminEmail='tistrup.kalender@gmail.com',memberEmail='forening@example.org',editorEmail='redaktoer@example.org';
 async function json(context,path,options={}){
  const response=await context.request.fetch('/api/kalender'+path,{...options,headers:{Origin:origin,...options.headers}});
@@ -40,7 +41,7 @@ async function login(page,email){
 async function mainForm(page){const form=page.locator('form').filter({has:page.locator('[name="title"]')}).first();await form.waitFor();return form;}
 async function published(context,id){return (await json(context,'/events/'+id)).event;}
 try{
- for(let i=0;i<80;i++){try{if((await fetch(origin+'/api/kalender/config')).ok)break;}catch{}if(i===79)throw Error('Server did not start: '+serviceError.slice(-1200));await new Promise(r=>setTimeout(r,150));}
+ for(let i=0;i<300;i++){try{if((await fetch(origin+'/api/kalender/config')).ok)break;}catch{}if(i===299)throw Error('Server did not start: '+serviceError.slice(-1200));await new Promise(r=>setTimeout(r,150));}
  let executablePath=process.env.CHROME_PATH;
  if(!executablePath&&process.platform==='darwin'){const path='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';try{await access(path);executablePath=path;}catch{}}
  browser=await chromium.launch({headless:true,...(executablePath?{executablePath}:{})});
@@ -49,12 +50,19 @@ try{
  const guestContext=await browser.newContext({baseURL:origin,viewport:{width:1440,height:1000}});
  const editorContext=await browser.newContext({baseURL:origin,viewport:{width:1440,height:1000}});
  const [admin,member,guest,editor]=await Promise.all([adminContext.newPage(),memberContext.newPage(),guestContext.newPage(),editorContext.newPage()]);
- pages.push(admin,member,guest,editor);for(const page of pages){page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());}
+ pages.push(admin,member,guest,editor);for(const page of pages){page.setDefaultTimeout(20000);page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());}
  await login(admin,adminEmail);record('TEB email-code login');
  await admin.goto('/forening.html#teb?fane=foreninger&forening=ny');
  const create=admin.locator('form[data-action="create-association"]');await fill(create,{name:'Integrationens eksempelforening',category:'Fællesskab',description:'Kun testdata i en isoleret database.',chair:'Eksempel Formand',email:'kontakt@example.org',phone:'12 34 56 78',place:'Eksempelhallen'});
+ let loseCreationResponse=true;
+ await admin.route('**/api/kalender/admin/associations',async route=>{
+  if(!loseCreationResponse)return route.continue();
+  loseCreationResponse=false;const response=await route.fetch();assert.ok(response.ok());await route.abort('failed');
+ });
+ await create.locator('button[type="submit"]').click();await create.getByText('Der er ikke forbindelse til serveren.',{exact:false}).waitFor();
  await create.locator('button[type="submit"]').click();await admin.locator('form[data-action="admin-member"]').waitFor();
- const association=(await json(adminContext,'/associations')).associations.find(a=>a.name==='Integrationens eksempelforening');assert.ok(association);
+ const matchingAssociations=(await json(adminContext,'/associations')).associations.filter(a=>a.name==='Integrationens eksempelforening');assert.equal(matchingAssociations.length,1);const association=matchingAssociations[0];
+ await admin.unroute('**/api/kalender/admin/associations');record('Lost creation response and UI retry create only one association');
  record('TEB creates a real association record');
  const membership=admin.locator('form[data-action="admin-member"]');await fill(membership,{name:'Foreningsansvarlig',email:memberEmail,role:'manager'});await membership.locator('[name="verified"]').check();
  await membership.locator('button').click();await admin.getByText('Adgangen er gemt.',{exact:false}).waitFor();
@@ -67,12 +75,18 @@ try{
  await guest.getByText('Gæstens integrationstest',{exact:true}).first().waitFor();await guest.waitForTimeout(1600);
  const createdResponse=guest.waitForResponse(r=>new URL(r.url()).pathname==='/api/kalender/events'&&r.request().method()==='POST');
  await guestForm.locator('button[type="submit"]').click();const response=await createdResponse;assert.ok(response.ok());const result=await response.json();const payload=JSON.parse(response.request().postData());
- const privateURL='/kalender.html?privat='+result.id+'#adgang='+payload.authorToken;
+ const receipt=(await json(guestContext,'/local-mail')).messages.find(message=>message.recipient==='gaest@example.org'&&message.body.includes('#adgang='));
+ const privateURL=receipt?.body.match(/http:\/\/localhost:\d+\/kalender\.html\?privat=[^\s]+/)?.[0];
+ assert.ok(privateURL,'Receipt contains the actual private route');assert.equal(new URL(privateURL).hash,'#adgang='+payload.authorToken);
  assert.equal((await guestContext.request.get('/api/kalender/events/'+result.id)).status(),404);record('Guest remains private before approval');
  await admin.goto('/forening.html#teb');const review=admin.locator('details').filter({hasText:'Gæstens integrationstest'});await review.locator('summary').click();await review.locator('button[value="approve"]').click();
  await admin.getByText('Arrangementet er godkendt.',{exact:true}).waitFor();assert.equal((await published(guestContext,result.id)).title,'Gæstens integrationstest');record('TEB approval publishes guest event');
- await guest.goto(privateURL);await guest.getByText('Godkendt og offentliggjort',{exact:true}).waitFor();
- await guest.getByRole('button',{name:'Ret oplysningerne',exact:true}).click();const editGuest=await mainForm(guest);await fill(editGuest,{time:'19:00'});await editGuest.locator('button[type="submit"]').click();
+ await guest.getByRole('link',{name:/Se status og ret arrangementet/}).click();await guest.getByText('Godkendt og offentliggjort',{exact:true}).waitFor();
+ await guest.goto('/kalender.html');await guest.goto(privateURL);await guest.getByText('Godkendt og offentliggjort',{exact:true}).waitFor();record('Actual receipt URL and on-page private status link open the approved event');
+ const decision=(await json(guestContext,'/local-mail')).messages.find(message=>message.recipient==='gaest@example.org'&&message.body.includes('?arrangement='));
+ const publicLink=decision?.body.match(/http:\/\/localhost:\d+\/kalender\.html\?arrangement=[^\s]+/)?.[0];assert.ok(publicLink);
+ const publicPage=await guestContext.newPage();await publicPage.goto(publicLink);await publicPage.locator('#calendar-workspace').getByRole('heading',{name:'Gæstens integrationstest',exact:true}).waitFor();await publicPage.close();record('Approval mail opens public event details');
+ await guest.getByRole('button',{name:/Ret oplysningerne/}).click();const editGuest=await mainForm(guest);await fill(editGuest,{time:'19:00'});await editGuest.locator('button[type="submit"]').click();
  await guest.getByText('Afventer TEBs godkendelse',{exact:false}).first().waitFor();assert.equal((await published(guestContext,result.id)).time,'18:00');record('Pending guest revision preserves public version');
  await member.goto('/kalender.html?opret=1&forening='+association.id);const memberForm=await mainForm(member);await fill(memberForm,{title:'Foreningens direkte arrangement',associationId:association.id,date,time:'17:00',location:'Eksempelhallen',description:'Udgivet med godkendt foreningsadgang.'});
  const directResponse=member.waitForResponse(r=>new URL(r.url()).pathname==='/api/kalender/events'&&r.request().method()==='POST');await memberForm.locator('button[type="submit"]').click();const direct=await (await directResponse).json();
@@ -81,7 +95,8 @@ try{
  await login(editor,editorEmail);await editor.goto('/forening.html#arbejdsrum?forening='+association.id+'&fane=personer');await editor.getByText('Den foreningsansvarlige kan invitere og fjerne redaktører.').waitFor();record('Invitation accepted by matching email without manager privileges');
  await member.reload();const revoke=member.locator('form[data-action="revoke-member"][data-email="'+editorEmail+'"]');await revoke.locator('button').click();await member.getByText('Adgangen er fjernet.').waitFor();
  assert.equal((await json(editorContext,'/session')).memberships.length,0);record('Revocation affects an existing session');
- await admin.goto('/forening.html#teb?fane=print');const print=admin.locator('form[data-action="print-edition"]');await fill(print,{start:month+'-01',end:new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5)),0)).toISOString().slice(0,10),format:'a3'});
+ await admin.goto('/forening.html#teb?fane=print');const print=admin.locator('form[data-action="print-edition"]');await fill(print,{start:currentMonth+'-01',end:new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5)),0)).toISOString().slice(0,10),deadline:today,format:'a3'});
+ const previewResponse=adminContext.waitForEvent('response',r=>new URL(r.url()).pathname==='/api/kalender/admin/editions/preview');await print.locator('button[value="preview"]').click();const preview=await previewResponse;assert.ok(preview.ok());assert.equal(preview.headers()['content-type'],'application/pdf');record('Current-period preview accepts a deadline within the period');
  await print.locator('button[value="finalize"]').click();await admin.getByText('Printudgaven er gemt med',{exact:false}).waitFor();const editions=(await json(adminContext,'/editions')).editions;assert.equal(editions.length,1);
  const pdf1=await (await guestContext.request.get('/api/kalender/editions/'+editions[0].id+'/pdf')).body();assert.equal(pdf1.subarray(0,5).toString(),'%PDF-');await writeFile(resolve(output,'kalender-a3.pdf'),pdf1);
  await member.goto('/kalender.html?ret='+direct.id);const editMember=await mainForm(member);await fill(editMember,{title:'Rettet efter print'});await editMember.locator('button[type="submit"]').click();

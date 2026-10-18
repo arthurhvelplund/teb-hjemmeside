@@ -11,6 +11,7 @@ let currentRoute;
 let localMode = false;
 let flash = '';
 const printRequests = new Map(); // A retry of the same edition keeps its requestKey in this tab.
+const associationRequests = new Map();
 const eventSnapshots = new Map();
 const profileFields = ['name', 'category', 'description', 'chair', 'email', 'phone', 'website', 'place'];
 const eventFields = ['title', 'association', 'associationId', 'date', 'time', 'endDate', 'endTime', 'location', 'description', 'price', 'link', 'state'];
@@ -266,14 +267,17 @@ function values(form, names) {
 }
 function deliveryMessage(result, subject) {
   const state = result.deliveryState;
+  if (state === 'failed') return subject + ' er gemt, men mailen kunne ikke sendes. Kontakt TEB, hvis personen ikke kan komme videre.';
+  if (state === 'uncertain') return subject + ' er gemt. Vi kan ikke bekræfte, om mailen blev sendt. Personen kan prøve at logge ind med den valgte e-mailadresse.';
+  if (state === 'pending') return subject + ' er gemt. Mailen venter på afsendelse.';
   if (localMode || state === 'local') return subject + ' er gemt. Mailen ligger i den lokale testpostkasse.';
   if (state === 'sent' || state === 'delivered') return subject + ' er gemt, og mailen er sendt.';
   return subject + ' er gemt. Maillevering er ikke bekræftet. Personen kan logge ind med den valgte e-mailadresse.';
 }
 function mailWarnings(event) {
   const messages = [];
-  if (['failed', 'pending'].includes(event.notificationState)) messages.push('Beskeden til TEB er ikke bekræftet sendt. Arrangementet er gemt.');
-  if (['failed', 'pending'].includes(event.receiptState)) messages.push('Kvitteringen til afsenderen er ikke bekræftet sendt. Arrangementet er gemt.');
+  if (['failed', 'pending', 'uncertain'].includes(event.notificationState)) messages.push('Beskeden til TEB er ikke bekræftet sendt. Arrangementet er gemt.');
+  if (['failed', 'pending', 'uncertain'].includes(event.receiptState)) messages.push('Kvitteringen til afsenderen er ikke bekræftet sendt. Arrangementet er gemt.');
   return messages.map(message => `<p class="fp-notice">${message}</p>`).join('');
 }
 async function refresh(message) {
@@ -292,9 +296,9 @@ async function onSubmit(event) {
   const submitter = event.submitter;
   if (action === 'print-edition' && submitter?.value !== 'finalize') {
     const data = values(form, ['start', 'end', 'deadline']);
-    if (data.start > data.end || data.deadline > today() || data.deadline >= data.start) {
+    if (data.start > data.end || data.deadline > today()) {
       event.preventDefault();
-      showMessage(form.querySelector('.fa-form-result'), 'Vælg en slutdato efter startdatoen og en frist før perioden, senest i dag.', true);
+      showMessage(form.querySelector('.fa-form-result'), 'Slutdatoen skal være på eller efter startdatoen. Fristen må højst være i dag.', true);
     }
     return; // Native GET submission opens the PDF in a new tab without a popup race.
   }
@@ -312,7 +316,10 @@ async function onSubmit(event) {
           if (!response.challengeId) throw new Error('Der kom ingen loginanmodning fra serveren. Prøv igen.');
           challenge = { id: response.challengeId, email };
           localMode = localMode || response.mode === 'local';
-          flash = localMode ? 'Find engangskoden i den lokale testpostkasse.' : 'Koden er sendt. Se også i uønsket post.';
+          flash = response.deliveryState === 'failed' ? 'Koden kunne ikke sendes. Bed om en ny kode om lidt, eller kontakt TEB.'
+            : response.deliveryState === 'uncertain' ? 'Vi kan ikke bekræfte, om koden blev sendt. Tjek din mail, og bed om en ny kode, hvis den ikke kommer.'
+            : response.deliveryState === 'pending' ? 'Koden venter på afsendelse. Tjek din mail om lidt.'
+            : localMode ? 'Find engangskoden i den lokale testpostkasse.' : 'Koden er sendt. Se også i uønsket post.';
           await render();
           document.querySelector('[name="code"]')?.focus();
           break;
@@ -358,7 +365,11 @@ async function onSubmit(event) {
           break;
         }
         case 'create-association': {
-          const { association } = await api('/admin/associations', { body: { association: values(form, profileFields) } });
+          const data = values(form, profileFields);
+          const fingerprint = JSON.stringify(data);
+          if (!associationRequests.has(fingerprint)) associationRequests.set(fingerprint, requestKey());
+          const { association } = await api('/admin/associations', { body: { association: data, requestKey: associationRequests.get(fingerprint) } });
+          associationRequests.delete(fingerprint);
           flash = 'Foreningen er oprettet. Tilknyt en ansvarlig nedenfor.';
           location.hash = adminURL('foreninger', association.id);
           break;
@@ -402,7 +413,7 @@ async function onSubmit(event) {
         }
         case 'print-edition': {
           const data = values(form, ['start', 'end', 'deadline', 'format']);
-          if (data.start > data.end || data.deadline > today() || data.deadline >= data.start) throw new Error('Vælg en slutdato efter startdatoen og en frist før perioden, senest i dag.');
+          if (data.start > data.end || data.deadline > today()) throw new Error('Slutdatoen skal være på eller efter startdatoen. Fristen må højst være i dag.');
           const key = JSON.stringify(data);
           let request = printRequests.get(key);
           if (!request) { request = { requestKey: requestKey() }; printRequests.set(key, request); }

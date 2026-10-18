@@ -47,8 +47,10 @@ function mailState(result) {
   if (result.notificationState === 'local' || result.receiptState === 'local') messages.push('Lokal afprøvning. Ingen e-mails er sendt.');
   if (result.notificationState === 'failed') messages.push('Beskeden til TEB kunne ikke sendes. Arrangementet er gemt. Kontakt TEB.');
   if (result.notificationState === 'pending') messages.push('Beskeden til TEB afventer afsendelse.');
+  if (result.notificationState === 'uncertain') messages.push('Vi kan ikke bekræfte, om beskeden til TEB blev sendt. Arrangementet er gemt.');
   if (result.receiptState === 'failed') messages.push('Kvitteringsmailen kunne ikke sendes. Gem dit private link her på siden.');
   if (result.receiptState === 'pending') messages.push('Kvitteringsmailen afventer afsendelse. Gem dit private link.');
+  if (result.receiptState === 'uncertain') messages.push('Vi kan ikke bekræfte, om kvitteringsmailen blev sendt. Gem dit private link her på siden.');
   if (result.receiptState === 'sent') messages.push('Kvitteringen er sendt til din e-mail.');
   return messages.join(' ');
 }
@@ -224,7 +226,7 @@ function privateAccessLink(id, token) {
   return node('div', {class: 'fp-panel cal-private-link'}, node('h3', {}, 'Gem dit private link'),
     node('p', {}, 'Linket giver adgang til at rette arrangementet. Del det kun med dem, der må rette.'),
     node('label', {htmlFor: input.id}, 'Dit private adgangslink'), input,
-    node('div', {class: 'fp-actions'}, node('a', {class: 'btn', href: url}, 'Se status og ret arrangementet'), button('Kopiér privat link', async () => {
+    node('div', {class: 'fp-actions'}, node('a', {class: 'btn', href: url, onClick: event => { event.preventDefault(); history.replaceState(null, '', url); privateEvent(id); }}, 'Se status og ret arrangementet'), button('Kopiér privat link', async () => {
       try { await navigator.clipboard.writeText(url); showMessage(message, 'Det private link er kopieret.'); }
       catch { input.focus(); input.select(); showMessage(message, 'Markér og kopiér linket i feltet.'); }
     })), message);

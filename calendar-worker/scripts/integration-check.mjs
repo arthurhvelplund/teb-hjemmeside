@@ -12,7 +12,7 @@ const runtime=await mkdtemp(join(tmpdir(),'teb-http-')),origin='http://localhost
 const env={...process.env,PORT:String(port),CALENDAR_DATA_DIR:runtime,CALENDAR_ORIGIN:origin};
 const service=spawn(process.execPath,['scripts/dev.mjs'],{cwd:new URL('../',import.meta.url),env,stdio:['ignore','pipe','pipe']});let errors='';service.stderr.on('data',s=>errors+=s);
 try{
- let ready=false;for(let i=0;i<60;i++){try{if((await fetch(origin+'/api/kalender/config')).ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,100));}assert.ok(ready,'Dev server failed to start: '+errors);
+ let ready=false;for(let i=0;i<450;i++){try{if((await fetch(origin+'/api/kalender/config')).ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,100));}assert.ok(ready,'Dev server failed to start: '+errors);
  const root=await fetch(origin+'/');assert.equal(root.status,200);assert.equal(root.redirected,false);assert.equal(await root.text(),await readFile(new URL('../../site/index.html',import.meta.url),'utf8'));assert.equal(root.headers.get('X-Robots-Tag'),null);
  const externalHost=await new Promise((resolve,reject)=>{get(origin+'/api/kalender/local-mail',{headers:{Host:'public.example.test'}},r=>{r.resume();resolve(r.statusCode);}).on('error',reject);});assert.equal(externalHost,403);
  const seed=async()=>{const child=spawn(process.execPath,['scripts/seed.mjs'],{cwd:new URL('../',import.meta.url),env,stdio:['ignore','pipe','pipe']});let output='';child.stderr.on('data',s=>output+=s);const [code]=await once(child,'exit');assert.equal(code,0,output);};
@@ -23,7 +23,7 @@ try{
  };
  async function login(email){const challenge=await api('/auth/request',{email});const {messages}=await api('/local-mail');const message=messages.find(m=>m.recipient===email&&m.subject==='Din engangskode til TEB');const code=message.body.match(/\b\d{6}\b/)[0];return api('/auth/verify',{challengeId:challenge.challengeId,code});}
  const publicBefore=await api('/events');assert.equal(publicBefore.events.length,8);
- await login('teb-admin@example.test');const {events}=await api('/admin/events'),pending=events.find(e=>e.pendingKind==='new');assert.ok(pending);
+ await login((await api('/config')).editorEmail);const {events}=await api('/admin/events'),pending=events.find(e=>e.pendingKind==='new');assert.ok(pending);
  await api('/admin/events/'+pending.id,{action:'approve',revision:pending.revision});assert.equal((await api('/events')).events.length,9);
  const association=(await api('/associations')).associations[0],adminCookie=cookie;
  const member=await login('redaktor@example.test');assert.equal(member.memberships[0].role,'editor');

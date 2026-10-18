@@ -31,7 +31,7 @@ Seed tilføjer kun opdigtede eksempeldata via loopback-API. Den kan køres igen
 uden at kopiere eksempelarrangementerne. Den opretter én forening, otte direkte
 udgivne arrangementer, én gæsteindsendelse og følgende fiktive mailadresser:
 
-- `teb-admin@example.test`: TEB-administrator.
+- `tistrup.kalender@gmail.com`: lokal TEB-administrator, kan ændres med `TEB_ADMIN_EMAILS`.
 - `ansvarlig@example.test`: foreningsansvarlig.
 - `redaktor@example.test`: inviteret redaktør, aktiveres ved sit første OTP-login.
 
@@ -84,8 +84,7 @@ arrangementer. En gæsts oplyste forening giver aldrig medlemsrettigheder.
 Gæsteindsendelser, rettelser og aflysninger godkendes af TEB. En ventende eller
 afslået ændring erstatter ikke den offentliggjorte version. Privat adgang kræver
 Bearer-tokenet, hvis hash ligger i databasen. Mailens link har kun tokenet i
-URL-fragmentet: `kalender.html?id=...#adgang=...`. Frontend skal fjerne fragmentet
-fra adresselinjen efter læsning og må ikke sende det som query-parameter.
+URL-fragmentet: `kalender.html?privat=...#adgang=...`. Tokenet må ikke sendes som query-parameter og må aldrig indgå i offentlige links.
 
 Offentlig event-state hedder `approved` eller `cancelled`. Privat wrapper-status
 er `pending`, `approved` eller `rejected`. En godkendt aflysning har altså

@@ -31,9 +31,9 @@ async function eventMail(env,{id,revision,event,email,kind,authorToken,condition
   await make('editor',env.EDITOR_EMAIL||'',`${kind==='cancel'?'Aflysning':kind==='edit'?'Rettelse':'Nyt arrangement'} til godkendelse: ${event.title}`,
    `Et arrangement afventer TEBs godkendelse.\n\n${event.title}\n${event.date} kl. ${event.time}\n${event.location}\nOplyst forening: ${event.association}\nKontakt: ${email}\n\nTilknytningen er ikke verificeret. Log ind på ${env.PUBLIC_ORIGIN}/forening.html for at gennemgå indsendelsen.`, 'notification_state');
   if(authorToken)await make('receipt',email,`Modtaget til godkendelse: ${event.title}`,
-   `Dit arrangement er gemt og afventer TEBs godkendelse.\n\nDit private link til status, rettelser og aflysning:\n${env.PUBLIC_ORIGIN}/kalender.html?id=${id}#adgang=${authorToken}\n\nGem linket, og del det kun med dem, der må rette arrangementet. Din kontaktmail offentliggøres ikke.`, 'receipt_state');
+   `Dit arrangement er gemt og afventer TEBs godkendelse.\n\nDit private link til status, rettelser og aflysning:\n${env.PUBLIC_ORIGIN}/kalender.html?privat=${id}#adgang=${authorToken}\n\nGem linket, og del det kun med dem, der må rette arrangementet. Din kontaktmail offentliggøres ikke.`, 'receipt_state');
  } else await make('decision',email,`Svar fra TEB: ${event.title}`,
-  `${kind==='reject'?'TEB har ikke godkendt forslaget.':'TEB har godkendt forslaget. Se arrangementet på '+env.PUBLIC_ORIGIN+'/kalender.html?id='+id}\n${note?'\nBesked fra TEB: '+note:''}\n\nAllerede udgivne printudgaver ændres ikke.`, 'receipt_state');
+  `${kind==='reject'?'TEB har ikke godkendt forslaget.':'TEB har godkendt forslaget. Se arrangementet på '+env.PUBLIC_ORIGIN+'/kalender.html?arrangement='+id}\n${note?'\nBesked fra TEB: '+note:''}\n\nAllerede udgivne printudgaver ændres ikke.`, 'receipt_state');
  return {keys,statements};
 }
 function createResult(row){return {id:row.id,status:row.status,notificationState:row.notification_state,receiptState:row.receipt_state,published:Boolean(row.published_json)};}

@@ -10,6 +10,7 @@
     "deploy": "wrangler deploy",
     "test:pdf": "node scripts/pdf-check.mjs",
     "test:integration": "node scripts/integration-check.mjs",
+    "test:browser": "node ../scripts/portal-browser-check.mjs",
     "test:cloudflare": "npm run build && node scripts/cloudflare-check.mjs"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "miniflare": "5.20261012.1-beta",
+    "playwright": "1.64.1",
     "wrangler": "4.151.1"
   }
 }
