@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-19T20:21:55.256Z",
+  "date": "2026-10-19T20:32:34.151Z",
   "checks": [
     "Two-step login, email correction, resend and wrong-code recovery use the real API",
     "Lost, truncated and incomplete creation responses retain one key and create one association",
@@ -20,6 +20,15 @@
     "Pending guest revision preserves public version",
     "Member publishes directly through the real API",
     "Association creation stays in its own popup and refreshes the event list",
+    "Member publishes news with a real photo and one stable key after a lost successful response",
+    "Public profile puts its own name and contact before the fold and displays published news",
+    "News detail and Det sker use the same public record without visitor editing controls",
+    "Owner filters and searches own content, then edits published news with revisions",
+    "Public contact and news editor fit both 390px and 320px phones",
+    "Owner withdraws news from public views and retains private history",
+    "Guest news stays private until approved in the shared TEB queue beside calendar revisions",
+    "TEB rejection requires a reason and the real private receipt shows feedback",
+    "Old approval links lead to the single TEB queue",
     "Invitation accepted by matching email without manager privileges",
     "Revocation affects an existing session",
     "Print starts with no preselected events and requires manual review",
@@ -31,6 +40,7 @@
     "Published PDF bytes remain unchanged after event edit",
     "Login, overview, profile editor and access list fit 390px and 320px",
     "Multiple-association users choose only among their own associations",
+    "Unassigned accounts request access through the UI and the shared queue requires explicit verification",
     "Unassigned verified users get Contact TEB without editing access",
     "Public pages fit 390px and 320px without horizontal overflow"
   ],

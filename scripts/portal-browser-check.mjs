@@ -1,5 +1,6 @@
 // End-to-end against the real local API, isolated database and local mail adapter.
 import assert from 'node:assert/strict';
+import {checkAssociationNews} from './association-news-browser-check.mjs';
 import {spawn} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {mkdtemp,mkdir,writeFile,rm,access} from 'node:fs/promises';
@@ -96,7 +97,7 @@ try{
  const uploadResponse=await imageUpload;assert.equal(uploadResponse.status(),201);const uploadedImageURL=(await uploadResponse.json()).imageUrl;
  await profile.getByText('Billedet er klar.',{exact:false}).waitFor();await profile.locator('button[type="submit"]').click();await member.getByText('Profilen er gemt og kan ses af alle.').waitFor();
  await guest.goto('/forening.html?id='+association.id);await guest.getByText('Profil ændret gennem den rigtige API.').waitFor();record('Profile update visible to a separate visitor');
- assert.equal(await guest.locator('.fa-profile-photo img').getAttribute('src'),uploadedImageURL);assert.ok((await guestContext.request.get(uploadedImageURL)).ok());record('File picker uploads and publishes a real association photo');
+ assert.equal(await guest.locator('.fa-profile-mark img').getAttribute('src'),uploadedImageURL);assert.ok((await guestContext.request.get(uploadedImageURL)).ok());record('File picker uploads and publishes a real association photo');
  await guest.goto('/forening.html');await guest.locator('.fa-association').waitFor();
  assert.equal(await guest.locator('#association-results').getAttribute('data-view'),'cards');
  await guest.locator('#association-search').fill('Integrationens');await guest.locator('#association-filter-toggle').click();await guest.locator('#association-category').selectOption('Fællesskab');
@@ -150,6 +151,8 @@ try{
  await memberForm.locator('[name=printRequested]').check();
  const directResponse=member.waitForResponse(r=>new URL(r.url()).pathname==='/api/kalender/events'&&r.request().method()==='POST');await member.locator('.ec-send').click();const direct=await (await directResponse).json();
  assert.equal((await published(guestContext,direct.id)).title,'Foreningens direkte arrangement');record('Member publishes directly through the real API');await member.locator('.ec-done').click();await member.getByRole('heading',{name:'Foreningens direkte arrangement',exact:true}).waitFor();record('Association creation stays in its own popup and refreshes the event list');
+
+ await checkAssociationNews({admin,member,guest,adminContext,memberContext,guestContext,association,root,json,fill,record});
  await member.goto('/forening.html#arbejdsrum?forening='+association.id+'&fane=personer');const invite=member.locator('form[data-action="invite-member"]');await fill(invite,{name:'Ny redaktør',email:editorEmail});await invite.locator('button').click();await member.getByText('Invitationen er gemt.',{exact:false}).waitFor();
  await login(editor,editorEmail);await editor.goto('/forening.html#arbejdsrum?forening='+association.id+'&fane=personer');await editor.getByText('Den foreningsansvarlige kan invitere og fjerne redaktører.').waitFor();record('Invitation accepted by matching email without manager privileges');
  await member.reload();const revoke=member.locator('form[data-action="revoke-member"][data-email="'+editorEmail+'"]');await revoke.locator('button').click();await member.getByText('Adgangen er fjernet.').waitFor();
@@ -185,9 +188,12 @@ try{
  await member.setViewportSize({width:1440,height:1000});await guest.setViewportSize({width:1440,height:1000});
  const second=(await json(adminContext,'/admin/associations',{method:'POST',data:{requestKey:crypto.randomUUID(),association:{name:'Anden integrationstestforening'}}})).association;
  await json(adminContext,'/admin/associations/'+second.id+'/members',{method:'POST',data:{email:memberEmail,name:'Foreningsansvarlig',role:'manager'}});
- await member.locator('form[data-action="logout"] button').click();await member.waitForURL(url=>!url.hash);await login(member,memberEmail);await member.getByRole('heading',{name:'Hvilken forening vil du åbne?'}).waitFor();
+ await member.locator('.fa-more summary').click();await member.locator('.fa-more form[data-action="logout"] button').click();await member.waitForURL(url=>!url.hash);await login(member,memberEmail);await member.getByRole('heading',{name:'Hvilken forening vil du åbne?'}).waitFor();
  await member.locator('.fa-membership-choices a').filter({hasText:second.name}).click();await member.locator('.fa-workspace-header h1').filter({hasText:second.name}).waitFor();record('Multiple-association users choose only among their own associations');
  await login(guest,'ny-forening@example.org');await guest.getByRole('heading',{name:'Din e-mail er bekræftet.'}).waitFor();assert.equal(await guest.getByRole('link',{name:/^Kontakt TEB/}).getAttribute('href'),'kontakt.html#form');
+ await guest.getByRole('link',{name:/^Bed om adgang/}).click();const accessRequest=guest.locator('form[data-action=access-request]');await fill(accessRequest,{name:'Ny foreningsperson',associationId:association.id,roleNote:'Ansvarlig i foreningen.'});await accessRequest.locator('button').click();await guest.getByText('Din anmodning er gemt hos TEB.',{exact:false}).waitFor();
+ await admin.goto('/forening.html#teb');const accessReview=admin.locator('form[data-action=review-access]');await accessReview.waitFor();await accessReview.locator('button[value=approve]').click();await accessReview.getByText('Bekræft først, at du har kontrolleret personens tilknytning.').waitFor();await accessReview.locator('[name=note]').fill('Vi kontakter jer først.');await accessReview.locator('button[value=reject]').click();await admin.getByText('Anmodningen er afvist.').waitFor();
+ await guest.reload();await guest.getByText('Vi kontakter jer først.').waitFor();record('Unassigned accounts request access through the UI and the shared queue requires explicit verification');
  await guest.locator('form[data-action="logout"] button').click();await guest.waitForURL(url=>!url.hash);record('Unassigned verified users get Contact TEB without editing access');
  await guest.goto('/forening.html');await guest.locator('.fa-association').first().waitFor();await guest.screenshot({path:resolve(output,'forening-desktop.png'),fullPage:true});
  await guest.goto('/kalender.html');await guest.locator('#calendar-events[aria-busy="false"]').waitFor();await guest.screenshot({path:resolve(output,'kalender-desktop.png'),fullPage:true});

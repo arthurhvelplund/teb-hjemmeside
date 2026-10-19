@@ -2,12 +2,15 @@ import { ensure, json, hash, now, validateEvent } from './shared.mjs';
 import { stmt, all, field, emailAddress, rate, ipKey, local, loopback } from './db.mjs';
 import { requireAccess } from './auth.mjs';
 import { mailStatement, deliverKeys, mailState } from './mail.mjs';
+import { manageNews } from './news-management.mjs';
+import { storedImagePath } from './association-images.mjs';
 
 export function validatePost(input) {
  ensure(input && ['event','news','both'].includes(input.kind),400,'Vælg arrangement, nyhed eller begge.');
  const data={kind:input.kind,title:field(input,'title',100,true),author:field(input,'author',100,true),
   description:field(input,'description',1500,true),body:field(input,'body',6000),image:field(input,'image',500),link:field(input,'link',500)};
  for(const key of ['image','link'])if(data[key]){
+  if(key==='image'&&storedImagePath.test(data[key]))continue;
   let url;try{url=new URL(data[key]);}catch{ensure(false,400,'Brug en hel https-adresse.');}
   ensure(url.protocol==='https:'&&!url.username&&!url.password,400,'Brug en almindelig https-adresse.');data[key]=url.href;
  }
@@ -21,7 +24,7 @@ export function validatePost(input) {
  data.channels=channels;data.print=input.kind!=='news'&&input.print===true;
  return data;
 }
-const publicPost=row=>({id:row.id,...JSON.parse(row.data_json),...(row.event_json?JSON.parse(row.event_json):{}),createdAt:row.created_at});
+const publicPost=row=>({id:row.id,associationId:row.association_id||null,...JSON.parse(row.data_json),...(row.event_json?JSON.parse(row.event_json):{}),createdAt:row.created_at});
 function projectEvent(env,table,row,createdBy=null){
  const post=JSON.parse(row.data_json);
  if(post.kind==='news')return [];
@@ -38,15 +41,22 @@ export async function handlePosts(request,env,auth,route,data,{legacy=false}={})
  if(legacy)route=route.replace('/experiment/','/');
  if(legacy)ensure(local(env)&&loopback(request.url)&&loopback(env.PUBLIC_ORIGIN),404,'Forsøget er kun til lokal afprøvning.');
  const method=request.method;
+ if(!legacy){const managed=await manageNews(request,env,auth,route,data,validatePost);if(managed)return managed;}
  const privateId=!legacy&&route.match(/^\/posts\/private\/([a-f0-9-]{36})$/);
  if(privateId&&method==='GET'){
   const token=request.headers.get('Authorization')?.match(/^Bearer ([a-f0-9]{64})$/)?.[1];
   ensure(token,404,'Det private link er ugyldigt.');
   const row=await stmt(env,`SELECT p.*,e.published_json AS event_json FROM posts p LEFT JOIN events e ON e.id=p.id WHERE p.id=? AND p.owner_hash=? AND p.association_id IS NULL`,privateId[1],await hash(token)).first();
   ensure(row,404,'Det private link er ugyldigt.');
-  return json({post:{...publicPost(row),status:row.status,hasEvent:Boolean(row.event_json)}});
+  return json({post:{...publicPost(row),status:row.status,note:row.moderation_note||'',hasEvent:Boolean(row.event_json)}});
  }
- if(route==='/posts'&&method==='GET')return json({posts:(await all(stmt(env,`SELECT p.*${legacy?'':',e.published_json AS event_json'} FROM ${table} p ${legacy?'':'LEFT JOIN events e ON e.id=p.id'} WHERE p.status='approved' ORDER BY p.created_at DESC LIMIT 200`))).map(publicPost)});
+ if(route==='/posts'&&method==='GET'){
+  const params=new URL(request.url).searchParams,association=params.get('association'),kind=params.get('kind');
+  const filters=["p.status='approved'"],args=[];
+  if(association){filters.push('p.association_id=?');args.push(association);}
+  if(kind){filters.push("json_extract(p.data_json,'$.kind')=?");args.push(kind);}
+  return json({posts:(await all(stmt(env,`SELECT p.*${legacy?'':',e.published_json AS event_json'} FROM ${table} p ${legacy?'':'LEFT JOIN events e ON e.id=p.id'} WHERE ${filters.join(' AND ')} ORDER BY p.created_at DESC LIMIT 200`,...args))).map(publicPost)});
+ }
  const publicId=route.match(/^\/posts\/([a-f0-9-]{36})$/);
  if(publicId&&method==='GET'){
   const row=await stmt(env,`SELECT p.*${legacy?'':',e.published_json AS event_json'} FROM ${table} p ${legacy?'':'LEFT JOIN events e ON e.id=p.id'} WHERE p.id=? AND p.status='approved'`,publicId[1]).first();
@@ -54,7 +64,7 @@ export async function handlePosts(request,env,auth,route,data,{legacy=false}={})
  }
  if(route==='/admin/posts'&&method==='GET'){
   await requireAccess(env,auth);
-  return json({posts:(await all(stmt(env,`SELECT * FROM ${table} WHERE status='pending' ORDER BY created_at`))).map(r=>({...publicPost(r),revision:r.revision}))});
+  return json({posts:(await all(stmt(env,`SELECT * FROM ${table} WHERE status='pending' ORDER BY created_at`))).map(r=>({...publicPost(r),revision:r.revision,note:r.moderation_note||''}))});
  }
  const match=route.match(/^\/admin\/posts\/([a-f0-9-]{36})$/);
  if(match&&method==='POST'){
@@ -63,13 +73,14 @@ export async function handlePosts(request,env,auth,route,data,{legacy=false}={})
   const row=await stmt(env,`SELECT * FROM ${table} WHERE id=?`,match[1]).first();
   ensure(row,404,'Opslaget findes ikke.');
   ensure(row.revision===data.revision&&(data.action==='withdraw'?row.status==='approved':row.status==='pending'),409,'Opslaget er allerede behandlet.');
+  const note=legacy?'':field(data,'note',500);
   const status={approve:'approved',reject:'rejected',withdraw:'withdrawn'}[data.action],stamp=now();
   const key=`experiment:${row.id}:decision:${row.revision}`;
   const guard=`EXISTS(SELECT 1 FROM ${table} WHERE id=? AND revision=? AND status=? AND updated_at=?)`;
   const message=await mailStatement(env,{dedupe:key,to:row.contact_email,subject:'Svar fra TEB: '+JSON.parse(row.data_json).title,
-   text:`Dit opslag er ${status==='approved'?'godkendt':status==='rejected'?'afvist':'fjernet'}.\n${env.PUBLIC_ORIGIN}/${page}?opslag=${row.id}`,
+   text:`Dit opslag er ${status==='approved'?'godkendt':status==='rejected'?'afvist':'fjernet'}.\n${env.PUBLIC_ORIGIN}/${page}?opslag=${row.id}${note?'\nBesked fra TEB: '+note:''}`,
    condition:guard,args:[row.id,row.revision+1,status,stamp]});
-  const result=await env.DB.batch([stmt(env,`UPDATE ${table} SET status=?,revision=revision+1,updated_at=? WHERE id=? AND revision=? AND status=? AND ${g.sql}`,status,stamp,row.id,row.revision,row.status,...g.args),...(!legacy&&status==='approved'?projectEvent(env,table,{...row,revision:row.revision+1,updated_at:stamp}):[]),...(!legacy&&status==='withdrawn'?[stmt(env,`UPDATE events SET published_json=json_set(published_json,'$.state','cancelled'),revision=revision+1,updated_at=? WHERE id=? AND EXISTS(SELECT 1 FROM ${table} WHERE id=? AND status='withdrawn' AND revision=?)`,stamp,row.id,row.id,row.revision+1)]:[]),message]);
+  const result=await env.DB.batch([stmt(env,`UPDATE ${table} SET status=?,${legacy?'':'moderation_note=?,'}revision=revision+1,updated_at=? WHERE id=? AND revision=? AND status=? AND ${g.sql}`,status,...(legacy?[]:[note]),stamp,row.id,row.revision,row.status,...g.args),...(!legacy&&status==='approved'?projectEvent(env,table,{...row,revision:row.revision+1,updated_at:stamp}):[]),...(!legacy&&status==='withdrawn'?[stmt(env,`UPDATE events SET published_json=json_set(published_json,'$.state','cancelled'),revision=revision+1,updated_at=? WHERE id=? AND EXISTS(SELECT 1 FROM ${table} WHERE id=? AND status='withdrawn' AND revision=?)`,stamp,row.id,row.id,row.revision+1)]:[]),message]);
   ensure(result[0].meta.changes,409,'Opslaget er ændret, eller din adgang er ophørt.');
   await deliverKeys(env,[key]);return json({saved:true});
  }
@@ -81,6 +92,8 @@ export async function handlePosts(request,env,auth,route,data,{legacy=false}={})
   if(member){g=await requireAccess(env,auth,data.associationId||null);if(data.associationId){association=await stmt(env,'SELECT name FROM associations WHERE id=?',data.associationId).first();ensure(association,404,'Foreningen findes ikke.');}}
   else ensure(/^[a-f0-9]{64}$/.test(data.authorToken||''),400,'Genindlæs formularen.');
   const post=validatePost({...data.post,...(association?{author:association.name}:{})});
+  const stored=post.image?.match(/^\/api\/kalender\/association-images\/([^/]+)\//);
+  ensure(!stored||member&&(auth.user.is_admin||stored[1]===data.associationId),403,'Vælg et billede fra jeres egen forening.');
   const email=member?auth.user.email:emailAddress(data.email);
   const owner=await hash(member?'member:'+auth.user.id:data.authorToken);
   const signature=await hash(JSON.stringify([post,email,data.associationId||null]));

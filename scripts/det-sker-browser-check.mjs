@@ -45,8 +45,9 @@ try{
  assert.equal(await page.locator('.ds-group .ds-source-card').count(),7);assert.equal(await page.locator('.ds-source-card img').count(),7);assert.equal(await page.locator('#calendar-events,#ds-events,#ds-feed').count(),0);
  assert.equal(await page.locator('#facebook').count(),1);assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');assert.equal(sourceRequests.length,0);
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:resolve(output,'nyt-'+width+'.png'),fullPage:true});}
- await page.goto('/index.html');assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');
- check('Det sker has external links and Facebook only; both home and news directory end with Facebook');
+ await page.goto('/index.html');
+ assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');
+ check('Det sker preserves media links and Facebook alongside association news; both pages end with Facebook');
  await page.setViewportSize({width:1440,height:1000});await page.goto('/kalender.html');await page.locator('#calendar-events[aria-busy="false"]').waitFor();await page.locator('.cal-card').filter({hasText:'Arrangement om seks dage'}).waitFor();
  assert.equal(await page.locator('#calendar-week').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('#calendar-search').count(),0);
  assert.equal(await page.locator('.cal-board--week .cal-day').count(),7);assert.equal(await page.locator('.cal-board--week .cal-day.is-today').count(),1);
@@ -91,7 +92,7 @@ try{
  check('verified association publishes directly from its own calendar creation link');
  const token='a'.repeat(64),post=await call(guest,'/posts',{requestKey:crypto.randomUUID(),authorToken:token,startedAt:Date.now()-5000,email:'legacy@example.test',post:{kind:'both',author:'Tidligere afsender',title:'Tidligere kalenderopslag',description:'Indsendt før flytningen.',body:'Hele den oprindelige tekst.',date,time:'16:00',location:'Prøvestedet',print:true,channels:['screens']}});
  await page.goto('/nyt.html?privat='+post.id+'#adgang='+token);await page.waitForURL('**/kalender.html?indsendelse=*');await page.getByText('TEB har modtaget din indsendelse. Den er ikke offentlig endnu.').waitFor();assert.equal(new URL(page.url()).hash,'#adgang='+token);assert.equal(await page.getByRole('link',{name:'Ret eller aflys arrangementet',exact:true}).count(),0);
- await adminPage.goto('/kalender.html#godkendelse');await adminPage.locator('#calendar-legacy article').getByRole('button',{name:'Godkend og udgiv'}).click();await adminPage.getByText('Ingen tidligere opslag afventer godkendelse.').waitFor();
+ await adminPage.goto('/kalender.html#godkendelse');await adminPage.waitForURL('**/forening.html#teb');const oldReview=adminPage.locator('details').filter({hasText:'Tidligere kalenderopslag'});await oldReview.locator('summary').click();await oldReview.locator('button[value=approve]').click();await adminPage.getByText('Opslaget er godkendt.',{exact:true}).waitFor();
  await page.getByRole('button',{name:/^Opdatér status/}).click();await page.getByText('TEB har godkendt din indsendelse.').waitFor();await page.getByRole('link',{name:'Ret eller aflys arrangementet',exact:true}).click();await page.getByRole('heading',{name:'Dit private arrangement',exact:true}).waitFor();
  await page.goto('/nyt.html?opslag='+post.id);await page.locator('#calendar-legacy').getByText('Hele den oprindelige tekst.').waitFor();
  await page.goto('/kalender.html?arrangement='+post.id);await page.locator('dialog[open]').getByText('Hele den oprindelige tekst.').waitFor();

@@ -42,7 +42,7 @@ oprettelse, delbart eventlink, ICS, aflysningsmarkering, kalender/PDF fra samme
 offentliggjorte data. Gæsters kontaktmail vises aldrig offentligt.
 Delingsmuligheder vises ved oprettelse og efter indsendelse med ærlige kontakt-
 pladsholdere, hvor aftaler mangler. Ingen automatisk Facebook/Gmail/partnerimport.
-Det sker indeholder eksterne medielinks og det eksisterende Facebook-embed. Kalenderen
+Det sker indeholder foreningernes egne nyheder, eksterne medielinks og det eksisterende Facebook-embed. Kalenderen
 ligger på Kalender og importerer kun kalenderbegivenheder fra Tistrup Nyt og
 Pulsen i Vest. Forsiden har også Facebook nederst. TEBs egne
 kalenderbokse flyttes til Kalender. Historiske PDF'er bevares i arkivet.
@@ -157,3 +157,38 @@ Browser: gæst -> TEB -> publiceret; OTP -> profil -> invitation -> direkte
 event -> rettelse/aflysning; TEB print; mobil/desktop; fejl/empty states.
 Kontrollér PDF visuelt samt uafhængigt review. Lokal succes er ikke bevis på
 maillevering, Cloudflare-provisionering eller produktionsdrift.
+
+
+## Foreningsprofil og egne nyheder, 19. oktober 2026
+
+Den offentlige profil starter med navn, introduktion og kontakt. Ejerens
+arbejdsrum starter med Opret arrangement, Skriv nyhed og Redigér side og samler
+eget indhold i en søgbar liste. Personer med adgang og øvrige handlinger ligger
+under Mere. Arrangementer bruger fortsat den fælles `event-composer.js` og
+`teb:event-saved` opdaterer arbejdsrummet efter gemning.
+
+Nyheder bruger de eksisterende posts og rigtig session. Medlemmer udgiver direkte
+for egne foreninger, mens gæster sender til TEB. Nyheder vises på foreningens
+profil og Det sker; detaljer åbner `forening.html#opslag?id=...`. Upload genbruger
+foreningens billed-API. Gæsters kontaktmail og TEBs tilbagemelding er private.
+
+Migration `0007_news_management.sql` tilføjer `moderation_note` på posts og et
+foreningsindeks. Den skal anvendes sammen med de øvrige migrationer inden staging.
+
+- GET `/posts?kind=news&association=:id` filtrerer offentlige nyheder før grænsen på 200.
+- GET `/me/posts` returnerer egne rene nyheder, med live kontrol af adgang i SQL.
+- GET `/member/posts/:id` returnerer den private nyhed med revision.
+- POST `/member/posts/:id` tager `{action:'update'|'withdraw',revision,post}`.
+  Opdateringer bruger foreningens navn som afsender og kontrollerer adgang igen i
+  SQL-skrivningen. Stale revisioner giver 409. Fjernede nyheder kan ikke genudgives
+  af en gammel formular. Opslag med arrangementer rettes fortsat i kalenderen.
+- `/admin/posts/:id` accepterer en privat `note` ved moderation.
+
+TEBs Til godkendelse samler arrangementer, nyheder og adgangsanmodninger.
+`kalender.html#godkendelse` viderestiller til denne kø. Historiske gæstelinks
+beholder hemmeligheden i fragmentet og viser eventuel privat tilbagemelding.
+Print kræver fortsat manuelt valg, gennemset PDF og korrektur før en fast udgave.
+
+`npm run test:browser` inkluderer `scripts/association-news-browser-check.mjs`.
+Forløbet bruger isoleret database, rigtig OTP, lokal mail og syntetisk indhold.
+Ingen prøveopslag skrives til den fælles pilot af testforløbene.
