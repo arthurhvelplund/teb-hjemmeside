@@ -1,0 +1,72 @@
+{
+  "capturedAt": "2026-10-19T20:37:15.130067+00:00",
+  "canonicalRoot": "/Users/marinushvelplund/Projects/teb-kalender-faerdig",
+  "canonicalBranch": "local/teb-pilot-ready",
+  "desktopWorktrees": [
+    {
+      "worktree": "/Users/marinushvelplund/Desktop/TEB-hjemmeside",
+      "HEAD": "aeb6ef9a97da4b14a8a85624e3d4f00a7a51459e",
+      "branch": "refs/heads/tistrup-kalender"
+    },
+    {
+      "worktree": "/Users/marinushvelplund/.t3/worktrees/TEB-hjemmeside/t3-2aec174b",
+      "HEAD": "3a210ba51dd680d4b9836a9197f9e61017c7b6ed",
+      "branch": "refs/heads/t3/association-calendar-portal"
+    },
+    {
+      "worktree": "/Users/marinushvelplund/.t3/worktrees/TEB-hjemmeside/t3-70b4d892",
+      "HEAD": "c20fbddd1acd2c70d11a239c3ae40578d549bd03",
+      "branch": "refs/heads/t3/implement-association-portal"
+    },
+    {
+      "worktree": "/Users/marinushvelplund/.t3/worktrees/TEB-hjemmeside/t3-8a1ddbcd",
+      "HEAD": "03478b2c93f5f6282b2d2fbe6c68488335277cf2",
+      "branch": "refs/heads/t3/review-teb-portal"
+    },
+    {
+      "worktree": "/Users/marinushvelplund/.t3/worktrees/TEB-hjemmeside/t3-a3174bf9",
+      "HEAD": "64a77105b7406463a89a6d87f8e5d8042aa4b8e8",
+      "branch": "refs/heads/t3/calendar-worker-backend"
+    },
+    {
+      "worktree": "/Users/marinushvelplund/.t3/worktrees/TEB-hjemmeside/t3-bdf217c0",
+      "HEAD": "f2a72ef5b73dd7ffb75c37ad99cea9bb98364064",
+      "branch": "refs/heads/t3/review-association-retries"
+    }
+  ],
+  "archiveBranches": [
+    {
+      "branch": "archive/desktop-snapshot-2026-10-19",
+      "head": "c4bccf1233c9932acabbc7cf2eb467656898aef6"
+    },
+    {
+      "branch": "archive/desktop/t3/association-calendar-portal",
+      "head": "3a210ba51dd680d4b9836a9197f9e61017c7b6ed"
+    },
+    {
+      "branch": "archive/desktop/t3/calendar-worker-backend",
+      "head": "64a77105b7406463a89a6d87f8e5d8042aa4b8e8"
+    },
+    {
+      "branch": "archive/desktop/t3/implement-association-portal",
+      "head": "c20fbddd1acd2c70d11a239c3ae40578d549bd03"
+    },
+    {
+      "branch": "archive/desktop/t3/review-association-retries",
+      "head": "f2a72ef5b73dd7ffb75c37ad99cea9bb98364064"
+    },
+    {
+      "branch": "archive/desktop/t3/review-teb-portal",
+      "head": "03478b2c93f5f6282b2d2fbe6c68488335277cf2"
+    },
+    {
+      "branch": "archive/original-tistrup-kalender",
+      "head": "aeb6ef9a97da4b14a8a85624e3d4f00a7a51459e"
+    }
+  ],
+  "originalDesktopWorkingTree": "Preserved in place; file contents are committed in archive/desktop-snapshot-2026-10-19.",
+  "cloudRefDuplicates": {
+    "calendar-worker-backend 2": "def0cfc45d70e8dcc4b4a604cb0d7457ead3b538",
+    "calendar-worker-backend 3": "1ce68e062b5c9287c306bfb5ef99d52adbaa39e1"
+  }
+}

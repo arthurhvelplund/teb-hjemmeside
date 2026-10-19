@@ -1,0 +1,23 @@
+{
+  "branch": "archive/desktop-snapshot-2026-10-19",
+  "head": "c4bccf1233c9932acabbc7cf2eb467656898aef6",
+  "files": 1332,
+  "bytes": 314735612,
+  "folders": {
+    ".env.teb.example": 1,
+    ".github": 2,
+    ".gitignore": 1,
+    "AGENTS.md": 1,
+    "README.md": 1,
+    "app": 41,
+    "billeder": 14,
+    "calendar-worker": 42,
+    "cloudflare-form-worker": 4,
+    "docs": 10,
+    "netlify.toml": 1,
+    "output": 111,
+    "scripts": 13,
+    "site": 120,
+    "teb-tistrup-arkiv": 970
+  }
+}

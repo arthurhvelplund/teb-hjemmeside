@@ -1,8 +1,9 @@
 {
-  "capturedAt": "2026-10-19T20:24:32.090Z",
-  "currentThreadId": "3846890d-c6d1-4a6b-884d-a742be850123",
+  "capturedAt": "2026-10-19T20:36:19.475Z",
+  "meaning": "Runtime snapshot only. Product status and completed deliveries are maintained in docs/STATUS.md.",
   "canonicalRoot": "/Users/marinushvelplund/Projects/teb-kalender-faerdig",
   "canonicalBranch": "local/teb-pilot-ready",
+  "currentThreadId": "3846890d-c6d1-4a6b-884d-a742be850123",
   "threads": [
     {
       "threadId": "3846890d-c6d1-4a6b-884d-a742be850123",
@@ -13,31 +14,31 @@
       "parentThreadId": null,
       "branch": "tistrup-kalender",
       "worktreePath": null,
-      "updatedAt": "2026-10-19T20:24:32.007Z",
+      "updatedAt": "2026-10-19T20:36:04.648Z",
       "pendingRequestCount": 0
     },
     {
       "threadId": "103b95cc-5ffc-40b4-8120-27115e9ce1da",
       "title": "Foreningsside og ejerens startvisning",
-      "status": "running",
+      "status": "starting",
       "settled": false,
       "relationshipToParent": null,
       "parentThreadId": null,
       "branch": "tistrup-kalender",
       "worktreePath": null,
-      "updatedAt": "2026-10-19T20:24:31.337Z",
+      "updatedAt": "2026-10-19T20:34:51.187Z",
       "pendingRequestCount": 0
     },
     {
       "threadId": "5e4e6bd7-5f88-44bd-875a-677f22ae3794",
       "title": "Redesign kalender og fysisk kalender",
-      "status": "running",
+      "status": "completed",
       "settled": false,
       "relationshipToParent": null,
       "parentThreadId": null,
       "branch": "tistrup-kalender",
       "worktreePath": null,
-      "updatedAt": "2026-10-19T20:24:22.207Z",
+      "updatedAt": "2026-10-19T20:24:37.370Z",
       "pendingRequestCount": 0
     },
     {
@@ -305,5 +306,9 @@
       "pendingRequestCount": 0
     }
   ],
-  "meaning": "Runtime snapshot only. Product status, delivery commits and open work are maintained in docs/STATUS.md."
+  "completedDeliveries": {
+    "calendar": "ce5272b",
+    "eventComposer": "313eac2",
+    "associationAndNews": "53cc3c0"
+  }
 }

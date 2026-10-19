@@ -1,7 +1,7 @@
 # Samlet status for TEB hjemmesiden
 
 Opdateret 19. oktober 2026. Dette er projektets fælles status og afleveringssted.
-Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsområdet bygges fortsat. Kalenderens visuelle udtryk afventer brugerens designvalg.
+Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
 
 ## Det fælles arbejdssted
 
@@ -67,7 +67,7 @@ T3-status fortæller, om en kørsel er afsluttet. Den betyder ikke i sig selv, a
 | Mappe eller gren | Commit ved første aflæsning | Vurdering |
 | --- | --- | --- |
 | Projects/teb-kalender-faerdig, local/teb-pilot-ready | `6ea99c2` | Kanonisk integration. Selvstændig Git-kopi, ikke et worktree under Desktop. |
-| Desktop/TEB-hjemmeside, tistrup-kalender | `aeb6ef9` | Oprindelig kopi med ugemt pop-up og støttemateriale. Bevares og snapshots gemmes særskilt. |
+| Desktop/TEB-hjemmeside, tistrup-kalender | `aeb6ef9` | Oprindelig kopi. Hele filindholdet er gemt i arkivgrenen nedenfor. Pop-up’en er integreret i pilotgrenen. |
 | t3-2aec174b, t3/association-calendar-portal | `3a210ba` | Ren. Tidlig kalenderleverance. Senere versioner er integreret i hovedhistorikken. |
 | t3-70b4d892, t3/implement-association-portal | `c20fbdd` | Ren. Tidlig portal. Senere versioner er integreret i hovedhistorikken. |
 | t3-8a1ddbcd, t3/review-teb-portal | `03478b2` | Ren. Historisk reviewgrundlag. |
@@ -104,7 +104,7 @@ Gemte delingsønsker bestiller ikke noget hos andre.
 Den tråd, der afslutter en leverance, opdaterer dens række ovenfor og tilføjer commit, testresultat og eventuelle udeståender nedenfor.
 Commit kun den pågældende leverances filer. Bevar andre trådes ændringer.
 Forenings- og kalendertråden har begge modtaget besked om dette afleveringssted.
-Foreningstråden har desuden en kølagt opfølgning efter den igangværende kørsel.
+Foreningstrådens leverance er afleveret. Dens kølagte opfølgning kontrollerer kun den fælles registrering.
 Gem på integrationsgrenen og push den efter kontrol, så den fælles kopi også findes på GitHub.
 
 ## Samlingens commits og kontrol
@@ -167,3 +167,37 @@ Offentlige `/kalender`, `/nyt` og `/api/kalender/config` svarede HTTP 403 på
 HTTP-læsning i denne samling. Der udledes ingen ny produktionsstatus af det.
 Produktionsworkflowet deployer ved relevante push til `main`; denne samling
 pusher arbejds- og arkivgrene og udfører ingen deploy.
+
+## Arkiveringen af de tidligere kopier
+
+Alle nedenstående grene er bevaret i samme GitHub-repository. Den aktive løsning
+er fortsat `local/teb-pilot-ready`. Arkivgrenene er historik og skal ikke flettes
+ind som nyere udgaver af pilotens kode.
+
+| Arkivgren på GitHub | Indhold |
+| --- | --- |
+| [archive/desktop-snapshot-2026-10-19](https://github.com/arthurhvelplund/teb-hjemmeside/tree/archive/desktop-snapshot-2026-10-19) | Hele Desktop-projektet, 1.332 filer og cirka 315 MB. Kode, app-demo, designsystem, præsentationer, 111 outputfiler og 970 filer fra det tidligere website. Commit `c4bccf1`. |
+| `archive/original-tistrup-kalender` | Den oprindelige Desktop-gren ved `aeb6ef9`, inklusive de to commits efter det tidligere GitHub-head. |
+| `archive/desktop/t3/association-calendar-portal` | Tidlig kalenderleverance, `3a210ba`. |
+| `archive/desktop/t3/implement-association-portal` | Tidlig foreningsportal, `c20fbdd`. |
+| `archive/desktop/t3/review-teb-portal` | Første reviewgrundlag, `03478b2`. |
+| `archive/desktop/t3/review-association-retries` | Review af genforsøg, `f2a72ef`. |
+| `archive/desktop/t3/calendar-worker-backend` | Backend/print og gemte printudkast, `64a7710`. De tidligere `def0cfc` og `1ce68e0` er bevaret i historikken. |
+
+Desktop-filerne er snapshots gemt direkte i Projects-repoets Git-objekter.
+Den oprindelige Desktop-mappe beholder sin tidligere branch, sit indeks og sine
+lokale ændringer. Et snavset `git status` dér betyder derfor ikke, at filernes
+indhold mangler i arkivet. Projects er den fælles arbejdsmappe fremover.
+
+Desktop-Git havde også to cloudkopier af backend-ref-filen med endelserne
+` 2` og ` 3`. De peger på `def0cfc` og `1ce68e0`, som begge er bevaret på den
+arkiverede backendgren. De ugyldige refnavne er ikke kopieret ind som grene.
+Originalerne er urørte.
+
+Lokale databaser, testpostkasser, mailnøgler, credentials, node_modules og
+maskinspecifik agentkonfiguration er bevaret lokalt og udeladt fra Git.
+De lokale previewservere og eksisterende worktrees er bevaret.
+
+[Desktop-snapshottets optælling](status/desktop-snapshot.json) og
+[oversigten over Git-grene og worktrees](status/repositories.json) indeholder
+de konkrete stier og commit-ID'er.
