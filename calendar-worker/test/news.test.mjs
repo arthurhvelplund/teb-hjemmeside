@@ -86,3 +86,31 @@ test('valid empty calendars are fresh; article caches cannot reappear in event-o
  const data=await service(bucket);assert.deepEqual(data.items,[]);assert.deepEqual(data.events,[]);assert.equal(data.stale,false);assert.ok(data.fetchedAt);
  const endpoint=await worker.fetch(new Request('http://localhost/api/kalender/kilder/tistrup-nyt'),{PDFS:bucket});assert.equal(endpoint.status,200);assert.deepEqual((await endpoint.json()).items,[]);
 });
+
+test('source articles add their sharing image and fuller description, ignore logos and are read again only weekly', async () => {
+  const bucket = localR2(); let now = Date.parse('2026-10-18T12:00:00Z'); const fetched = [];
+  const article = (image, description) => htmlResponse(`<meta property="og:image" content="${image}"><meta name="description" content="${description}">`);
+  const list = card() + card({ id: '2448701', title: 'Banko' }) + card({ id: '2448702', title: 'Loppemarked' });
+  const service = createNewsService({ articleDetails: true, clock: () => now, fetcher: async url => {
+    fetched.push(url);
+    if (url.endsWith('/lokal')) return htmlResponse(list);
+    if (url.includes('2448700')) return article('https://ruban.nu/foto/a/cykel.jpg', 'Der køres tirsdag kl. 16.30 (husk lys) og lørdag kl. 10.00 fra klubhuset.');
+    if (url.includes('2448701')) return article('javascript:alert(1)', 'Kort');
+    throw new Error('Offline');
+  } });
+  const { events } = await service(bucket);
+  const cykel = events.find(e => e.url.includes('2448700')), banko = events.find(e => e.url.includes('2448701'));
+  assert.equal(cykel.image, 'https://ruban.nu/foto/a/cykel.jpg');
+  assert.match(cykel.description, /husk lys/);
+  assert.equal(banko.image, null); assert.equal(banko.description, 'Vi starter fra klubhuset.');
+  assert.equal(fetched.length, 4);
+  now += 60 * 60 * 1000; await service(bucket); assert.equal(fetched.length, 5);
+  now += 7 * 24 * 60 * 60 * 1000; await service(bucket); assert.equal(fetched.length, 9);
+});
+
+test('an image used by many articles is treated as the site logo', async () => {
+  const { withArticleDetails } = await import('../src/news.mjs');
+  const details = Object.fromEntries(['a', 'b', 'c', 'd'].map(id => ['https://tistrupnyt.dk/cid/1/' + id, { image: 'https://ruban.nu/foto/logo.png', description: '' }]));
+  const [event] = withArticleDetails([{ url: 'https://tistrupnyt.dk/cid/1/a', description: 'Tekst' }], details);
+  assert.equal(event.image, null); assert.equal(event.description, 'Tekst');
+});

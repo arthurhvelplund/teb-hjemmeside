@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="css/layout.css?v=b6a5ad24290b">
 <link rel="stylesheet" href="css/portal.css?v=17093cd2e634">
 <link rel="stylesheet" href="css/calendar-grid.css?v=1166fd8fda19">
-<link rel="stylesheet" href="css/kalender.css?v=02fd09f8d5fc">
+<link rel="stylesheet" href="css/kalender.css?v=1f04f91c7e60">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
 <link rel="stylesheet" href="css/seasonal-themes.css?v=7450862d89d1">
 <link rel="stylesheet" href="css/det-sker.css?v=86b6e2c43c0e">
@@ -49,27 +49,31 @@
 <main id="main" class="fp-main site-main" tabindex="-1">
  <section class="hero page-hero page-hero--compact">
   <div class="wrap page-heading ds-heading">
-   <div class="ds-heading-row"><h1>Byens <em>kalender.</em></h1><label class="ds-search"><span class="sr-only">Søg i arrangementer</span><input type="search" id="calendar-search" placeholder="Søg i kalenderen…"></label><div class="ds-heading-actions"><a class="btn" id="calendar-create-link" href="kalender.html?opret=1">+ Tilføj arrangement</a><a id="calendar-login" href="forening.html?return=kalender.html#login">Log ind</a></div></div>
+   <div class="ds-heading-row"><h1>Byens <em>kalender.</em></h1><div class="ds-heading-actions"><a class="btn" id="calendar-create-link" href="kalender.html?opret=1">+ Tilføj arrangement</a><a id="calendar-login" href="forening.html?return=kalender.html#login">Log ind</a></div></div>
   </div>
  </section>
  <div class="wrap ds-body">
   <section id="calendar-workspace" hidden aria-label="Arrangement"></section>
   <section id="calendar-legacy" hidden aria-label="Tidligere indsendelse"></section>
-  <section id="calendar-public" class="ds-calendar" aria-labelledby="calendar-heading">
+  <section id="calendar-public" class="cal-public" aria-labelledby="calendar-heading">
    <h2 id="calendar-heading" class="sr-only">Kalender</h2>
-   <div class="ds-calendar-toolbar"><div class="ds-period"><button id="calendar-prev" type="button" aria-label="Forrige periode">←</button><strong id="calendar-period" aria-live="polite"></strong><button id="calendar-next" type="button" aria-label="Næste periode">→</button><button id="calendar-today" type="button">I dag</button></div><div class="ds-calendar-modes" role="group" aria-label="Kalenderperiode"><button id="calendar-week" type="button" aria-pressed="true">Uge</button><button id="calendar-month" type="button" aria-pressed="false">Måned</button></div></div>
+   <div class="cal-toolbar-simple"><div class="cal-period-nav"><button id="calendar-prev" type="button" aria-label="Forrige periode">‹</button><button id="calendar-next" type="button" aria-label="Næste periode">›</button><strong id="calendar-period" aria-live="polite"></strong><button id="calendar-today" class="cal-today-button" type="button">I dag</button></div><div class="ds-calendar-modes" role="group" aria-label="Kalendervisning"><button id="calendar-week" type="button" aria-pressed="true">Uge</button><button id="calendar-month" type="button" aria-pressed="false">Måned</button></div></div>
    <div id="calendar-message" aria-live="polite"></div>
-   <p class="calendar-scroll-hint">Rul kalenderen til siden, eller vælg Uge for mere plads.</p>
-   <div id="calendar-events" aria-busy="true"><p>Henter arrangementer…</p></div><div class="ds-calendar-status"><p id="calendar-updated" class="ds-source-status" role="status"></p><button type="button" class="ds-text-button" id="calendar-refresh">Opdatér</button></div>
-   <p id="calendar-source-status" class="ds-source-status" role="status"></p>
-   <p class="ds-source-status">Arrangementer fra foreningerne, Tistrup Nyt og Pulsen i Vest. Kontrollér altid oplysningerne hos arrangøren.</p>
+   <div id="calendar-events" aria-busy="true"><p>Henter arrangementer…</p></div>
   </section>
-  <details class="ds-print" id="printudgaver">
-   <summary><img src="images/kalender-september-oktober-2026.jpg" alt="" loading="lazy"><span class="ds-print-copy"><strong>Kalenderen på papir</strong><span>Til køleskabet og byens opslagstavler.</span></span><span class="ds-print-action">Se fysisk kalender <span aria-hidden="true">↓</span></span></summary>
-   <div class="ds-print-archive"><p>Vælg en udgave, du vil se eller printe.</p><div id="calendar-editions"></div><a href="downloads/kalender-september-oktober-2026.pdf" target="_blank" rel="noopener">September–oktober 2026 · PDF ↗</a></div>
-  </details>
+  <section class="cal-upcoming" aria-labelledby="upcoming-heading">
+   <h2 id="upcoming-heading">Kommende arrangementer</h2>
+   <div id="calendar-upcoming-list"></div>
+   <button type="button" class="cal-more" id="calendar-upcoming-more" hidden>Vis flere</button>
+  </section>
+  <section class="cal-print" id="printudgaver" aria-labelledby="print-heading">
+   <img src="images/kalender-september-oktober-2026.jpg" alt="" loading="lazy">
+   <div class="cal-print-copy"><h2 id="print-heading">Kalenderen på papir</h2><p>Til køleskabet og byens opslagstavler.</p><a class="btn" id="calendar-print-latest" href="downloads/kalender-september-oktober-2026.pdf" target="_blank" rel="noopener">Hent PDF</a>
+    <details><summary>Ældre udgaver</summary><div id="calendar-editions"></div><a href="downloads/kalender-september-oktober-2026.pdf" target="_blank" rel="noopener">September–oktober 2026 · PDF ↗</a></details></div>
+  </section>
+  <div class="cal-sources"><p>Arrangementer fra foreningerne, Tistrup Nyt og Pulsen i Vest. Kontrollér altid oplysningerne hos arrangøren.</p><p><span id="calendar-updated"></span> <span id="calendar-source-status"></span> <button type="button" class="ds-text-button" id="calendar-refresh">Opdatér</button></p></div>
  </div>
- <noscript><p class="wrap fp-notice">Kalenderen kræver JavaScript. Du kan hente printkalenderen ovenfor eller <a href="kontakt.html">kontakte TEB</a>.</p></noscript>
+ <noscript><p class="wrap fp-notice">Kalenderen kræver JavaScript. Du kan hente printkalenderen på siden eller <a href="kontakt.html">kontakte TEB</a>.</p></noscript>
 </main>
 <footer class="site-footer">
   <div class="wrap">
@@ -121,6 +125,6 @@
   </div>
 </footer>
 <script src="js/main.js?v=5cfc1e933733"></script>
-<script type="module" src="js/kalender.js?v=e5c4647043e7"></script>
+<script type="module" src="js/kalender.js?v=2b565504af8a"></script>
 </body>
 </html>

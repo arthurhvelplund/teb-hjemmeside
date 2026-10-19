@@ -72,9 +72,53 @@ async function readHtml(response) {
   } finally { reader.releaseLock(); }
 }
 
-export function createNewsService({ fetcher = fetch, clock = () => Date.now(), source = SOURCE, parser = parseTistrupNews } = {}) {
+// Each source article is read once a week for its sharing image and fuller description.
+const ARTICLE_TTL = 7 * 24 * 60 * 60 * 1000, ARTICLE_RETRY = 24 * 60 * 60 * 1000, ARTICLE_BATCH = 24, ARTICLE_PARALLEL = 6;
+const IMAGE_HOSTS = ['ruban.nu', 'tistrupnyt.dk', 'pulsenivest.dk'];
+function articleImage(value, base) {
+  try {
+    const url = new URL(value, base);
+    if (url.protocol !== 'https:' || url.username || url.password || url.port ||
+        !IMAGE_HOSTS.some(host => url.hostname === host || url.hostname.endsWith('.' + host)) ||
+        !/\.(?:jpe?g|png|webp)$/i.test(url.pathname)) return null;
+    url.hash = ''; return url.href;
+  } catch { return null; }
+}
+export function parseArticle(html, base) {
+  const metas = DomUtils.getElementsByTagName('meta', parseDocument(html));
+  const meta = name => metas.find(m => m.attribs.property === name || m.attribs.name === name)?.attribs.content || '';
+  const description = clean(meta('og:description') || meta('description'), 600);
+  return { image: articleImage(meta('og:image'), base), description: /\p{L}{3}/u.test(description) ? description : '' };
+}
+// An image shared by several articles is the site's logo, not a picture of the event.
+export function withArticleDetails(events, details = {}) {
+  const uses = new Map();
+  for (const detail of Object.values(details)) if (detail.image) uses.set(detail.image, (uses.get(detail.image) || 0) + 1);
+  return events.map(event => {
+    const detail = details[event.url];
+    if (!detail) return event;
+    const image = event.image || (detail.image && uses.get(detail.image) <= 3 ? detail.image : null);
+    const description = detail.description.length > (event.description || '').length ? detail.description : event.description;
+    return { ...event, image, description };
+  });
+}
+
+export function createNewsService({ fetcher = fetch, clock = () => Date.now(), source = SOURCE, parser = parseTistrupNews, articleDetails = false } = {}) {
   const cacheKey = source.id === SOURCE.id ? CACHE_KEY : `calendar-sources/${source.id}-v2.json`;
   const pending = new WeakMap();
+  const request = { headers: { Accept: 'text/html', 'User-Agent': 'TEB-Tistrup-Calendar/2.0 (+https://www.teb-tistrup.dk/)' }, redirect: 'manual' };
+  async function refreshDetails(events, previous, now) {
+    const urls = [...new Set(events.map(event => event.url))];
+    const details = Object.fromEntries(urls.filter(url => previous[url]).map(url => [url, previous[url]]));
+    const due = urls.filter(url => !details[url] || now - details[url].checkedAt >= (details[url].failed ? ARTICLE_RETRY : ARTICLE_TTL)).slice(0, ARTICLE_BATCH);
+    for (let i = 0; i < due.length; i += ARTICLE_PARALLEL) await Promise.all(due.slice(i, i + ARTICLE_PARALLEL).map(async url => {
+      try {
+        const response = await fetcher(url, { ...request, signal: AbortSignal.timeout(8000) });
+        details[url] = { ...parseArticle(await readHtml(response), url), checkedAt: now };
+      } catch { details[url] = { ...(details[url] || { image: null, description: '' }), checkedAt: now, failed: true }; }
+    }));
+    return details;
+  }
   async function load(bucket) {
     const now = clock();
     const object = await bucket.get(cacheKey);
@@ -87,16 +131,16 @@ export function createNewsService({ fetcher = fetch, clock = () => Date.now(), s
     if (cached && now < cached.nextCheckAt) return result(cached, now);
     let record;
     try {
-      const response = await fetcher(source.url, {
-        headers: { Accept: 'text/html', 'User-Agent': 'TEB-Tistrup-Calendar/2.0 (+https://www.teb-tistrup.dk/)' },
-        redirect: 'manual', signal: AbortSignal.timeout(12000)
-      });
+      const response = await fetcher(source.url, { ...request, signal: AbortSignal.timeout(12000) });
       const parsed = parser(await readHtml(response));
       const {events = []} = parsed;
       const items = []; // Only calendar events are cached or returned.
-      record = { version: 2, items, events, fetchedAt: new Date(now).toISOString(), nextCheckAt: now + NEWS_TTL, failed: false };
+      const details = articleDetails ? await refreshDetails(events, cached?.details || {}, now) : {};
+      // Large first imports are read in batches a few minutes apart.
+      const unread = articleDetails && events.some(event => !details[event.url]);
+      record = { version: 2, items, events, details, fetchedAt: new Date(now).toISOString(), nextCheckAt: now + (unread ? RETRY_DELAY : NEWS_TTL), failed: false };
     } catch {
-      record = { version: 2, items: cached?.items || [], events: cached?.events || [], fetchedAt: cached?.fetchedAt || null,
+      record = { version: 2, items: cached?.items || [], events: cached?.events || [], details: cached?.details || {}, fetchedAt: cached?.fetchedAt || null,
         nextCheckAt: now + RETRY_DELAY, failed: true };
     }
     await bucket.put(cacheKey, new TextEncoder().encode(JSON.stringify(record)), {
@@ -105,7 +149,7 @@ export function createNewsService({ fetcher = fetch, clock = () => Date.now(), s
     return result(record, now);
   }
   function result(record, now) {
-    return { source, items: [], events: record.events || [], fetchedAt: record.fetchedAt,
+    return { source, items: [], events: withArticleDetails(record.events || [], record.details), fetchedAt: record.fetchedAt,
       stale: record.failed || now - Date.parse(record.fetchedAt) >= NEWS_TTL,
       nextCheckAt: new Date(record.nextCheckAt).toISOString() };
   }
@@ -118,7 +162,7 @@ export function createNewsService({ fetcher = fetch, clock = () => Date.now(), s
   };
 }
 
-const news = createNewsService();
+const news = createNewsService({ articleDetails: true });
 const pulsenSource = {id:'pulsen',name:'Pulsen i Vest',url:'https://pulsenivest.dk/by/tistrup'};
 const hasClass = (node,name) => (node.attribs?.class||'').split(/\s+/).includes(name);
 const byClass = (node,name) => DomUtils.findOne(n=>hasClass(n,name),node.children||[],true);
@@ -150,7 +194,7 @@ export function parsePulsen(html){
  if(!events.length && !byClass(document,'city-events-grid'))throw new Error('No source calendar found');
  return {items,events:events.slice(0,60)};
 }
-const pulsen = createNewsService({source:pulsenSource,parser:parsePulsen});
+const pulsen = createNewsService({source:pulsenSource,parser:parsePulsen,articleDetails:true});
 export async function handleNews(request, env, sourceId = 'tistrup-nyt') {
   const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
   if (request.method !== 'GET') return Response.json({ error: 'Denne handling er ikke tilladt.' }, { status: 405, headers: { ...headers, Allow: 'GET' } });

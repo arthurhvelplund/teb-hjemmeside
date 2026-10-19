@@ -47,19 +47,25 @@ try{
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:resolve(output,'nyt-'+width+'.png'),fullPage:true});}
  await page.goto('/index.html');assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');
  check('Det sker has external links and Facebook only; both home and news directory end with Facebook');
- await page.setViewportSize({width:1440,height:1000});await page.goto('/kalender.html');await page.locator('#calendar-events[aria-busy="false"]').waitFor();await page.locator('.calendar-entry').filter({hasText:'Arrangement om seks dage'}).waitFor();
- assert.equal(await page.locator('#calendar-week').getAttribute('aria-pressed'),'true');
- assert.equal(await page.locator('.calendar-week-strip button').count(),7);assert.ok((await page.locator('.calendar-week-strip').boundingBox()).y<380);
- assert.equal(await page.locator('.ds-print summary').count(),1);await page.locator('.ds-print summary').click();assert.equal(await page.locator('.ds-print-archive').isVisible(),true);await page.locator('.ds-print summary').click();
+ await page.setViewportSize({width:1440,height:1000});await page.goto('/kalender.html');await page.locator('#calendar-events[aria-busy="false"]').waitFor();await page.locator('.cal-card').filter({hasText:'Arrangement om seks dage'}).waitFor();
+ assert.equal(await page.locator('#calendar-week').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('#calendar-search').count(),0);
+ assert.equal(await page.locator('.cal-board--week .cal-day').count(),7);assert.equal(await page.locator('.cal-board--week .cal-day.is-today').count(),1);
+ assert.equal(await page.locator('.cal-print').count(),1);assert.equal(await page.locator('#calendar-print-latest').isVisible(),true);
+ await page.locator('.cal-print summary').click();assert.equal(await page.locator('.cal-print details').getAttribute('open'),'');await page.locator('.cal-print summary').click();
  assert.equal(await page.getByText('Historie 0 fra den lokale testavis',{exact:true}).count(),0);
- assert.equal(await page.locator('.calendar-entry').filter({hasText:'Arrangement fra Tistrup Nyt'}).count(),1);
- await page.locator('.calendar-entry-image').first().waitFor();
- await page.locator('.calendar-week-strip button').first().click();assert.equal(await page.locator('.calendar-reset').isVisible(),true);await page.locator('.calendar-reset').click();
- await page.locator('#calendar-search').fill('Findes ikke');assert.equal(await page.locator('.calendar-entry').count(),0);await page.locator('#calendar-search').fill('');
- const imported=page.locator('.calendar-entry').filter({hasText:'Arrangement fra Pulsen'});await imported.click();await page.locator('dialog[open]').waitFor();assert.ok(await page.locator('dialog a[href^="https://pulsenivest.dk/event/"]').count());await page.keyboard.press('Escape');
- check('new calendar screen, rolling seven days, source events only, photos, search, day filter, details and print archive');
+ assert.equal(await page.locator('.cal-chip').filter({hasText:'Arrangement fra Tistrup Nyt'}).count(),1);
+ await page.locator('.cal-chip-image').first().waitFor();await page.locator('.cal-card-image').first().waitFor();
+ const nyt=page.locator('.cal-chip').filter({hasText:'Arrangement fra Tistrup Nyt'});await nyt.click();await page.locator('dialog[open]').waitFor();
+ assert.equal(/null|undefined/.test(await page.locator('dialog[open]').innerText()),false);await page.keyboard.press('Escape');
+ const imported=page.locator('.cal-chip').filter({hasText:'Arrangement fra Pulsen'});await imported.click();await page.locator('dialog[open]').waitFor();assert.ok(await page.locator('dialog a[href^="https://pulsenivest.dk/event/"]').count());assert.equal(await page.locator('dialog .cal-detail-image').count(),1);await page.keyboard.press('Escape');
+ check('new calendar screen: one column per day, upcoming events with photos, details without empty fields and print calendar');
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:resolve(output,'kalender-'+width+'.png'),fullPage:true});}
- await page.locator('#calendar-month').click();await page.locator('.calendar-grid--month').waitFor();assert.ok(await page.locator('.calendar-day').count()>=28);await page.locator('#calendar-week').click();
+ await page.setViewportSize({width:1440,height:1000});
+ await page.locator('#calendar-month').click();await page.locator('.cal-board--month').waitFor();assert.ok(await page.locator('.cal-board--month .cal-day').count()>=28);
+ await page.locator('.cal-board--month .cal-chip').filter({hasText:'Arrangement fra Pulsen'}).waitFor();
+ for(const width of [1440,390]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:resolve(output,'kalender-maaned-'+width+'.png'),fullPage:true});}
+ await page.setViewportSize({width:1440,height:1000});
+ await page.locator('.cal-board--month .cal-day.is-today button.cal-day-number').click();await page.locator('#calendar-week[aria-pressed="true"]').waitFor();
  check('calendar desktop/mobile layout and month switch');
  await page.goto('/kalender.html?opret=1');const form=page.locator('#calendar-workspace form');await form.waitFor();
  for(const[name,value]of Object.entries({association:'Prøveforeningen',title:'Gæstens prøvearrangement',description:'Kort beskrivelse af fællesspisningen.',date,time:'18:00',location:'Prøvehuset',email:'guest@example.test'}))await form.locator('[name="'+name+'"]').fill(value);
@@ -88,11 +94,11 @@ try{
  await adminPage.goto('/kalender.html#godkendelse');await adminPage.locator('#calendar-legacy article').getByRole('button',{name:'Godkend og udgiv'}).click();await adminPage.getByText('Ingen tidligere opslag afventer godkendelse.').waitFor();
  await page.getByRole('button',{name:/^Opdatér status/}).click();await page.getByText('TEB har godkendt din indsendelse.').waitFor();await page.getByRole('link',{name:'Ret eller aflys arrangementet',exact:true}).click();await page.getByRole('heading',{name:'Dit private arrangement',exact:true}).waitFor();
  await page.goto('/nyt.html?opslag='+post.id);await page.locator('#calendar-legacy').getByText('Hele den oprindelige tekst.').waitFor();
- await page.goto('/kalender.html?arrangement='+post.id);await page.locator('#calendar-workspace').getByText('Hele den oprindelige tekst.').waitFor();
+ await page.goto('/kalender.html?arrangement='+post.id);await page.locator('dialog[open]').getByText('Hele den oprindelige tekst.').waitFor();
  await page.goto('/nyt.html?opret=1');await page.waitForURL('**/kalender.html?opret=1');await page.locator('#calendar-workspace form').waitFor();
  check('old guest, public and creation URLs survive the move; former submissions still approve and open private editing');
- await page.goto('/kalender.html');await page.locator('.calendar-entry').filter({hasText:'Arrangement fra Pulsen'}).waitFor();
- await guest.route('**/api/kalender/kilder/*',route=>route.fulfill({status:503,json:{error:'Kilden er midlertidigt nede.'}}));await page.locator('#calendar-refresh').click();await page.locator('#calendar-source-status').getByText(/kunne ikke opdateres/).waitFor();assert.equal(await page.locator('.calendar-entry').filter({hasText:'Arrangement fra Pulsen'}).count(),1);
+ await page.goto('/kalender.html');await page.locator('.cal-chip').filter({hasText:'Arrangement fra Pulsen'}).waitFor();
+ await guest.route('**/api/kalender/kilder/*',route=>route.fulfill({status:503,json:{error:'Kilden er midlertidigt nede.'}}));await page.locator('#calendar-refresh').click();await page.locator('#calendar-source-status').getByText(/kunne ikke opdateres/).waitFor();assert.equal(await page.locator('.cal-chip').filter({hasText:'Arrangement fra Pulsen'}).count(),1);
  check('source outage retains previously loaded calendar events and shows a useful status');
  assert.deepEqual(errors,[]);await writeFile(resolve(output,'checks.json'),JSON.stringify(checks,null,2));
  console.log('Calendar move browser workflow passed: '+checks.length+' scenarios.');

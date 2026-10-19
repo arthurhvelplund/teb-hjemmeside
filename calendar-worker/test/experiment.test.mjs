@@ -6,7 +6,7 @@ import {handleApi} from '../src/api.mjs';
 import {token,copenhagenDate} from '../src/shared.mjs';
 import {parsePulsen,createNewsService} from '../src/news.mjs';
 import {snapshot} from '../src/editions.mjs';
-import {groupNewsSources,groupCalendarSources} from '../../site/js/feed-data.js';
+import {groupNewsSources,groupCalendarSources,withoutOwnDuplicates} from '../../site/js/feed-data.js';
 
 function fixture(t){
  const DB=database();t.after(()=>DB.close());
@@ -154,6 +154,12 @@ test('real guest receipt keeps its secret in the fragment and follows approval i
  test('calendar sources group matching dated occurrences but preserve other dates, generic titles and source links',()=>{
  const event={title:'Fælles arbejdsdag i Tistrup Anlæg på søndag',date:'2026-10-25',time:'10:00'};
  const first={...event,sourceId:'a',sourceName:'Kilde A',url:'https://example.test/a'},second={...event,sourceId:'b',sourceName:'Kilde B',url:'https://example.test/b'};
- const result=groupCalendarSources([first,second,{...second,date:'2026-11-01'},{...first,title:'Banko'},{...second,title:'Banko'}]);
- assert.equal(result.length,4);assert.equal(result[0].sources.length,2);assert.equal(result[0].sources[1].url,second.url);assert.equal(first.sources,undefined);
+ const result=groupCalendarSources([first,second,{...second,date:'2026-11-01'},{...first,title:'Banko'},{...second,title:'Banko!'},{...first,title:'Gudstjeneste',time:''},{...second,title:'Gudstjeneste',time:''}]);
+ assert.equal(result.length,5);assert.equal(result[0].sources.length,2);assert.equal(result[0].sources[1].url,second.url);assert.equal(first.sources,undefined);
+ assert.equal(result.find(e=>e.title==='Banko').sources.length,2);
+ const church=groupCalendarSources([{...first,title:'Gudstjeneste i Hodde Kirke'},{...second,title:'Gudstjeneste i Hodde kirke v/ Lars Bom Nielsen'},{...second,title:'Gudstjeneste i Tistrup Kirke'}]);
+ assert.equal(church.length,2);assert.equal(church[0].sources.length,2);assert.equal(result.filter(e=>e.title==='Gudstjeneste').length,2);
+ const own=[{title:'Banko i hallen',date:'2026-10-25',time:'10:00'}];
+ assert.equal(withoutOwnDuplicates([{title:'Fælles arbejdsdag i Tistrup Anlæg',date:'2026-10-25',time:'10:00'}],[first]).length,0);
+ assert.equal(withoutOwnDuplicates(own,[{...first,title:'Banko'}]).length,1);assert.equal(withoutOwnDuplicates(own,[{...first,date:'2026-10-26'}]).length,1);
  });
