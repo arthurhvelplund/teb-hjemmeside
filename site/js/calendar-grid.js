@@ -11,7 +11,7 @@ export function calendarBounds(anchor,mode,{rolling=false}={}){
 export const overlapsDay=(event,day)=>event.date<=day&&(event.endDate||event.date)>=day;
 function element(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
 function picture(url){
- try{const u=new URL(url);if(u.protocol!=='https:'||u.username||u.password)return null;const img=element('img','calendar-entry-image');img.src=u.href;img.alt='';img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>img.remove());return img;}catch{return null;}
+ try{const local=typeof url==='string'&&/^\/api\/kalender\/event-images\/[a-f0-9-]{36}\.(jpg|png|webp)$/.test(url);const u=new URL(url,location.href);if((!local&&u.protocol!=='https:')||u.username||u.password)return null;const img=element('img','calendar-entry-image');img.src=u.href;img.alt='';img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>img.remove());return img;}catch{return null;}
 }
 // The shared week view groups photo cards inside their dates. Month retains its grid.
 export function calendarGrid({events,bounds,mode,onOpen,eventHref}){
@@ -41,7 +41,7 @@ export function calendarGrid({events,bounds,mode,onOpen,eventHref}){
    const entry=element('a','calendar-entry'+(event.sourceId?' is-imported':'')+(event.state==='cancelled'?' is-cancelled':''));
    entry.href=eventHref(event);entry.setAttribute('aria-label',(event.state==='cancelled'?'Aflyst. ':'')+event.title+'. '+dateText(day)+(event.time?' kl. '+event.time:''));
    if(onOpen)entry.addEventListener('click',e=>{if(e.button===0&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey){e.preventDefault();onOpen(event);}});
-   if(mode==='week'){const img=picture(event.image);if(img)entry.append(img);}
+   if(mode==='week'){const img=picture(event.imageUrl||event.image);if(img)entry.append(img);}
    const caption=event.state==='cancelled'?'Aflyst':event.date!==day?'Fortsætter':event.time?'Kl. '+event.time.replace(':','.'):'Hele dagen';
    const copy=element('span','calendar-entry-copy');copy.append(element('span','calendar-entry-time',caption),element('strong','calendar-entry-title',event.title));
    if(event.location)copy.append(element('span','calendar-entry-place',event.location));

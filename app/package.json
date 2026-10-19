@@ -1,0 +1,23 @@
+{
+  "name": "det-sker-i-tistrup",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build && node scripts/dev-server.mjs",
+    "build": "NODE_DISABLE_COMPILE_CACHE=1 tsc -b && NODE_DISABLE_COMPILE_CACHE=1 vite build",
+    "preview": "node scripts/dev-server.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-router-dom": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}

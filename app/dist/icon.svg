@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#203d30"/>
+  <path d="M110 310c32-86 86-131 146-131 48 0 93 25 146 82-37 10-67 29-91 58-27-28-59-42-96-42-32 0-67 11-105 33Z" fill="#f7f1e4"/>
+  <circle cx="256" cy="150" r="32" fill="#c96645"/>
+  <text x="256" y="408" fill="#f7f1e4" font-family="Georgia,serif" font-size="59" text-anchor="middle">TISTRUP</text>
+</svg>

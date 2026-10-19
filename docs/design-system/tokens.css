@@ -1,0 +1,118 @@
+/* =========================================================
+   Tistrup Design System — tokens
+   Én kilde til sandhed for hjemmeside (site/) og app (app/).
+   Retning: editorial vestjysk landsby — varmt papir, dyb skovgrøn,
+   terracotta som eneste varme accent.
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..700,0..100&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* ---- Colour: primitives ---- */
+  --ink-900: #1c1d18;
+  --paper-100: #fbf8f1;
+  --paper-200: #f6f1e4;
+  --paper-300: #ede5d1;
+  --line-300: #d9cfb8;
+  --line-500: #a69d87;        /* form-kanter (≥3:1 mod hvid) */
+  --forest-900: #243b2b;
+  --forest-700: #3d6048;
+  --moss-400: #8a9a6f;
+  --sage-100: #e4eadc;        /* afledt: tinted flade (app: agenda-date, info) */
+  --terra-500: #c45a3b;
+  --terra-700: #8d3d26;       /* terracotta til TEKST på lys flade (AA) */
+  --terra-200: #e9b99f;
+  --terra-100: #f3e0d6;
+  --sky-300: #a8c3c9;
+  --muted-700: #5b5a4f;
+  --white: #ffffff;
+
+  /* ---- Colour: semantic ---- */
+  --color-bg: var(--paper-200);
+  --color-bg-raised: var(--paper-100);
+  --color-bg-sunken: var(--paper-300);
+  --color-bg-inverse: var(--forest-900);
+  --color-text: var(--ink-900);
+  --color-text-muted: var(--muted-700);
+  --color-text-heading: var(--forest-900);
+  --color-text-inverse: var(--paper-200);
+  --color-accent: var(--terra-500);        /* ikoner, streger, store tal */
+  --color-accent-text: var(--terra-700);   /* små tekster (eyebrow, kicker) */
+  --color-accent-soft: var(--terra-100);
+  --color-primary: var(--forest-900);
+  --color-primary-hover: var(--terra-500);
+  --color-link: var(--forest-900);
+  --color-link-underline: var(--moss-400);
+  --color-border: var(--line-300);
+  --color-border-strong: var(--line-500);
+  --color-focus: var(--forest-900);
+  --color-tint: var(--sage-100);
+  --color-danger: var(--terra-700);
+
+  /* ---- Typography ---- */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Skala (modular ~1.25, display fluid) */
+  --text-xs: 0.75rem;     /* 12 — kicker, badge */
+  --text-sm: 0.875rem;    /* 14 — meta, små knapper */
+  --text-base: 1rem;      /* 16 — app-brødtekst */
+  --text-md: 1.1875rem;   /* 19 — web-brødtekst (aldersvenlig) */
+  --text-lg: 1.35rem;     /* h3 */
+  --text-xl: clamp(1.25rem, 2.2vw, 1.55rem);   /* lead */
+  --text-2xl: clamp(1.8rem, 3.5vw, 2.8rem);    /* h2 */
+  --text-3xl: clamp(2.4rem, 5.5vw, 4.4rem);    /* h1 */
+
+  --leading-tight: 1.08;
+  --leading-snug: 1.35;
+  --leading-body: 1.65;
+  --tracking-display: -0.015em;
+  --tracking-eyebrow: 0.18em;
+  --tracking-kicker: 0.12em;
+  --display-variation: "SOFT" 50, "WONK" 0, "opsz" 144;
+
+  /* ---- Spacing (4-pt base) ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 5rem;       /* .section */
+  --gutter: 1.5rem;
+
+  /* ---- Layout ---- */
+  --container: 1200px;
+  --container-wide: 1320px;
+  --container-narrow: 760px;
+  --measure: 68ch;
+  --bp-sm: 520px;
+  --bp-md: 760px;        /* app: bundnav → topnav */
+  --bp-lg: 820px;        /* web: grids kollapser */
+  --header-h: 68px;
+
+  /* ---- Shape ---- */
+  --radius-sm: 4px;      /* datoflise, input-hjørner */
+  --radius-md: 8px;      /* paneler, formularer */
+  --radius-lg: 14px;     /* kort, billeder */
+  --radius-xl: 22px;     /* app-fliser */
+  --radius-pill: 999px;  /* knapper, filtre, status */
+
+  /* ---- Elevation ---- */
+  --shadow-soft: 0 1px 2px rgba(28,29,24,.04), 0 8px 24px rgba(28,29,24,.06);
+  --shadow-lift: 0 2px 6px rgba(28,29,24,.08), 0 20px 40px rgba(28,29,24,.12);
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --dur-fast: 0.08s;
+  --dur-base: 0.2s;
+
+  /* ---- Focus ---- */
+  --focus-ring: 3px solid var(--color-focus);
+  --focus-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0s; --dur-base: 0s; }
+}

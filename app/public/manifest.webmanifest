@@ -1,0 +1,10 @@
+{
+  "name": "Det sker i Tistrup",
+  "short_name": "Tistrup",
+  "description": "Byens fælles overblik over arrangementer, opslag og lokale aktører.",
+  "theme_color": "#203d30",
+  "background_color": "#f7f1e4",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

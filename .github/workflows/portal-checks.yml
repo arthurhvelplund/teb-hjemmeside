@@ -29,8 +29,6 @@ jobs:
         run: node ../scripts/sync-site.mjs --check && node ../scripts/site-layout-check.mjs
       - name: Backend checks
         run: npm test
-      - name: Repeatable local pilot setup
-        run: npm run test:pilot
       - name: Browser for integration tests
         run: npx playwright install --with-deps chromium
       - name: Browser integration checks

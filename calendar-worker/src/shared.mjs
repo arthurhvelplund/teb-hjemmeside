@@ -36,16 +36,14 @@ export function validateEvent(input, { allowPast=false } = {}) {
     ensure(['https:', 'http:'].includes(url.protocol) && !url.username && !url.password, 400, 'Brug et almindeligt http- eller https-link.');
     result.link = url.href;
   }
-  ensure(input.channels === undefined || Array.isArray(input.channels), 400, 'Vælg gyldige muligheder for deling.');
-  const channels = [...new Set(input.channels || [])];
-  ensure(channels.every(c => ['flyers','screens','portals','posters'].includes(c)), 400, 'Vælg gyldige muligheder for deling.');
-  if (input.channels !== undefined) result.channels = channels;
-  ensure(input.printRequested === undefined || typeof input.printRequested === 'boolean', 400, 'Vælg et gyldigt ønske til printkalenderen.');
-  if (input.printRequested !== undefined) result.printRequested = input.printRequested;
   if(Object.hasOwn(input,'imageUrl')){
     const path=typeof input.imageUrl==='string'?input.imageUrl:'';
     ensure(!path||/^\/api\/kalender\/event-images\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.(jpg|png|webp)$/.test(path),400,'Vælg et billede fra telefonen eller computeren.');
     result.imageUrl=path;
+  }
+  if(Object.hasOwn(input,'printRequested')){
+    ensure(typeof input.printRequested==='boolean',400,'Vælg om arrangementet ønskes med på tryk.');
+    result.printRequested=input.printRequested;
   }
   return result;
 }

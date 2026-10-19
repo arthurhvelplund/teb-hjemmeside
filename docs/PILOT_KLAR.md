@@ -1,6 +1,6 @@
 # Lokal pilot af TEB-kalenderen
 
-Den lokale version samler byens kalender, foreningsoversigten, login, TEBs godkendelse og
+Første version samler Det sker, foreningsoversigten, login, TEBs godkendelse og
 den manuelt redigerede papirkalender. Almindelige mails bliver ikke læst af AI,
 og delingsønsker bestiller ikke Facebook-opslag, infoskærme eller omdeling.
 
@@ -28,7 +28,7 @@ cd calendar-worker
 npm run seed:pilot
 ```
 
-Åbn `http://localhost:8787/kalender.html`. Foreningsområdet findes på
+Åbn `http://localhost:8787/nyt.html`. Foreningsområdet findes på
 `http://localhost:8787/forening.html` og den lokale postkasse på
 `http://localhost:8787/kalender-postkasse.html`.
 
@@ -40,18 +40,13 @@ opretter fiktive offentlige arrangementer.
 `seed:pilot` kan gentages. Den tilføjer de 24 foreningsudkast og en øveforening,
 som udelades fra den offentlige oversigt. Den opretter ingen arrangementer,
 overskriver ikke profiler og giver ingen personer adgang til rigtige foreninger.
-Kalenderen importerer kun arrangementer fra Tistrup Nyt og Pulsen i Vest.
-Det sker indeholder links til lokale medier og Facebook. Forsiden har også Facebook nederst.
+Importerede nyheder og arrangementer fra lokale medier beholder deres kilder.
 Opsætningen bruger én lokal loginanmodning. Som almindeligt login er den
 begrænset til tre anmodninger pr. mailadresse på ti minutter.
 
-De præcise kontakter til flyers, plakater, skærme og Varde Kommunes byportal
-afventer TEB. Der er ikke indsat gættede partnerlinks. Ønsker til synlighed
-gemmes med arrangementet og vises ved TEBs godkendelse.
-
 ## Gennemgang med TEB
 
-1. Se Kalender på telefon og computer. Den kommende uge står som datoer med
+1. Se Det sker på telefon og computer. Den kommende uge står som datoer med
    arrangementer på række. Afprøv søgning, dagvalg, måned og arrangementsdetaljer.
 2. Se de 24 foreningsudkast. Kontrollér navn, beskrivelse, kilde og billedbrug.
    Udkastmarkering er ikke en bekræftelse fra foreningerne.
@@ -60,11 +55,11 @@ gemmes med arrangementet og vises ved TEBs godkendelse.
 4. Indsend et tydeligt mærket prøvearrangement uden login. Gem det private link
    fra kvitteringen. Det viser status, mens arrangementet afventer TEB.
 5. Log ind som `tistrup.kalender@gmail.com` med kode fra den lokale postkasse.
-   Godkend prøvearrangementet under Forening → TEBs arbejdsområde. Kontrollér visningen som gæst.
+   Godkend prøvearrangementet på Det sker. Kontrollér visningen som gæst.
 6. Brug gæstens private link til at rette og derefter aflyse arrangementet.
    Begge handlinger skal godkendes af TEB. Den udgivne version skal bevares,
    indtil rettelsen eller aflysningen bliver godkendt.
-7. Markér ønsket om analog kalender ved oprettelsen. Åbn TEBs Print-fane på Forening. Vælg periode og format, vælg hvert arrangement
+7. Åbn TEBs Print-fane på Forening. Vælg periode og format, vælg hvert arrangement
    til eller fra, og ret eventuelt teksten til papir. Åbn korrekturen og
    kontrollér alle sider, før den faste udgave gemmes. Senere rettelser i
    netkalenderen må ikke ændre den gemte PDF.

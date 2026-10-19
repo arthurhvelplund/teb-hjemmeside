@@ -13,7 +13,6 @@
     "deploy": "wrangler deploy",
     "test:pdf": "node scripts/pdf-check.mjs",
     "test:integration": "node scripts/integration-check.mjs",
-    "test:pilot": "node scripts/pilot-check.mjs",
     "test:browser": "node ../scripts/portal-browser-check.mjs",
     "test:cloudflare": "npm run build && node scripts/cloudflare-check.mjs"
   },

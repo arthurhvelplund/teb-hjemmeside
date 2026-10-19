@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Klikbar lokal prototype af foreningslivet i Tistrup og Hodde.">
+  <title>Solsiden · Foreningsliv i Tistrup</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="assets/teb.png">
+</head>
+<body>
+  <a class="skip" href="#main">Gå til indhold</a>
+  <div class="demo-bar"><div class="demo-inner">
+    <span><span class="demo-dot"></span> Klikbar prototype <span class="demo-extra">· Kun eksempeldata</span></span>
+    <div class="demo-tools"><label for="demo-role" class="sr">Oplev prototypen som</label><select id="demo-role" aria-label="Oplev prototypen som"><option value="visitor">Besøgende</option><option value="owner">Foreningsansvarlig</option><option value="editor">Redaktør</option><option value="admin">TEB-redaktion</option><option value="new">Ny bruger</option></select><button data-action="guide" class="demo-link">Guide</button><button data-action="reset" class="demo-link" aria-label="Nulstil prototypens eksempeldata">Nulstil</button></div>
+  </div></div>
+  <header class="site-header"><div class="header-inner">
+    <a href="#/foreninger" class="brand"><img src="assets/teb.png" alt=""><span><strong>TEB</strong><span>Tistrup og Hodde</span></span></a>
+    <nav aria-label="Hovedmenu" id="nav"></nav>
+    <div id="account"></div>
+  </div></header>
+  <main id="main" tabindex="-1"></main>
+  <footer><div class="footer-inner"><span><strong>Et sted at høre til.</strong><br>Tistrup Erhvervs- og Borgerforening</span><button class="text-button" data-action="help">Kontakt TEB ↗</button><span class="footer-demo">Designprototype · Ingen mails sendes</span></div></footer>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-content" id="dialog-content"></div></dialog>
+  <script src="catalogue.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

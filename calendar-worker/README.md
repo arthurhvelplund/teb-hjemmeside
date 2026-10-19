@@ -1,10 +1,5 @@
 # TEB foreninger og kalender
 
-Den samlede lokale gennemgang starter med `npm run dev:pilot` og derefter
-`npm run seed:pilot` i en anden terminal. Det bruger sin egen database,
-opretter ingen eksempelarrangementer og bevarer de tidligere previewdata.
-Se [pilotforløb og næste skridt](../docs/PILOT_KLAR.md).
-
 Workerens kontrakt er `../docs/FORENING_IMPLEMENTATION.md`. Backend kører mod
 Cloudflare D1/R2 i drift og samme SQL via Node SQLite og en lokal R2-adapter under
 afprøvning. Den ændrer ikke hjemmesidens CMS, kontaktworker eller Pages-build.
@@ -51,31 +46,29 @@ lokale mailjobs ved læsning. Nye koder og private links ligger ikke i klartekst
 i SQLite. Den oprindelige pilots lokale postkasse bevares ved en eksplicit
 opgradering og er underlagt samme loopback-kontrol.
 
-## Eksterne kalenderbegivenheder
+## Test med nyheder fra Tistrup Nyt
 
-`GET /api/kalender/kilder/tistrup-nyt` læser kalenderen på
-`https://tistrupnyt.dk/menu/kalender/lokal`. Datoer kommer fra kalenderens
-måned/år og dagsoverskrifter, klokkeslæt fra begivenhedskortene. Kun Tistrup
-Nyts egne `/cid/`-links med eksplicit dato importeres. Nabosiders kort og
-nyhedsartikler udelades. Datoer gættes aldrig fra overskrifter.
+`GET /api/kalender/nyheder/tistrup-nyt` henter forsiden på
+`https://tistrupnyt.dk/` direkte fra backend uden cookies, login, RSS eller API.
+Importen læser højst 12 unikke artikelkort fra Tistrup Nyt i deres rækkefølge
+på forsiden. Kalenderkort og andre domæner udelades. Overskrifter og korte
+beskrivelser returneres som tekst, aldrig som eksekverbar HTML. Billeder vises
+fra kildens Ruban-billedserver, og artikler åbner hos Tistrup Nyt.
 
-`GET /api/kalender/kilder/pulsen` læser daterede `city-event`-kort på
-`https://pulsenivest.dk/by/tistrup`. Artikler udelades. Kildernes viste
-kalenderkort er omfanget, ikke komplette årsarkiver.
+Cachen gemmes under `news/tistrup-nyt-v1.json` i den eksisterende R2-binding
+`PDFS`, separat fra PDF-objekterne. Den lokale server bruger samme adapter på
+disk. Første besøg henter nyheder; senere besøg genbruger dem i en time og
+udløser derefter næste hentning. Der er ingen baggrundstimer uden besøg.
+Samtidige forespørgsler i samme worker deler hentningen. En kildefejl eller
+ændret HTML beholder sidste gode resultat med `stale:true` og fem minutters
+pause før næste forsøg. Uden nogen gemt kopi returneres HTTP 503.
 
-Cachen ligger i R2-bindingen `PDFS` under `calendar-sources/*-v2.json`,
-separat fra gamle artikelcacher og PDF-objekter. Et besøg genbruger data i en
-time og udløser derefter næste hentning. Samtidige forespørgsler deler
-hentningen. Ved kildefejl beholdes seneste data med `stale:true`, og næste
-forsøg sker efter fem minutter. Uden en gemt kopi returneres HTTP 503.
-En genkendt, tom kalender er et gyldigt resultat. HTML og scripts sendes ikke
-til browseren. De tidligere `/nyheder/*`-ruter er kompatible aliaser med samme
-arrangementsdata og en tom `items`-liste.
-
-`site/kalender.html` viser arrangementerne med kildelinks og fejlstatus.
-`site/nyt.html` er en medieoversigt med links og TEBs Facebook-feed.
-Forsiden har også Facebook nederst. Ingen af de to sider henter nyhedsartikler.
-Parser og cache testes i `test/news.test.mjs` og `test/experiment.test.mjs`.
+`site/nyt.html` viser nyhederne med kilde, billeder og tidspunkt for hentning.
+Tidspunktet er ikke artiklernes udgivelsesdato. Parseren findes i
+`src/news.mjs`, og `test/news.test.mjs` dækker udtræk, cache og fejltilstande.
+Kør `npm test` og `npm run build`. Routen ligger under den eksisterende
+kalender-API, så der kræves ingen ekstra Worker-route eller database-migration.
+Dette aktiverer ikke deployment.
 
 ## Foreningsudkast til lokal prototype
 
@@ -107,28 +100,20 @@ oversigt, når katalogets rigtige foreninger er indlæst. Der er ikke deployet.
 
 ## Adgang og revisioner
 
-Kalender og oprettelse ligger på `/kalender.html`. Nye arrangementer bruger
-`GET/POST /events` med de eksisterende private links, revisioner, rettelser,
-aflysninger og ICS. Godkendte foreningsmedlemmer udgiver direkte. Gæster og
-brugere uden foreningsadgang afventer TEB i Forening → TEBs arbejdsområde.
-
-Ønsker om flyers, analoge byportaler, skærme og plakater gemmes i `channels`.
-Ønsket om papirkalender gemmes i `printRequested`. De markeres under
-oprettelse og bevares gennem rettelser og godkendelse. Papirkalender kræver
-fortsat manuel udvælgelse, korrektur og et låst snapshot. Afsluttede PDF-filer
-ændres ikke. Ekstern deling bestilles ikke automatisk. Præcise partnerlinks
-afventer TEB.
-
-Tidligere data i `posts` og `/posts`-API'en bevares. Gamle
-`nyt.html?privat=...#adgang=...`-links viderestilles til
-`kalender.html?indsendelse=...#adgang=...`. Det hemmelige token bliver i
-fragmentet. Tidligere offentlige opslag og oprettelseslinks viderestilles
-også. Gamle opslag kan gennemgås via `kalender.html#godkendelse`; udgivne
-arrangementsopslag bruger stadig samme kanoniske arrangements-id. Nye
-kvitteringsmails peger direkte på kalendersiden.
+Den samlede side er nu `/nyt.html`. Den bruger `GET/POST /posts` og
+`GET /admin/posts` samt `POST /admin/posts/:id` til TEBs godkendelse.
+Migration `0005_posts.sql` tilføjer rigtige opslag uden at flytte forsøgsdata.
+Gæster afventer godkendelse; godkendte foreningsmedlemmer og TEB udgiver straks.
+Et arrangementsopslag opretter sin kanoniske kalenderpost atomisk ved udgivelse.
+Det har samme id i nyheder og kalender, og rettelser/aflysninger følger kalenderen.
+Valget af fysisk kalender gemmes som `printRequested`, som printarkivet respekterer.
+Allerede afsluttede PDF-filer ændres ikke. Ekstern deling bestilles ikke automatisk.
 
 Den gamle `/experiment/*`-API og `experiment_posts` bevares som et separat,
-kun lokalt sandkasselager. De er ikke datakilden til den offentlige kalender.
+kun lokalt sandkasselager. De er ikke datakilden til den rigtige side.
+Pulsen i Vest leverer nyheds- og arrangementskort via
+`GET /api/kalender/nyheder/pulsen`, cached separat fra Tistrup Nyt.
+Importen dækker kildernes viste kort, ikke komplette årsarkiver.
 
 OTP har seks tilfældige cifre, ti minutters levetid og højst fem forsøg.
 Anmodninger begrænses pr. mail, IP og globalt. Verifikation begrænses pr.
@@ -213,26 +198,6 @@ Reference: https://developers.cloudflare.com/email-service/api/send-emails/worke
 
 ## Print og uforanderlige PDF'er
 
-Print bruger skabelonen Farver og fællesskab med stor kondenseret overskrift,
-TEBs trolde, grønne og rosa månedsfelter, dato/ugedag og QR til netkalenderen.
-Skabelonen bruger de medfølgende OFL-skrifter Anton og Noto Sans. Lange tekster
-ombrydes, og fyldte sider fortsætter med månedsoverskrift på næste side.
-
-TEBs printfane på `forening.html#teb?fane=print` kræver et til-/fravalg ved
-hvert arrangement. Ingen arrangementer er valgt på forhånd. Redaktøren kan
-forkorte titel, praktiske oplysninger og arrangør alene til print. Datofelt og
-dato-note kan tilpasses til fx en ugentlig aktivitet. Det ændrer ikke den
-offentlige begivenhed eller dens dato. En ny korrektur kræves efter hver ændring.
-
-`GET /admin/editions/events` med periode, frist og format returnerer de mulige
-arrangementer og `reviewHash`. `POST /admin/editions/preview` og finalisering
-modtager samme parametre plus `eventIds`, `reviewHash` og valgfri
-`printOverrides: { [eventId]: {title,details,association,dateLabel,dateNote} }`.
-Finalisering kræver eksplicit udvælgelse. En ændring i kalendergrundlaget siden
-gennemgangen giver 409, før en ny udgave reserveres. Et genforsøg efter en
-usikker finalisering genbruger derimod det allerede reserverede snapshot.
-Det gamle GET-preview bevares til gennemgang af hele periodens grundlag.
-
 Print understøtter `start`, `end`, `deadline` og `format:poster|a3`.
 `poster` er 500 × 700 mm, A3 er 297 × 420 mm. Intervallet må dække højst et år.
 Legacy `month=YYYY-MM` dækker fortsat den måned og den næste. Preview tillader en
@@ -255,7 +220,7 @@ bevares; første PDF-hentning fryser filen i R2 én gang. Historiske PDF-filer i
 hjemmesidens øvrige arkiv berøres ikke. Konfigurér ikke en R2-livscyklusregel,
 som sletter færdige udgaver. DB og R2 skal sikkerhedskopieres sammen.
 
-Kun printskrifter, OFL-licenser og TEBs printlogo ligger i Workerens `assets/`. Interne asset-fetches
+Kun printskrifter og OFL-licens ligger i Workerens `assets/`. Interne font-fetches
 bruger ASSETS-bindingen. Workerens fetch-handler returnerer 404 uden for API,
 så den hverken serverer hovedsitet eller laver pilotens redirect/noindex.
 
@@ -320,3 +285,31 @@ Lokal succes eller et dry-run beviser ikke reel maillevering, provisionerede
 Cloudflare-rettigheder, browseraccept eller produktionsdrift. De gamle
 `/admin/login` og `/admin/session` magic-link-endpoints er erstattet af OTP.
 Frontend skal bruge `/auth/request`, `/auth/verify`, `/auth/logout` og `/session`.
+
+## Lokal arrangements-pop-up
+
+Kalenderens "Tilføj arrangement" og foreningsområdets "Opret arrangement" åbner
+samme dialog fra `site/js/event-composer.js`. Foreningsområdet bliver åbent bag
+dialogen. Formularen består af ét trin med billedvalg og en kladde i fanens sessionStorage.
+Til højre kan man skifte mellem hjemmesidevisning og et eksempel på kalendertekst
+på tryk. Klik på invitationen for at folde detaljerne ud. På mobil ligger
+forhåndsvisningen under formularen og kan nås fra den faste bundlinje.
+En historisk kalender vises som eksempel og er ikke den kommende printudgave.
+Efter indsendelsen vises kvittering, gæstens private rettelseslink og valgfrie
+muligheder for lokal omtale. Kontakter og priser er markerede pladsholdere.
+
+`POST /api/kalender/event-images` modtager JPG, PNG eller WebP som binært indhold
+fra samme origin, med filsignaturkontrol, 2 MB grænse og begrænsning pr. IP.
+Klienten klargør billedet som WebP inden indsendelsen. Filer ligger separat i
+R2 under `event-images/` og har tilfældige offentligt tilgængelige adresser.
+`imageUrl` og `printRequested` gemmes i arrangementets version og bevares ved
+TEBs godkendelse. Der er ingen ny migration eller automatisk ekstern deling.
+
+En separat lokal prøve kan startes uden at ændre den eksisterende pilot:
+
+```sh
+PORT=8789 CALENDAR_DATA_DIR=.wrangler/event-composer-preview npm run dev
+CALENDAR_ORIGIN=http://localhost:8789 npm run seed
+```
+
+Åbn `http://localhost:8789/kalender.html?opret=1`. Der sendes ingen rigtig mail.

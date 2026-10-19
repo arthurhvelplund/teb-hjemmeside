@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tistrup Design System</title>
+<link rel="stylesheet" href="tokens.css"><link rel="stylesheet" href="components.css">
+<style>
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sw div{border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;font-size:.8rem;background:var(--white)}
+.sw i{display:block;height:64px}.sw span{display:block;padding:.5rem .6rem;line-height:1.35}
+.demo{padding:1.5rem;border:1px dashed var(--color-border-strong);border-radius:var(--radius-md);margin:1rem 0 2rem}
+h2{margin-top:2.5rem}
+</style></head><body>
+<header class="site-header"><div class="site-header__inner"><strong class="display">Tistrup Design System</strong>
+<nav class="nav"><a href="#farver" aria-current="page">Farver</a><a href="#type">Typografi</a><a href="#komponenter">Komponenter</a></nav></div></header>
+<main class="container section">
+<span class="eyebrow">Version 1.0</span>
+<h1>Varmt papir, <em>dyb skov</em>.</h1>
+<p class="lead">Ét fælles sprog for tistrup-hjemmesiden og app’en: editorial, rolig og læsbar for alle aldre.</p>
+
+<h2 id="farver">Farver</h2>
+<div class="sw" id="sw"></div>
+
+<h2 id="type">Typografi</h2>
+<div class="demo">
+<span class="eyebrow">Eyebrow</span>
+<h1>Overskrift 1</h1><h2 style="margin-top:0">Overskrift 2</h2><h3>Overskrift 3</h3>
+<p class="lead">Lead-tekst i Fraunces Light, til indledninger.</p>
+<p>Brødtekst i Manrope 19 px / 1,65. Aldrig bredere end 68 tegn, så den er behagelig at læse. <a href="#">Et link</a> får moss-streg og skifter til terracotta.</p>
+<p class="meta">Meta · 14 px · muted</p></div>
+
+<h2 id="komponenter">Komponenter</h2>
+<h3>Knapper</h3>
+<div class="demo btn-row"><a class="btn" href="#">Primær</a><a class="btn btn--ghost" href="#">Ghost</a><a class="btn btn--small" href="#">Lille</a><button class="btn" disabled>Deaktiveret</button></div>
+<div class="demo band band--forest"><span class="eyebrow">På grøn flade</span><h2 style="margin-top:0">Bliv medlem</h2><a class="btn btn--paper" href="#">Tilmeld</a></div>
+<h3>Kort og datoflise</h3>
+<div class="demo grid">
+<article class="card card--interactive"><div class="card__body"><span class="kicker">Arrangement</span><h3>Sankthansbål</h3><p class="meta">23. juni · Tistrup Strand</p><span class="status status--accent">Gratis</span></div></article>
+<article class="card card--panel"><div class="agenda-item" style="border:0;padding:0"><div class="date-tile"><strong>14</strong><span>nov</span></div><div><strong>Julemarked</strong><div class="meta">Kl. 10–15</div></div></div></article></div>
+<h3>Filtre</h3>
+<div class="demo btn-row"><button class="pill" aria-pressed="true">Alle</button><button class="pill" aria-pressed="false">Musik</button><button class="pill" aria-pressed="false">Sport</button></div>
+<h3>Formular</h3>
+<form class="demo stack" style="max-width:480px" onsubmit="return false">
+<div class="field"><label for="a">Titel</label><input class="input" id="a" placeholder="Fx Fællesspisning"><span class="hint">Kort og præcist.</span></div>
+<div class="field"><label for="b">E-mail</label><input class="input" id="b" aria-invalid="true" value="forkert"><span class="error">Skriv en gyldig e-mail.</span></div>
+<button class="btn btn--block">Send</button></form>
+</main>
+<script>
+const c=[["ink-900","Ink — tekst"],["paper-200","Paper — baggrund"],["paper-100","Paper soft — kort"],["paper-300","Paper deep — bånd"],["line-300","Line — streger"],["forest-900","Forest — primær"],["forest-700","Forest mid — hover"],["moss-400","Moss — link-streg"],["sage-100","Sage — tint"],["terra-500","Terra — accent (ikke små tekster)"],["terra-700","Terra deep — accent-tekst"],["terra-200","Terra soft — på mørk"],["sky-300","Sky — illustration"],["muted-700","Muted — sekundær tekst"]];
+sw.innerHTML=c.map(([v,l])=>`<div><i style="background:var(--${v})"></i><span><b>${l}</b><br>--${v}<br>${getComputedStyle(document.documentElement).getPropertyValue('--'+v).trim()}</span></div>`).join('');
+</script></body></html>

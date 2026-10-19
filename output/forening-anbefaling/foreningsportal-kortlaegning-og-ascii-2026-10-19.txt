@@ -1,0 +1,728 @@
+1. KORTLÆGNING AF DET, DER FINDES NU
+==================================
+
+Afgrænsning: Hele foreningsforløbet og dets forbindelser til
+Kalender, Det sker, TEBs redaktion og papirudgaver. Resten af
+TEBs hjemmeside er kun med som navigation.
+
+Grundlag, 19. oktober 2026:
+- Aktiv lokal side: http://localhost:8787/
+- Serverens mappe: /Users/marinushvelplund/Projects/teb-kalender-faerdig/
+- De serverede JS-filer er sammenlignet med filerne i denne mappe.
+- Desktop-mappens forening.js og printeditor er ældre.
+- Offentlig profil og offentlige API'er er undersøgt live.
+- Private ejer- og redaktionsforløb er kortlagt i den aktive kode.
+  De er ikke alle gennemført igen under denne kortlægning.
+- Dette beskriver den lokale pilot. Offentlig drift er ikke verificeret.
+
+Lokale data:
+25 profiler i API'et. Oversigten udelader øveforeningen, når
+de rigtige foreningsudkast er indlæst, og viser 24.
+0 kommende offentlige lokale arrangementer i standardkaldet og
+0 offentlige lokale opslag.
+Eksterne mediers indhold hentes separat og indgår ikke i de to nuller.
+
+FÆLLES RAMME
+- TEB-logo og hovedmenu: Forside, Erhverv, Forening, Kalender,
+  Det sker, Om byen, Projekter, Om TEB og Bliv medlem.
+- Facebook-link, sæsonudsmykning og stor fælles footer.
+- Lokal testbesked med link til postkassen.
+- Login og private arbejdsområder bruger en mere kompakt ramme.
+
+SIDER OG FORLØB
+
+TEBs hjemmeside
+|
++-- Foreninger: forening.html
+|   |
+|   +-- Oversigt
+|   |   +-- Stor overskrift: "Find dit fællesskab"
+|   |   +-- Loginindgang for foreninger
+|   |   +-- Udkastbesked
+|   |   +-- Søgning: navn, interesse, mødested
+|   |   +-- Interessefilter
+|   |   +-- Billedkort / liste, huskes i denne browser
+|   |   +-- Antal resultater
+|   |   +-- Profilkort: billede, kategori, navn, tekst, sted
+|   |   +-- Se forening
+|   |   '-- Kontakt TEB
+|   |
+|   +-- Offentlig profil: ?id=<forening>
+|   |   +-- Generel "Foreninger"-overskrift
+|   |   +-- Navigation: Alle foreninger / Log ind
+|   |   +-- Endnu et Alle foreninger-link
+|   |   +-- Foreningens navn
+|   |   +-- Udkastbesked, hvis profilen kommer fra kataloget
+|   |   +-- Stort billede eller logo, hvis et findes
+|   |   +-- Kategori og beskrivelse
+|   |   +-- Kontakt: formand, mail, telefon, sted, hjemmeside
+|   |   +-- Kilde og billedkreditering for udkast
+|   |   +-- Redigér-link for personer med adgang
+|   |   '-- Kommende arrangementer fra kalenderen
+|   |       Ingen sektion med foreningens nyhedsopslag
+|   |
+|   +-- Login: #login
+|   |   +-- E-mail -> send kode -> 6 cifre -> log ind
+|   |   +-- Ret e-mail / send ny kode / kontakt TEB
+|   |   +-- Tilbage til oprindelig opgave, når return-link findes
+|   |   '-- Ellers: ejer -> Min forening, TEB -> TEBs arbejdsområde
+|   |
+|   +-- Min forening: #arbejdsrum
+|   |   +-- Flere foreninger? Vælg en
+|   |   +-- Ingen adgang? Besked og Kontakt TEB
+|   |   +-- Billede, navn, loginmail og rolle
+|   |   +-- Se den offentlige side
+|   |   +-- Overblik
+|   |   |   +-- Opret arrangement -> kalender.html?opret=1&forening=...
+|   |   |   +-- Ret foreningens oplysninger
+|   |   |   +-- Jeres arrangementer med status og TEB-beskeder
+|   |   |   +-- Ret eller aflys -> Kalender
+|   |   |   '-- Tidligere arrangementer kan foldes ud
+|   |   +-- Foreningens oplysninger
+|   |   |   +-- Navn, interesse, beskrivelse
+|   |   |   +-- Kontaktperson, offentlig mail, telefon, sted, web
+|   |   |   '-- Ét profilbillede: vælg fil, skift, fjern, gem
+|   |   '-- Personer med adgang
+|   |       +-- Liste over ansvarlige og redaktører
+|   |       +-- Ansvarlig: invitér og fjern redaktører
+|   |       '-- Redaktør: se adgangslisten, kan ikke administrere den
+|   |
+|   +-- Adgangsanmodning: #adgang
+|   |   +-- Navn, forening eller ny forening, tilknytning
+|   |   +-- Send anmodning og se tidligere svar
+|   |   '-- Findes som rute, men ingen direkte indgang fra
+|   |       "ingen adgang"-visningen eller den almindelige navigation
+|   |
+|   '-- TEBs arbejdsområde: #teb
+|       +-- Afventer godkendelse
+|       |   +-- Nye gæstearrangementer, rettelser og aflysninger
+|       |   +-- Sammenlign indsendt og offentlig version
+|       |   +-- Mulige dubletter og problemer med mail
+|       |   '-- Ret indhold / godkend / afvis med begrundelse
+|       +-- Alle arrangementer: ret og aflys
+|       +-- Adgangsanmodninger: verificér, godkend, afvis, historik
+|       +-- Foreninger og ansvarlige
+|       |   +-- Opret forening og redigér profil
+|       |   '-- Tilknyt ansvarlig/redaktør, fjern adgang
+|       +-- Printudgaver: manuel udvælgelse og korrektur
+|       '-- Link til "Tidligere opslag til godkendelse" på Kalender
+|
++-- Det sker: nyt.html
+|   +-- Nyheder fra Tistrup Nyt og Pulsen i Vest
+|   +-- Lokale opslag, søgning, kildefilter, vis flere
+|   +-- Uge/måned med lokale og importerede arrangementer
+|   +-- Detaljer; importerede kort linker til kilden
+|   +-- Gemte kalender-PDF'er
+|   +-- "Del med byen"
+|   |   +-- Arrangement / Nyhed / Begge dele
+|   |   +-- Forening vælges, hvis afsender har adgang
+|   |   +-- Overskrift og kort beskrivelse
+|   |   +-- Arrangement: dato, tid, sted, slutdato/-tid, pris
+|   |   +-- Nyhed/begge: længere tekst og billed-URL
+|   |   +-- Link til mere information
+|   |   +-- Gæst: afsendernavn og privat kvitteringsmail
+|   |   +-- Ønske om papirkalender
+|   |   +-- Ønsker: flyers, portaler, skærme og plakater
+|   |   '-- Privat forhåndsvisning og kvittering
+|   +-- TEB: separat visning til godkendelse af opslag
+|   '-- Privat kvittering: ?privat=<id>#adgang=<privat nøgle>
+|       +-- Status og forhåndsvisning
+|       +-- Arrangement kan efter udgivelse rettes via Kalender
+|       '-- Ren nyhed har ingen redigeringsformular
+|
++-- Kalender: kalender.html
+|   +-- Uge/måned, periodeskift, i dag, datovalg, opdatér
+|   +-- Lokale og importerede arrangementer med kilde
+|   +-- Detaljer: ?arrangement=<id>
+|   |   '-- Beskrivelse, pris, tilmelding, del link, hent til egen kalender
+|   +-- Opret: ?opret=1
+|   |   +-- Selvstændig arrangementsformular og forhåndsvisning
+|   |   +-- Gæst -> TEB, privat kvittering
+|   |   '-- Foreningsadgang -> direkte udgivelse
+|   +-- Ret eller aflys som medlem: ?ret=<id>
+|   |   '-- Direkte opdatering af foreningens egne arrangementer
+|   +-- Gæstens private arrangement: ?privat=<id>#adgang=<privat nøgle>
+|   |   +-- Status, TEB-besked, indsendt og offentlig version
+|   |   '-- Ret eller bed om aflysning -> TEBs godkendelse
+|   +-- Gemte PDF'er og ældre bykalender
+|   '-- Ekstra visninger for opslag fra Det sker
+|       +-- ?indsendelse=<id>#adgang=...: privat kvittering fra mail
+|       +-- ?opslag=<id>: offentligt opslag
+|       '-- #godkendelse: endnu en visning af samme opslag-kø
+|
++-- Lokale hjælpefunktioner
+|   +-- kalender-postkasse.html: lokale koder, invitationer, kvitteringer
+|   '-- Ingen rigtig mail sendes i lokal tilstand
+|
++-- Gamle adresser, som videresender
+|   +-- foreningsportal.html -> Kalender / opret
+|   +-- mit-arrangement.html -> Kalender / privat arrangement
+|   +-- kalender-redaktion.html -> Forening / TEB
+|   '-- nyt-eksperiment.html -> Det sker
+|
+'-- Særskilt app/ i Desktop-mappen
+    '-- PWA-demo med egne demodata og lokal browserlagring.
+        Ikke den aktive portals backend eller login.
+
+ROLLER OG UDGIVELSE
+
+Besøgende uden foreningsadgang
+  -> læser alt offentligt
+  -> indsender som gæst
+  -> TEB godkender før offentliggørelse
+  -> privat link giver adgang til egen status og arrangementsrettelser
+
+Foreningsredaktør
+  -> retter egen forenings profil
+  -> opretter, retter og aflyser egne arrangementer direkte
+  -> udgiver opslag direkte
+  -> kan se personer med adgang, men ikke ændre deres adgang
+
+Foreningsansvarlig
+  -> samme indholdsrettigheder som redaktør
+  -> inviterer og fjerner redaktører
+  -> kan ikke selv udpege eller fjerne andre ansvarlige
+
+TEB
+  -> godkender gæsteindhold og adgang
+  -> administrerer alle profiler, ansvarlige og redaktører
+  -> retter/aflyser arrangementer
+  -> udvælger og færdiggør printudgaver
+
+At skrive et foreningsnavn som gæst giver ingen rettigheder til den forening.
+Offentlig kontaktmail og privat loginmail er forskellige oplysninger.
+Invitationer aktiveres ved login med en ny kode efter invitationen.
+
+HVORFOR DET OPLEVES USAMMENHÆNGENDE
+
+1. Den offentlige profil starter med sidens kategori og navigation.
+   Den besøgende møder selve foreningen langt nede.
+
+2. Der er to oprettelsesformularer til arrangementer:
+   Kalender har den rene arrangementsformular; Det sker har opslag
+   med arrangement, nyhed eller begge.
+
+3. Ejerområdet indeholder arrangementer, men ikke et samlet
+   overblik over nyheder, oprettelse af nyheder og nyhedsrettelser.
+
+4. TEB har én kø til kalenderarrangementer og én til opslag.
+   Opslag-køen har endda visninger på både Det sker og Kalender.
+
+5. Adgangsanmodningen findes, men den naturlige vej fra
+   "du har ingen adgang" fører kun til kontaktformularen.
+
+6. Billeder håndteres forskelligt. Profilen kan få en fil fra
+   telefonen. Nyheder kræver en billedadresse. Den rene
+   arrangementsformular har ingen billedvælger.
+
+7. Foreningsprofilen viser kalenderindhold, men ingen nyheder.
+   De to typer indhold bliver dermed ikke samlet hos afsenderen.
+
+8. Samme opslag kan have offentligt link og privat kvittering
+   på forskellige sider med forskellig indpakning.
+
+MÅLT PÅ HODDE SOGNEFORENINGS LOKALE PROFIL, 1280 x 800
+
++------------------------------------------------------+
+| TEB / menu                                           |
+| Lokal afprøvning                                     |
+|                                                      |
+| FORENINGER                                           |
+|                                                      |
+| Alle foreninger                  Log ind              |
+|------------------------------------------------------|
+| Alle foreninger                                      |
+|                                                      |
+| Hodde Sogneforening                    y = ca. 540     |
+| Udkastbesked                                         |
+| Stort logo starter                    y = ca. 698     |
++---------------- første 800 pixels --------------------+
+| Beskrivelse og kontakt                y = ca. 1050    |
+| Kommende arrangementer                y = ca. 1412    |
++------------------------------------------------------+
+
+
+2. FORSLAG TIL SAMLET STRUKTUR OG SKÆRME
+=========================================
+
+Dette er et designforslag, ikke implementerede ændringer.
+Navne, datoer, indhold og antal i skitserne er eksempler.
+Skillelinjen "før scroll" viser en prioritet, ikke en garanti
+for enhver skærmstørrelse eller tekstlængde.
+
+FORSLÅET SAMLET FLOW
+
+Foreninger -> vælg forening -> offentlig foreningsside
+                                    |
+                   +----------------+-----------------+
+                   |                                  |
+             Besøgende                         Ejer med adgang
+                   |                                  |
+        Forstå / kontakt / deltag          Samme forening og identitet
+        Arrangementer og nyheder           + handlinger og jeres indhold
+                                                      |
+                               +----------------------+------------+
+                               |                      |            |
+                         Opret indhold          Redigér side     Mere
+                               |                                   |
+                     Arrangement / Nyhed                  Adgange, skift,
+                               |                          hjælp og log ud
+                               v
+                      Én formularfamilie
+                     /                  \
+                  Gæst              Foreningsadgang
+                    |                      |
+               TEBs samlede kø       Udgiv direkte
+                    |                      |
+                    +----------+-----------+
+                               |
+                 Foreningsside / Kalender / Det sker
+
+Alle oprettelsesknapper åbner samme formular med den rigtige
+forening og indholdstype valgt. "Begge dele" bliver et enkelt
+valg om også at vise arrangementet som nyhed.
+
+
+A. FORENINGSOVERSIGT, COMPUTER
+
++------------------------------------------------------+
+| TEB                         Kalender  Foreninger  Menu|
+|------------------------------------------------------|
+| Foreninger                         [Log ind]         |
+| [ Søg navn eller interesse....................... ]  |
+| [ Alle interesser v ]                 24 foreninger   |
+|                                                      |
+| +-----------------------+ +------------------------+ |
+| | [lille foto] Navn      | | [lille foto] Navn       | |
+| | Kort forklaring       | | Kort forklaring        | |
+| | Tistrup    [Se side]  | | Hodde      [Se side]    | |
+| +-----------------------+ +------------------------+ |
+| +-----------------------+ +------------------------+ |
+| | Næste forening        | | Næste forening         | |
++-------------------- før scroll ----------------------+
+| Flere foreninger                                     |
+| Mangler jeres forening? [Kontakt TEB]                 |
++------------------------------------------------------+
+
+Navnene skal være synlige med det samme.
+Ét kompakt kortlayout er nok som standard. Det nuværende
+listevalg kan gemmes som en sekundær visningsindstilling.
+Udkast markeres kort ved de relevante profiler.
+
+
+B. OFFENTLIG FORENINGSSIDE, COMPUTER
+
++------------------------------------------------------+
+| TEB                         Kalender  Foreninger  Menu|
+|------------------------------------------------------|
+| < Alle foreninger                       [Log ind]    |
+|                                                      |
+| [logo] FORENINGENS NAVN                               |
+|        Interesse / Tistrup                            |
+|                                                      |
+| To-tre linjer: Hvad laver I, og hvem kan være med?     |
+|                                                      |
+| [Kontakt foreningen]  [Hjemmeside]                    |
+|                                                      |
+| Næste arrangement              Kontakt               |
+| +--------------------------+   Navn / rolle          |
+| | 12 NOV  Fællesspisning    |   Telefon               |
+| | kl. 18 / Forsamlingshuset |   E-mail                |
+| | [Se arrangement]         |   Mødested               |
+| +--------------------------+                         |
++-------------------- før scroll ----------------------+
+| Flere kommende arrangementer                         |
+| Nyt fra foreningen                                   |
+| Mere om foreningen / foto / kilde ved udkast          |
++------------------------------------------------------+
+
+Foreningens navn er sidens hovedoverskrift.
+Ét logo eller lille billede er nok øverst.
+Kontakt åbner en eksisterende mail/telefonmulighed.
+Hvis de mangler, er hjemmesiden den primære handling.
+Ingen fiktiv "Bliv medlem"-knap uden et reelt tilmeldingssted.
+Ingen tomme felter eller stor "Billede mangler"-boks.
+Ved nul arrangementer: én linje, ikke en stor tom sektion.
+
+
+C. OFFENTLIG FORENINGSSIDE, MOBIL
+
++--------------------------------+
+| TEB                       Menu |
+|--------------------------------|
+| < Alle foreninger              |
+|                                |
+| [logo] Foreningens navn        |
+|        Interesse / Tistrup     |
+|                                |
+| Kort forklaring på, hvad I     |
+| laver, og hvem der kan deltage.|
+|                                |
+| [Kontakt]       [Hjemmeside]   |
++---------- mål: før scroll -----+
+| Næste arrangement              |
+| 12 NOV  Fællesspisning         |
+| Kl. 18 / Forsamlingshuset      |
+| [Se arrangement]              |
+|                                |
+| Kontaktoplysninger             |
+| Flere arrangementer           |
+| Nyt fra foreningen             |
+| Mere om foreningen             |
++--------------------------------+
+
+Mobil prioriterer identitet og kontakt først.
+På en høj telefon kan næste arrangement også være synligt.
+Menu og knapper skal stadig være lette at ramme.
+
+
+D. EGEN FORENING, NÅR MAN ER LOGGET IND
+
++------------------------------------------------------+
+| TEB                                      [Mere v]    |
+|------------------------------------------------------|
+| [logo] FORENINGENS NAVN                               |
+| Du har adgang som foreningsansvarlig                  |
+|                                                      |
+| [+ Opret arrangement] [Skriv nyhed] [Redigér side]     |
+|                                      Vis som besøgende|
+|                                                      |
+| Jeres indhold                                        |
+| [Alt v]                       [Søg i jeres indhold]   |
+|                                                      |
+| Fællesspisning / 12. november                         |
+| Arrangement · Udgivet                [Ret] [Aflys]    |
+|                                                      |
+| Tak for sommerfesten                                 |
+| Nyhed · Udgivet                      [Ret] [Fjern]    |
++-------------------- før scroll ----------------------+
+| Flere opslag og arrangementer                        |
+| [Vis tidligere indhold]                              |
++------------------------------------------------------+
+
+"Mere" indeholder:
+- Personer med adgang, kun administration for ansvarlig.
+- Skift forening, kun hvis man har flere.
+- Kontakt TEB og Log ud.
+
+Samme navn, logo og visuelle ramme som den offentlige side.
+Ejerens startvisning prioriterer arbejdet. "Vis som besøgende"
+viser den offentlige udgave uden private oplysninger.
+Når man åbner sin egen offentlige profil, er der en lille
+"Administrér foreningen"-indgang.
+
+Ingen stor velkomst, statistikblok eller kontomail som hovedindhold.
+Status, TEB-besked og eventuel mailfejl står ved det relevante indhold.
+Knapper vises kun, når brugeren faktisk har rettighederne.
+
+Bemærk: samlet indholdsliste samt Ret/Fjern for rene nyheder
+skal bygges. Det findes ikke som færdigt ejerforløb i dag.
+
+
+E. OPRET ELLER RET INDHOLD
+
++------------------------------------------------------+
+| < Tilbage til jeres side                             |
+|                                                      |
+| Opret arrangement                                    |
+| Forening: Foreningens navn, allerede valgt           |
+|                                                      |
+| Hvad skal der ske? [..............................]  |
+| Dato [..........]  Klokken [.......]                  |
+| Sted [............................................]  |
+| Kort beskrivelse [................................]  |
+|                  [................................]  |
+|                                                      |
+| > Flere oplysninger                                  |
+|   Slutdato/-tid, pris og tilmeldingslink              |
+|                                                      |
+| [ ] Vis også som nyhed på Det sker                   |
+|     Ved tilvalg: længere tekst og valgfrit billede   |
+|                                                      |
+| > Papirkalender og anden synlighed                    |
+|   [ ] Jeg ønsker det med på papirkalenderen          |
+|   Andre kanaler: ønsker og kontakt, ingen bestilling |
+|                                                      |
+| [Forhåndsvis]                     [Udgiv arrangement]|
++------------------------------------------------------+
+
+"Skriv nyhed" åbner samme formularfamilie uden dato og sted.
+Billedvalg bør bruge samme filvælger som profilbilledet.
+
+Gæst ser også:
+- Afsendernavn og privat kvitteringsmail.
+- "Send til TEB" som knap.
+- Kvittering med status og mulighed for at gemme privat link.
+
+Efter udgivelse:
+"Udgivet" + [Se det offentlige indhold] + [Tilbage til jeres side].
+Ret genbruger samme felter. Aflys kræver en tydelig bekræftelse.
+Formularen skal bevare teksten ved forbindelsesfejl.
+
+Der findes allerede forhåndsvisning og dele af disse forløb.
+Fælles formular, billedvalg og nyhedsrettelser kræver ændringer.
+
+
+F. REDIGÉR FORENINGENS SIDE
+
++------------------------------------------------------+
+| < Tilbage til jeres side                             |
+| Redigér foreningsside                                |
+|                                                      |
+| Navn          [...................................]  |
+| Interesse     [...................................]  |
+| Om foreningen [...................................]  |
+|               [...................................]  |
+|                                                      |
+| Kontaktperson [...................................]  |
+| Offentlig mail[...................................]  |
+| Telefon       [...................................]  |
+| Mødested      [...................................]  |
+| Hjemmeside    [...................................]  |
+|                                                      |
+| [lille billedvisning] [Vælg billede] [Fjern billede]   |
+|                                                      |
+| [Fortryd]                             [Gem ændringer] |
++------------------------------------------------------+
+
+Bevar de eksisterende profilfelter og ét billede.
+Den korte offentlige introduktion kan være starten af beskrivelsen.
+En separat lang beskrivelse eller et galleri er ikke nødvendigt.
+Vis "Gemt" og et link til den offentlige side efter gemning.
+
+
+G. LOGIN OG FØRSTE ADGANG
+
+[Log ind]
+    |
+    v
++--------------------------------+
+| Log ind                        |
+| E-mail [.....................] |
+| [Send kode]                    |
++--------------------------------+
+    |
+    v
++--------------------------------+
+| Skriv koden fra din mail       |
+| [ _ _ _ _ _ _ ]                |
+| [Log ind]                      |
+| Ret e-mail / Send ny kode      |
++--------------------------------+
+    |
+    +-- Har igangværende opgave -> tilbage til opgaven
+    +-- Én forening             -> egen foreningsside
+    +-- Flere foreninger        -> vælg -> egen side
+    +-- TEB                    -> redaktion
+    '-- Ingen adgang           -> nedenstående skærm
+
++--------------------------------+
+| Hvilken forening er du fra?    |
+| [Vælg forening v]              |
+| Navn [......................]  |
+| Din rolle [.................]  |
+| [Bed om adgang]                |
+| Min forening mangler / Hjælp   |
++--------------------------------+
+    |
+    v
+"Din anmodning afventer TEB" + se status
+
+Der skal være én naturlig vej til adgangsanmodningen.
+Ny mailbekræftelse giver ikke i sig selv adgang.
+Lokalt står det tydeligt, at koden ligger i testpostkassen.
+
+
+H. PERSONER MED ADGANG
+
++------------------------------------------------------+
+| < Tilbage til jeres side                             |
+| Personer med adgang                                  |
+|                                                      |
+| Anne / Foreningsansvarlig                             |
+| Ændringer til ansvarlige aftales med TEB              |
+|                                                      |
+| Bo / Redaktør / Aktiv                 [Fjern adgang]  |
+| Camilla / Redaktør / Inviteret                         |
+|                                                      |
+| Invitér en redaktør                                  |
+| Navn [...............] E-mail [....................] |
+| [Send invitation]                                    |
++------------------------------------------------------+
+
+Bevar den eksisterende fordeling:
+Ansvarlig kan administrere redaktører. TEB ændrer ansvarlige.
+Redaktøren kan læse listen, men ser ingen invitations- eller fjernknapper.
+
+
+I. TEBs REDAKTION
+
++------------------------------------------------------+
+| TEB / Redaktion                              [Log ud]|
+|------------------------------------------------------|
+| [Til godkendelse] [Indhold] [Foreninger] [Print]       |
+|                                                      |
+| Til godkendelse                                      |
+|                                                      |
+| NYT GÆSTEARRANGEMENT / Fællesspisning                  |
+| Oplyst afsender, kontakt, dato, sted og tekst          |
+| [Gennemgå]                                           |
+|                                                      |
+| RETTELSE / Banko                                     |
+| [Sammenlign med offentlig version]                    |
+|                                                      |
+| ADGANG / Anne ønsker adgang til Foreningens navn      |
+| [Gennemgå tilknytning]                                |
++------------------------------------------------------+
+
+Én samlet indbakke, med filter efter type ved behov.
+Nyheder, arrangementer, rettelser, aflysninger og adgang
+kan være forskellige opgaver i samme oversigt.
+
+Gennemgå indhold:
+  offentlig version + foreslået version
+  [Godkend og udgiv] [Bed om rettelse / begrund afvisning]
+
+Gennemgå adgang:
+  kontrollér tilknytning
+  [Godkend ansvarlig] [Afvis]
+
+"Indhold" omfatter historik, udgivne og aflyste emner.
+"Foreninger" omfatter profiler og personer med adgang.
+Redaktionen skal også vise mailproblemer på den relevante opgave.
+
+Samlet indbakke og ensartede svar for nyheder skal bygges.
+De to eksisterende datatyper må ikke få én opgave til at optræde dobbelt.
+
+
+J. PAPIRKALENDER
+
+[Periode og format]
+         |
+         v
+[Hent egnede arrangementer]
+         |
+         v
+[Vælg TIL eller FRA ved hvert arrangement]
+         |
+         v
+[Ret korte titler, tid, sted og arrangør til papir]
+         |
+         v
+[Lav korrektur-PDF -> åbn -> kontrollér alle sider]
+         |
+         v
+[Gem fast udgave]
+         |
+         v
+[Arkiv / hent PDF]
+
+Det manuelle forløb findes allerede i den aktive version.
+Bevar det. Netudgivelse og papirudvælgelse er to beslutninger.
+Et ønske om print er ikke et løfte om at komme med.
+En gemt PDF må ikke ændres af senere rettelser på nettet.
+
+
+3. HVAD BEVARES, FLYTTES OG SKAL BYGGES
+======================================
+
+BEVAR
+- Søgning og interesser i foreningsoversigten.
+- Eksisterende profilfelter, ét billede og offentlige kontaktdata.
+- Login med e-mailkode og tilbagevenden til igangværende opgave.
+- Adskillelsen mellem redaktør, ansvarlig og TEB.
+- Direkte udgivelse for personer med foreningsadgang.
+- Gæsters private links og TEB-godkendelse.
+- Bevaring af offentlig version, mens gæster venter på rettelser.
+- Arrangementdetaljer, tilmeldingslink, deling og kalenderfil.
+- Tydelig kilde på importerede nyheder og arrangementer.
+- Manuel papirudvælgelse, korrektur og faste PDF-udgaver.
+- Tydelige fejl, bevaret formulartekst og forsigtig genafsendelse.
+
+FLYT OG FORENKL
+- Foreningens navn op som sidens hovedoverskrift.
+- Kontakt og beskrivelse før det store billede.
+- Ejerens handlinger op under foreningens navn.
+- Adgangsstyring og sjældne kontohandlinger til "Mere".
+- Papirønsker og ekstra synlighed til sekundære formularfelter.
+- TEBs nuværende køer ind i én samlet redaktionsindbakke.
+- Gæstekvitteringer ind i én genkendelig statusvisning.
+- Gamle links bevares og sender til deres nye tilsvarende opgave.
+
+SKAL BYGGES ELLER FORBINDES
+- Én fælles oprettelse fra Forening, Kalender og Det sker.
+- En samlet ejeroversigt med både nyheder og arrangementer.
+- Ejerens redigering og fjernelse af rene nyheder.
+- Visning af foreningens nyheder på den offentlige profil.
+- Forbindelse mellem nyhedsopslag og forening i de relevante API-svar.
+- Naturlig indgang til den eksisterende adgangsanmodning.
+- Fælles upload af billeder til indhold, ikke kun profil.
+- Én TEB-indbakke med entydige opgaver og relevante handlinger.
+- En tydelig status på ændringer uden sammenblanding med udgivelse.
+
+INGEN NY FUNKTION LOVES
+- Automatisk Facebook-deling.
+- Bestilling af flyers, omdeling, infoskærme eller byportaler.
+- Automatisk optagelse på papirkalenderen.
+- Kontingent, medlemsregister, betaling eller booking.
+- Produktionsmail eller offentlig lancering.
+Disse ting er ikke en del af det kortlagte færdige brugerforløb.
+
+REGLER FOR DEN FØRSTE SKÆRM
+- Offentlig mobil: navn, kort beskrivelse og kontakt først.
+- Offentlig computer: samme indhold plus næste arrangement og kontaktdata.
+- Ejer: navn, opret/redigér og starten på jeres indhold.
+- TEB: ventende opgaver og næste handling.
+- Store generelle overskrifter og tomme bokse må ikke skubbe dette ned.
+- Manglende billede eller indhold skal give mindre pladsforbrug.
+- Lange foreningsnavne og store tekstindstillinger må gerne øge højden.
+  Gør aldrig teksten eller trykfladerne for små for at ramme en pixelgrænse.
+
+GENNEMFØRELSESRÆKKEFØLGE
+1. Ret den offentlige profils hierarki og pladsforbrug.
+2. Giv ejeren en sammenhængende startvisning og en klar adgangsvej.
+3. Saml oprettelse og ejerens indhold, herunder nyhedsrettelser.
+4. Saml TEBs køer og gæsternes statusvisninger.
+5. Kontrollér mobil, tomme tilstande, roller og eksisterende private links.
+Printforløbet bevares under alle trin.
+
+KILDER I DEN AKTIVE PROJEKTKOPI
+Basis: /Users/marinushvelplund/Projects/teb-kalender-faerdig/
+
+site/js/forening.js:52       Ruter og navigation
+site/js/forening.js:129      Foreningsoversigt
+site/js/forening.js:166      Offentlig profil
+site/js/forening.js:181      Login
+site/js/forening.js:188      Adgangsanmodning
+site/js/forening.js:194      Profilfelter
+site/js/forening.js:207      Ejerområde
+site/js/forening.js:235      Personer med adgang
+site/js/forening.js:243      TEBs arbejdsområde
+site/js/forening.js:275      Gennemgang af arrangementer
+site/js/forening.js:306      Printindgang og arkiv
+site/js/det-sker.js:25       Detaljer, offentlige links
+site/js/det-sker.js:50       Nyheder og kildevalg
+site/js/det-sker.js:62       Samling af kalenderindhold
+site/js/det-sker.js:116      Godkendelse af opslag
+site/js/det-sker.js:139      Del med byen-formular
+site/js/det-sker.js:210      Gæstens private kvittering
+site/js/kalender.js:252      Selvstændig arrangementsformular
+site/js/kalender.js:334      Opret og kvittering
+site/js/kalender.js:391      Medlemmets rettelse
+site/js/kalender.js:435      Gæstens rettelse og aflysning
+site/js/kalender-opslag.js   Ekstra kvittering og opslag-godkendelse
+site/js/kalender-print.js:5  Manuel printeditor og korrektur
+calendar-worker/src/api.mjs Ruter og forbindelser
+calendar-worker/src/posts.mjs:35  Opslag, publicering, moderation
+calendar-worker/src/events.mjs:40 Opret, medlems-/gæsterettelse
+calendar-worker/src/auth.mjs:16   Adgangskontrol
+calendar-worker/src/associations.mjs:68 Invitationer og roller
+calendar-worker/src/editions.mjs:20  Kandidater til manuel udvælgelse
+
+Supplerende i Desktop-mappen:
+docs/PILOT_KLAR.md          Forklaring på den aktive projektkopi
+app/README.md              Separat demo med egne data
+
+Ingen hjemmesidekode, data, adgange eller drift er ændret som led
+i denne kortlægning. Kun denne designbeskrivelse er oprettet.
+

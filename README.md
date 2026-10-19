@@ -1,14 +1,7 @@
 # TEB hjemmesiden
 
-Læs [den fælles projektstatus](docs/STATUS.md) for tråde, worktrees, commits, kontroller og åbne opgaver.
+Den aktive samlede version ligger i `/Users/marinushvelplund/Projects/teb-kalender-faerdig` på grenen `local/teb-pilot-ready`.
 
-Den aktive lokale kopi er `/Users/marinushvelplund/Projects/teb-kalender-faerdig` på `local/teb-pilot-ready`.
-Hjemmesiden ligger i `site/`, og portalens backend i `calendar-worker/`.
+Læs [den fælles status på GitHub](https://github.com/arthurhvelplund/teb-hjemmeside/blob/local/teb-pilot-ready/docs/STATUS.md) eller åbn `Projects/teb-kalender-faerdig/docs/STATUS.md` lokalt. Den registrerer alle tråde, worktrees, leverancer og åbne opgaver.
 
-Start den lokale pilot med `cd calendar-worker && npm run dev:pilot`.
-Følg [pilotvejledningen](docs/PILOT_KLAR.md) for øveadgang og gennemgang.
-Login bruger en lokal testpostkasse. Der sendes ingen rigtig mail.
-
-Nye leverancer samles og registreres i `docs/STATUS.md`, før de afleveres.
-Desktop-kopien, tidligere prototyper og gamle worktrees er historik.
-Push til `main` kan udløse offentlig deploy. Pilotgrenen er til lokal gennemgang.
+Denne Desktop-kopi bevares som historik. Lokale databaser, adgangsnøgler og node_modules indgår ikke i Git. `app/`, designudkast og `teb-tistrup-arkiv/` er referencefiler, ikke den aktive portal.

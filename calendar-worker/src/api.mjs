@@ -3,7 +3,7 @@ import { local, stmt, all } from './db.mjs';
 import { identity, sessionData, requestOtp, verifyOtp, logout, requireAccess } from './auth.mjs';
 import { associations, saveAssociation, createAssociation, members, invite, revoke, accessRequests, requestAccess, decideAccess } from './associations.mjs';
 import { publicEvents, createEvent, author, privateData, guestUpdate, memberUpdate, review, myEvents, adminEvents } from './events.mjs';
-import { editionCandidates, previewEdition, finalizeEdition, listEditions, editionPdf } from './editions.mjs';
+import { previewEdition, finalizeEdition, listEditions, editionPdf } from './editions.mjs';
 import { localMailbox, flushMail } from './mail.mjs';
 import { handlePosts } from './posts.mjs';
 import { experiment } from './experiment.mjs';
@@ -37,7 +37,7 @@ async function api(request,env){
  if(route==='/auth/verify'&&method==='POST')return verifyOtp(request,env,data);
  if(['/auth/logout','/admin/logout'].includes(route)&&method==='POST')return logout(request,env);
  const auth=await identity(request,env);
- if(route==='/posts'||route==='/me/posts'||route.startsWith('/member/posts/')||route.startsWith('/posts/')||route.startsWith('/admin/posts'))return handlePosts(request,env,auth,route,data);
+ if(route==='/posts'||route.startsWith('/posts/')||route.startsWith('/admin/posts'))return handlePosts(request,env,auth,route,data);
  if(route.startsWith('/experiment/'))return experiment(request,env,auth,route,data);
  if(route==='/session'&&method==='GET')return json(await sessionData(env,auth));
  if(route==='/associations'&&method==='GET')return associations(env);
@@ -71,8 +71,7 @@ async function api(request,env){
  if(route==='/admin/events'&&method==='GET')return adminEvents(env,auth);
  match=route.match(/^\/admin\/events\/([^/]+)$/);
  if(match&&method==='POST')return review(env,auth,match[1],data);
- if(route==='/admin/editions/events'&&method==='GET')return editionCandidates(env,auth,url);
- if(route==='/admin/editions/preview')return previewEdition(env,auth,url,data);
+ if(route==='/admin/editions/preview'&&method==='GET')return previewEdition(env,auth,url);
  if(route==='/admin/editions'&&method==='POST')return finalizeEdition(env,auth,data);
  if(route==='/editions'&&method==='GET')return listEditions(env);
  match=route.match(/^\/editions\/([^/]+)\/pdf$/);

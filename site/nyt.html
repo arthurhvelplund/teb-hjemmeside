@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Det sker her: lokale nyheder, foreninger, arrangementer og TEBs Facebook-opslag fra Tistrup og Hodde.">
+<meta name="description" content="Et samlet overblik over lokale nyheder og arrangementer i Tistrup og Hodde.">
 <title>Det sker i Tistrup | TEB</title>
 <link rel="stylesheet" href="css/style.css?v=a37d3c51d78f">
 <link rel="stylesheet" href="css/layout.css?v=b6a5ad24290b">
-<link rel="stylesheet" href="css/det-sker.css?v=86b6e2c43c0e">
-<link rel="stylesheet" href="css/forening-v2.css?v=6351be0c69c0">
+<link rel="stylesheet" href="css/portal.css?v=17093cd2e634">
+<link rel="stylesheet" href="css/calendar-grid.css?v=1166fd8fda19">
+<link rel="stylesheet" href="css/det-sker.css?v=aa93ab3efa03">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
-<link rel="stylesheet" href="css/seasonal-themes.css?v=7450862d89d1">
+<link rel="stylesheet" href="css/seasonal-themes.css?v=3e42a7d31264">
 <script src="js/seasonal-theme.js?v=5a1758734788"></script>
 </head>
 <body>
@@ -43,46 +44,31 @@
   </div>
 </header>
 <main class="site-main">
- <section class="hero page-hero page-hero--compact"><div class="wrap ds-hero">
-  <h1>Det sker <em>her.</em></h1>
-  <p class="lead">Nyheder, foreninger og arrangementer i Tistrup og Hodde.</p>
- </div></section>
- <div class="wrap ds-groups">
-  <section class="ds-group" aria-labelledby="foreningsnyt-heading">
-   <h2 class="ds-group-label" id="foreningsnyt-heading">Nyt fra foreningerne <span>Historier fra lokale fællesskaber</span></h2>
-   <p><a class="ds-text-link" href="forening.html#skriv">Skriv en nyhed →</a></p>
-   <div id="association-news-feed" aria-live="polite"><p>Henter nyheder…</p></div>
+ <section class="hero page-hero page-hero--compact">
+  <div class="wrap page-heading ds-heading">
+   <div class="ds-heading-row"><h1>Det <em>sker.</em></h1><label class="ds-search"><span class="sr-only">Søg i nyheder og arrangementer</span><input type="search" id="ds-search" placeholder="Søg i byen…"></label><div class="ds-heading-actions"><button type="button" class="btn" id="ds-create">+ Del med byen</button><a id="ds-login" href="forening.html?return=nyt.html#login">Log ind</a></div></div>
+  </div>
+ </section>
+ <div class="wrap ds-body">
+  <section id="ds-composer" class="ds-composer" aria-labelledby="ds-composer-heading" hidden></section>
+  <section id="ds-review" class="ds-review" aria-labelledby="ds-review-heading" hidden></section>
+  <div id="ds-message" aria-live="polite"></div>
+  <section class="ds-calendar" aria-labelledby="ds-calendar-heading">
+   <h2 id="ds-calendar-heading" class="sr-only">Kalender</h2>
+   <div class="ds-calendar-toolbar"><div class="ds-period"><button id="ds-prev" type="button" aria-label="Forrige periode">←</button><strong id="ds-period" aria-live="polite"></strong><button id="ds-next" type="button" aria-label="Næste periode">→</button><button id="ds-today" type="button">I dag</button></div><div class="ds-calendar-modes" role="group" aria-label="Kalenderperiode"><button id="ds-week" type="button" aria-pressed="true">Uge</button><button id="ds-month" type="button" aria-pressed="false">Måned</button></div></div>
+   <p class="calendar-scroll-hint">Rul kalenderen til siden, eller vælg Uge for mere plads.</p>
+   <div id="ds-events" aria-busy="true"><p>Henter arrangementer…</p></div><div class="ds-calendar-status"><p id="ds-events-status" class="ds-source-status" role="status"></p><button type="button" class="ds-text-button" id="ds-refresh">Opdatér</button></div>
   </section>
-  <section class="ds-group" id="nyheder" aria-labelledby="nyheder-heading">
-   <h2 class="ds-group-label" id="nyheder-heading">Nyheder <span>Lokale medier</span></h2>
-   <div class="ds-card-grid">
-   <a class="ds-source-card" href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer"><img src="images/det-sker/tistrup-nyt.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Tistrup Nyt</strong><span>Byens egen nyhedsside for Tistrup og Hodde.</span><small>tistrupnyt.dk ↗</small></span></a>
-   <a class="ds-source-card" href="https://pulsenivest.dk/by/tistrup" target="_blank" rel="noopener noreferrer"><img src="images/det-sker/pulsen.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Pulsen i Vest</strong><span>Historier og arrangementer fra Tistrup og egnen.</span><small>pulsenivest.dk ↗</small></span></a>
-   <a class="ds-source-card" href="https://www.tistrupnews.dk/" target="_blank" rel="noopener noreferrer"><img src="images/det-sker/tistrupnews.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Tistrupnews</strong><span>Lokale nyheder fra Tistrup og omegn.</span><small>tistrupnews.dk ↗</small></span></a>
-   <a class="ds-source-card" href="https://vores-tistrup.dk/" target="_blank" rel="noopener noreferrer"><img src="images/det-sker/vores-tistrup.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>VORES Tistrup</strong><span>Lokale historier fra 6862 Tistrup.</span><small>vores-tistrup.dk ↗</small></span></a>
-   </div>
-  </section>
-  <section class="ds-group" id="faellesskaber" aria-labelledby="faellesskaber-heading">
-   <h2 class="ds-group-label" id="faellesskaber-heading">Fællesskaber og arrangementer <span>Foreninger og kalender</span></h2>
-   <div class="ds-card-grid">
-   <a class="ds-source-card" href="kalender.html"><img src="images/det-sker/kalender.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Byens kalender</strong><span>Alle arrangementer fra foreningerne. Her kan du også oprette dit eget.</span><small>Se kalenderen →</small></span></a>
-   <a class="ds-source-card" href="forening.html"><img src="images/det-sker/foreninger.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Foreninger i Tistrup</strong><span>Find en forening, et hold eller et fællesskab.</span><small>Se foreningerne →</small></span></a>
-   <a class="ds-source-card" href="https://sundhedsfremme.vardekommune.dk/lokalsamfund/" target="_blank" rel="noopener noreferrer"><img src="images/det-sker/faellesskaber-varde.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Fællesskaber i Varde</strong><span>Varde Kommunes oversigt over fællesskaber i lokalsamfundene.</span><small>vardekommune.dk ↗</small></span></a>
-   </div>
-  </section>
+  <details class="ds-print">
+   <summary><img src="images/kalender-september-oktober-2026.jpg" alt="" loading="lazy"><span class="ds-print-copy"><strong>Kalenderen på papir</strong><span>Til køleskabet og byens opslagstavler.</span></span><span class="ds-print-action">Se fysisk kalender <span aria-hidden="true">↓</span></span></summary>
+   <div class="ds-print-archive"><p>Vælg en udgave, du vil se eller printe.</p><div id="ds-editions"></div><a href="downloads/kalender-september-oktober-2026.pdf" target="_blank" rel="noopener">September–oktober 2026 · PDF ↗</a></div>
+  </details>
+  <section class="ds-news" aria-labelledby="ds-news-heading"><div class="ds-section-heading"><h2 id="ds-news-heading">Nyt <em>fra byen.</em></h2><label><span class="sr-only">Vælg kilde</span><select id="ds-source"><option value="all">Alle kilder</option><option value="tistrup-nyt">Tistrup Nyt</option><option value="pulsen">Pulsen i Vest</option><option value="local">Foreningernes opslag</option></select></label></div><div id="ds-feed" aria-busy="true"><p>Henter historier…</p></div><button class="btn btn-secondary" id="ds-more" type="button" hidden>Vis flere nyheder</button><p class="ds-source-status" id="ds-source-status" role="status"></p></section>
+  <section class="ds-sources" aria-labelledby="ds-sources-heading"><h2 id="ds-sources-heading">Direkte til de lokale kilder</h2><p>Læs hele historien hos dem, der har skrevet den. TEB’s egne Facebook-opslag finder du på <a href="index.html#facebook">forsiden</a>.</p><div><a href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer">Tistrup Nyt ↗</a><a href="https://pulsenivest.dk/by/tistrup" target="_blank" rel="noopener noreferrer">Pulsen i Vest ↗</a><a href="https://www.tistrupnews.dk/" target="_blank" rel="noopener noreferrer">Tistrupnews ↗</a><a href="https://vores-tistrup.dk/" target="_blank" rel="noopener noreferrer">VORES Tistrup ↗</a><a href="https://sundhedsfremme.vardekommune.dk/lokalsamfund/" target="_blank" rel="noopener noreferrer">Fællesskaber i Varde ↗</a></div></section>
  </div>
- <section class="section facebook-section ds-facebook" id="facebook" aria-labelledby="facebook-heading">
-    <div class="wrap facebook-layout">
-      <div class="facebook-intro ds-facebook-intro">
-        <h2 id="facebook-heading" class="ds-group-label">TEB på Facebook <span>Vores egne opslag</span></h2>
-        <a class="ds-text-link" href="https://www.facebook.com/p/Tistrup-Erhvervs-og-Borgerforening-61594168058446/" target="_blank" rel="noopener">Åbn Facebook-siden ↗</a>
-      </div>
-      <div class="facebook-feed">
-        <script type="text/javascript" src="https://www.juicer.io/embed/61594168058446/embed-code.js" async defer></script>
-      </div>
-    </div>
-  </section>
+ <noscript><p class="wrap">Åbn <a href="kalender.html">aktivitetskalenderen</a> eller besøg de lokale medier via linkene ovenfor. Kalenderen og nyhederne kræver JavaScript.</p></noscript>
 </main>
+<dialog id="ds-detail" class="ds-dialog" aria-labelledby="ds-detail-heading"><button type="button" id="ds-detail-close" class="ds-close" aria-label="Luk opslag">Luk ×</button><div id="ds-detail-content"></div></dialog>
 <footer class="site-footer">
   <div class="wrap">
     <p class="footer-mark">Tistrup Erhvervs-<br>og <em>Borgerforening</em></p>
@@ -133,7 +119,6 @@
   </div>
 </footer>
 <script src="js/main.js?v=5cfc1e933733"></script>
-<script type="module" src="js/nyt-links.js?v=4cfa38a89ee9"></script>
-<script type="module" src="js/association-news-feed.js?v=a680ff3c06dd"></script>
+<script type="module" src="js/det-sker.js?v=8bdba0130bf3"></script>
 </body>
 </html>

@@ -85,16 +85,12 @@ vurderes særskilt, fordi den kan fjerne ændringer modtaget efter backupen.
 - Hold øje med fejl i mailafsendelse og ubehandlede indsendelser.
 
 Der bygges ikke automatisk Gmail-import, opslag hos medier eller Facebook-
-publicering. Kalender viser foreningernes arrangementer og importerede kalenderbegivenheder
-fra Tistrup Nyt og Pulsen i Vest. Det sker har eksterne medielinks og Facebook.
-TEBs eget Facebook-feed ligger også nederst på forsiden. Nyhedsartikler importeres ikke.
+publicering. Det sker viser links til kilderne og eksisterende Facebook-feed.
 
 ## Kontrol af den integrerede lokale version
 
-Valideret 19. oktober 2026: 70 backendtests, HTTP-integration, lokal
-Cloudflare-runtime med D1/R2, 28 portalforløb og 8 forløb for sideflytning og kildeimport. Den nye
-pilotopsætning er desuden afprøvet to gange uden dubletter, ekstra invitationer
-eller fiktive offentlige arrangementer. Browserkontrollen omfatter
+Valideret 18. oktober 2026: 42 backendtests, HTTP-integration, lokal
+Cloudflare-runtime med D1/R2 og 16 browserforløb. Browserkontrollen omfatter
 faktiske kvitteringslinks, genforsøg efter mistede, afkortede og ufuldstændige
 svar uden dubletter, rettigheder,
 forhåndsvisning og gemt PDF samt 320 og 390 px mobilbredde. Plakat og A3 er
@@ -104,9 +100,7 @@ Ubrugte scripts og CSS fra den gamle pilot er fjernet. De gamle HTML-adresser
 bevares som viderestillinger. Prototypen og pilotens lokale data er bevaret.
 
 Resultater og skærmbilleder findes lokalt i `output/portal-integreret/`.
-I denne færdiggørelsesrunde er der ikke sendt eksterne mails, pushet commits
-eller deployet ressourcer. Lokal gennemgang og pilot med rigtige foreninger
-afventer. Se `PILOT_KLAR.md` for den samlede kodeplacering og gennemgangen.
+Der er ikke sendt eksterne mails, pushet commits eller deployet ressourcer.
 
 ## Fælles sideramme
 

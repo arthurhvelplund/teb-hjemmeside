@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forening, Kalender og Det sker</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:transparent;color:var(--foreground);font-family:var(--font-sans,system-ui,sans-serif);line-height:1.5}button{font:inherit;color:inherit;cursor:pointer}.tabs{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:24px;border-bottom:1px solid var(--border)}.tabs button{background:transparent;border:0;border-bottom:2px solid transparent;padding:10px 0;min-height:44px}.tabs button[aria-selected=true]{border-bottom-color:var(--foreground);font-weight:600}h2{font-size:21px;font-weight:600;margin:0 0 16px}h3{font-size:18px;font-weight:600;margin:0 0 8px}p{margin:0 0 12px}.map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}.column{min-width:0}.eyebrow{font-size:12px;color:var(--muted-foreground);margin-bottom:8px}.column ul{list-style:none;padding:0;margin:0}.column li{padding:9px 0;border-bottom:1px solid var(--border);font-size:14px}.muted{color:var(--muted-foreground);font-size:13px}.label{font-weight:600;font-size:14px;margin:20px 0 4px}.flow{margin-top:28px;padding-top:22px;border-top:1px solid var(--border)}.paths{display:grid;grid-template-columns:1fr 1fr;gap:24px}.path ol{padding-left:22px;margin:8px 0}.path li{padding:5px 0;font-size:14px}.shared{margin-top:20px;text-align:center;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;vertical-align:top;padding:12px 10px 12px 0;border-bottom:1px solid var(--border)}th{font-weight:600}td:first-child{width:29%}.compact{margin:0;padding-left:18px}.compact li{padding:6px 0}.status{font-size:13px;color:var(--muted-foreground);margin-top:18px}.summary{padding-top:18px;margin-top:24px;border-top:1px solid var(--border);font-size:14px}[hidden]{display:none!important} @media(max-width:560px){.map{grid-template-columns:1fr;gap:24px}.paths{grid-template-columns:1fr;gap:14px}.column .label{margin-top:12px}.tabs{gap:15px}th,td{padding-right:8px}td:first-child{width:34%}}
+</style>
+</head>
+<body>
+<main id="teb-simple-model">
+<nav class="tabs" role="tablist" aria-label="Plan for hjemmesiden">
+<button id="new-tab" type="button" role="tab" aria-controls="new-panel" aria-selected="true">Ny model</button>
+<button id="built-tab" type="button" role="tab" aria-controls="built-panel" aria-selected="false">Bygget i dag</button>
+<button id="cleanup-tab" type="button" role="tab" aria-controls="cleanup-panel" aria-selected="false">Oprydning</button>
+</nav>
+<section id="new-panel" role="tabpanel" aria-labelledby="new-tab">
+<div class="map">
+<section class="column"><div class="eyebrow">Foreningerne</div><h3>Forening</h3><ul><li>Liste over alle foreninger</li><li>Beskrivelse, formand og kontakt</li><li>Hjemmeside og sociale links</li></ul><p class="label">Efter login</p><ul><li>Redigér vores oplysninger</li><li>Se personer med adgang</li><li>Se og ret vores arrangementer</li><li>Opret nyt → Kalender</li></ul></section>
+<section class="column"><div class="eyebrow">TEBs egen kalender</div><h3>Kalender</h3><ul><li>Månedsvisning og ugevisning</li><li>Opret arrangement + preview</li><li>Aktuelle og tidligere printudgaver</li></ul><p class="label">Del flere steder</p><ul><li>Flyers og postkasser</li><li>Analoge byportaler</li><li>Infoskærme</li><li>Opslagstavler og andre opslag</li></ul><p class="muted" style="margin-top:10px">Kontakt og links til udbyderne.</p></section>
+<section class="column"><div class="eyebrow">Overblik og eksterne kilder</div><h3>Det sker</h3><ul><li>TEBs Facebook-opslag</li><li>Pulsen i Vest</li><li>Tistrup Nyt</li><li>Fællesskaber i Varde</li><li>Andre lokale nyhedsmedier</li></ul><p class="muted" style="margin-top:16px">Links videre til kilderne. TEBs kalender og PDF flytter til Kalender.</p></section>
+</div>
+<div class="flow"><h3>To veje ind i samme kalender</h3><div class="paths"><section class="path"><p class="label" style="margin-top:4px">Med godkendt foreningsadgang</p><ol><li>Log ind med e-mail og engangskode</li><li>Opret og se forhåndsvisning</li><li>Tryk Udgiv</li><li>Arrangementet er offentligt</li></ol></section><section class="path"><p class="label" style="margin-top:4px">Uden login</p><ol><li>Opret og se forhåndsvisning</li><li>Send til TEB</li><li>TEB får mail og godkender</li><li>Arrangementet er offentligt</li></ol></section></div><div class="shared">Offentliggjorte arrangementer → Digital kalender → Automatisk printudgave ved valgt frist</div></div>
+<p class="status">Forslag · TEB giver første foreningsadgang · Printperiode og frist vælges pr. udgave</p>
+</section>
+<section id="built-panel" role="tabpanel" aria-labelledby="built-tab" hidden>
+<h2>Den nuværende lokale pilot</h2>
+<table><thead><tr><th>Del</th><th>Det findes allerede</th></tr></thead><tbody>
+<tr><td>Foreningsportal</td><td>Formular til et arrangement med løbende forhåndsvisning. Intet foreningsregister eller foreningslogin.</td></tr>
+<tr><td>Mit arrangement</td><td>Privat link til status, rettelser og aflysning af ét arrangement.</td></tr>
+<tr><td>TEBs redaktion</td><td>Godkendelse, afvisning, tekstændringer og udgivelse af print.</td></tr>
+<tr><td>Kalender</td><td>Liste over offentliggjorte arrangementer og PDF-udgaver. Endnu ingen egentlig måneds- eller ugekalender.</td></tr>
+<tr><td>Print</td><td>Automatisk layout og fast gemt udgave. I dag er formatet to måneder.</td></tr>
+<tr><td>Testpostkasse</td><td>Simulerer mails og adgangslinks lokalt.</td></tr>
+<tr><td>Det sker</td><td>Facebook-indlejring, gammel kalenderplakat og blandet kalenderinformation.</td></tr>
+</tbody></table>
+<p class="summary">I dag kræver alle indsendelser, rettelser og aflysninger TEBs godkendelse. Foreninger, brugerkonti og foreningsadgang skal bygges.</p>
+<p class="status">Koden er til stede lokalt. Piloten er ikke offentligt lanceret og sender ikke rigtige mails. Facebook-indlejringens aktuelle drift er ikke kontrolleret her.</p>
+</section>
+<section id="cleanup-panel" role="tabpanel" aria-labelledby="cleanup-tab" hidden>
+<table><thead><tr><th>Handling</th><th>Forslag</th></tr></thead><tbody>
+<tr><td>Genbrug</td><td>Arrangementer, formularfelter, forhåndsvisning, godkendelse for gæster, PDF-motor og gemte printudgaver.</td></tr>
+<tr><td>Flyt</td><td>Oprettelsesformularen til Kalender. TEBs arbejdsområde ind bag login på Forening. Kalenderindhold fra Det sker til Kalender.</td></tr>
+<tr><td>Byg nyt</td><td>Foreningsregister, e-mailkoder, personer med adgang, ejerskab af arrangementer og kalender i måned/uge.</td></tr>
+<tr><td>Tilpas</td><td>Direkte udgivelse for godkendte foreninger. Valgfri printperiode. Private gæstelinks åbner status og rettelser på Kalender.</td></tr>
+<tr><td>Udfas</td><td>Den særskilte indsendelsesside og Mit arrangement som selvstændige sider. Bevar gamle links med viderestilling.</td></tr>
+<tr><td>Fjern fra siden</td><td>Den gamle plakat, omdelingsbokse og dubleret kalendertekst på Det sker. Den historiske PDF bevares i kalenderarkivet.</td></tr>
+<tr><td>Kun udvikling</td><td>Testpostkassen og gamle designforsøg. Den parallelle kalenderløsning kan arkiveres uden for den aktive kode.</td></tr>
+</tbody></table>
+<p class="summary">Tre offentlige sider. Ét fælles datagrundlag. Ét privat arbejdsområde for TEB.</p>
+<p class="status">Dette er en plan. Ingen eksisterende sider eller data er slettet.</p>
+</section>
+</main>
+<script>
+const root=document.getElementById('teb-simple-model');
+const tabs=Array.from(root.querySelectorAll('[role=tab]'));
+tabs.forEach(tab=>tab.addEventListener('click',()=>{tabs.forEach(t=>{const active=t===tab;t.setAttribute('aria-selected',String(active));document.getElementById(t.getAttribute('aria-controls')).hidden=!active;});}));
+console.log(JSON.stringify({tabs:tabs.length,panels:root.querySelectorAll('[role=tabpanel]').length,overflow:document.documentElement.scrollWidth>innerWidth}));
+</script>
+</body></html>

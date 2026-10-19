@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-18",
+  "environment": "T3 collaborative browser, local standalone prototype",
+  "checks": [
+    "Live preview",
+    "Guest pending",
+    "Private receipt",
+    "Pending event hidden",
+    "Review opens",
+    "TEB publication",
+    "Guest edit preserves public title",
+    "Rejected edit preserves public version",
+    "Guest sees rejection reason",
+    "Guest cancellation waits",
+    "TEB approves cancellation",
+    "Profile update visible",
+    "Association publishes directly",
+    "Cross-association editing blocked",
+    "Invitation recorded",
+    "Wrong code rejected",
+    "Email code login",
+    "Invitation accepted",
+    "Editor cannot invite",
+    "Unknown login grants no membership",
+    "New association approved",
+    "Print preview created",
+    "Edition saved",
+    "Published edition is immutable",
+    "Print retains original content"
+  ],
+  "errors": [],
+  "additionalChecks": [
+    "TEB preserves guest organizer",
+    "Custom print period visible",
+    "Access revoked",
+    "Month navigation",
+    "Week view",
+    "Association search",
+    "Final email login",
+    "Final direct publication",
+    "Direct cancellation",
+    "Print button invokes browser print",
+    "Clean example data restored"
+  ],
+  "notes": [
+    "Login, rights and email are simulated. These checks do not establish backend security.",
+    "Browser checks exercised guest submission, approval, edit rejection, cancellation, profiles, direct publication, invitation, login, new association access and immutable editions."
+  ],
+  "responsive": {
+    "widths": [
+      320,
+      390,
+      1024
+    ],
+    "checksAt320": 27,
+    "horizontalOverflows": 0,
+    "consoleErrors": 0
+  }
+}

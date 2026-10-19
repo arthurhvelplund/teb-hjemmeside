@@ -6,7 +6,7 @@ import {handleApi} from '../src/api.mjs';
 import {token,copenhagenDate} from '../src/shared.mjs';
 import {parsePulsen,createNewsService} from '../src/news.mjs';
 import {snapshot} from '../src/editions.mjs';
-import {groupNewsSources,groupCalendarSources,withoutOwnDuplicates} from '../../site/js/feed-data.js';
+import {groupNewsSources} from '../../site/js/feed-data.js';
 
 function fixture(t){
  const DB=database();t.after(()=>DB.close());
@@ -75,17 +75,15 @@ test('unsafe links, honeypots, invalid dates and unknown sharing channels are re
  assert.equal((await f.guest.call('/experiment/posts',payload(),{Origin:'https://evil.test'})).status,403);
  f.env.LOCAL_PREVIEW='false';assert.equal((await f.guest.call('/experiment/posts')).status,404);
 });
-test('Pulsen source imports only dated events, ignores scripts, foreign URLs and duplicate cards',async()=>{
+test('Pulsen source extracts original news and dated events, ignores scripts, foreign URLs and duplicate cards',async()=>{
  const story='<article class="city-story" data-puls-content-id="1"><a href="/nyhed/test"><img src="/image-cache/variants/ab/test.avif"></a><h3><a href="/nyhed/test">En <em>historie</em><script>bad()</script></a></h3><p class="city-teaser">Kort beskrivelse</p></article>';
  const event='<article class="city-event"><time datetime="2026-10-19T14:00:00+02:00"></time><h3><a href="/event/test/2026-10-19">Prøvebegivenhed</a></h3><p class="city-card-meta">Tistrup</p></article>';
  const result=parsePulsen(story+story+event+event+story.replaceAll('/nyhed/test','https://evil.test/nyhed/test'));
- assert.deepEqual(result.items,[]);assert.equal(result.events.length,1);
+ assert.equal(result.items.length,1);assert.equal(result.items[0].title,'En historie');assert.equal(result.events.length,1);
  assert.equal(result.events[0].date,'2026-10-19');assert.equal(result.events[0].time,'14:00');assert.equal(result.events[0].location,'Tistrup');
  assert.throws(()=>parsePulsen('<h1>Changed markup</h1>'));
- assert.deepEqual(parsePulsen('<div class="city-events-grid"></div>'+story),{items:[],events:[]});
- assert.equal(parsePulsen(event).events.length,1);
  const service=createNewsService({source:{id:'pulsen',name:'Pulsen i Vest',url:'https://pulsenivest.dk/by/tistrup'},parser:parsePulsen,fetcher:async()=>new Response(story+event,{headers:{'Content-Type':'text/html'}})});
- const bucket=localR2(),data=await service(bucket);assert.equal(data.events.length,1);assert.ok(await bucket.get('calendar-sources/pulsen-v2.json'));
+ const bucket=localR2(),data=await service(bucket);assert.equal(data.events.length,1);assert.ok(await bucket.get('news/pulsen-v1.json'));
 });
 test('syndicated long headlines retain both source links while generic short titles stay separate',()=>{
  const title='Fælles arbejdsdag i Tistrup Anlæg på søndag';
@@ -103,16 +101,13 @@ test('real posts share a canonical event and print history; sandbox remains sepa
  assert.equal((await f.guest.call('/posts/'+saved.id)).status,404);
  await f.admin.login();await ok(await f.admin.call('/admin/posts/'+saved.id,{action:'approve',revision:1}));
  let events=(await ok(await f.guest.call('/events'))).events;
- assert.equal(events.length,1);assert.equal(events[0].id,saved.id);assert.equal(events[0].printRequested,true);assert.equal(events[0].image,p.post.image);
+ assert.equal(events.length,1);assert.equal(events[0].id,saved.id);assert.equal(events[0].printRequested,true);
  assert.equal((await ok(await f.guest.call('/posts/'+saved.id))).post.body,p.post.body);
  assert.equal((await ok(await f.guest.call('/experiment/posts'))).posts.length,0);
  assert.equal((await snapshot(f.env,{start:p.post.date,end:p.post.date,deadline:copenhagenDate()})).events.length,1);
  const row=await f.DB.prepare('SELECT revision FROM events WHERE id=?').bind(saved.id).first();
  await ok(await f.admin.call('/member/events/'+saved.id,{action:'update',revision:row.revision,event:{...events[0],title:'Rettet i kalenderen'}}));
  const publicPost=(await ok(await f.guest.call('/posts'))).posts[0];assert.equal(publicPost.title,'Rettet i kalenderen');assert.equal(publicPost.body,p.post.body);assert.equal(publicPost.printRequested,true);
- const current=(await ok(await f.admin.call('/admin/events'))).events.find(e=>e.id===saved.id);
- await ok(await f.admin.call('/member/events/'+saved.id,{action:'update',revision:current.revision,event:{...current.data,printRequested:false}}));
- assert.equal((await ok(await f.guest.call('/events'))).events[0].printRequested,false);
  await ok(await f.admin.call('/admin/posts/'+saved.id,{action:'withdraw',revision:2}));
  assert.equal((await ok(await f.guest.call('/posts'))).posts.length,0);assert.equal((await ok(await f.guest.call('/events'))).events[0].state,'cancelled');
 });
@@ -136,7 +131,7 @@ test('real guest receipt keeps its secret in the fragment and follows approval i
  assert.equal((await f.guest.call(path,undefined,{Authorization:'Bearer '+token()})).status,404);
  let status=await ok(await f.guest.call(path,undefined,headers));assert.equal(status.post.status,'pending');assert.equal(status.post.hasEvent,false);
  const mail=(await ok(await f.guest.call('/local-mail'))).messages.find(m=>m.recipient===p.email&&m.subject.startsWith('Modtaget:'));
- const url=new URL(mail.body.match(/https?:\/\/[^\s]+/)[0]);assert.equal(url.pathname,'/kalender.html');assert.equal(url.searchParams.get('indsendelse'),saved.id);assert.equal(url.searchParams.has('adgang'),false);assert.equal(url.hash,'#adgang='+p.authorToken);
+ const url=new URL(mail.body.match(/https?:\/\/[^\s]+/)[0]);assert.equal(url.searchParams.get('privat'),saved.id);assert.equal(url.searchParams.has('adgang'),false);assert.equal(url.hash,'#adgang='+p.authorToken);
  assert.ok(!JSON.stringify(status).includes(p.authorToken));
  await f.admin.login();await ok(await f.admin.call('/admin/posts/'+saved.id,{action:'approve',revision:1}));
  status=await ok(await f.guest.call(path,undefined,headers));assert.equal(status.post.status,'approved');assert.equal(status.post.hasEvent,true);
@@ -150,16 +145,3 @@ test('real guest receipt keeps its secret in the fragment and follows approval i
  const cancellations=await ok(await f.admin.call('/admin/events'));await ok(await f.admin.call('/admin/events/'+saved.id,{action:'approve',revision:cancellations.events.find(e=>e.id===saved.id).revision}));
  assert.equal((await ok(await f.guest.call('/posts/'+saved.id))).post.state,'cancelled');
 });
-
- test('calendar sources group matching dated occurrences but preserve other dates, generic titles and source links',()=>{
- const event={title:'Fælles arbejdsdag i Tistrup Anlæg på søndag',date:'2026-10-25',time:'10:00'};
- const first={...event,sourceId:'a',sourceName:'Kilde A',url:'https://example.test/a'},second={...event,sourceId:'b',sourceName:'Kilde B',url:'https://example.test/b'};
- const result=groupCalendarSources([first,second,{...second,date:'2026-11-01'},{...first,title:'Banko'},{...second,title:'Banko!'},{...first,title:'Gudstjeneste',time:''},{...second,title:'Gudstjeneste',time:''}]);
- assert.equal(result.length,5);assert.equal(result[0].sources.length,2);assert.equal(result[0].sources[1].url,second.url);assert.equal(first.sources,undefined);
- assert.equal(result.find(e=>e.title==='Banko').sources.length,2);
- const church=groupCalendarSources([{...first,title:'Gudstjeneste i Hodde Kirke'},{...second,title:'Gudstjeneste i Hodde kirke v/ Lars Bom Nielsen'},{...second,title:'Gudstjeneste i Tistrup Kirke'}]);
- assert.equal(church.length,2);assert.equal(church[0].sources.length,2);assert.equal(result.filter(e=>e.title==='Gudstjeneste').length,2);
- const own=[{title:'Banko i hallen',date:'2026-10-25',time:'10:00'}];
- assert.equal(withoutOwnDuplicates([{title:'Fælles arbejdsdag i Tistrup Anlæg',date:'2026-10-25',time:'10:00'}],[first]).length,0);
- assert.equal(withoutOwnDuplicates(own,[{...first,title:'Banko'}]).length,1);assert.equal(withoutOwnDuplicates(own,[{...first,date:'2026-10-26'}]).length,1);
- });

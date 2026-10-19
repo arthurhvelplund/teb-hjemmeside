@@ -32,6 +32,3 @@ for (const row of catalog.associations) {
   added++;
 }
 console.log(`Tilføjede ${added} foreninger og fællesskaber. ${catalog.associations.length - added} fandtes allerede og er bevaret. Ingen eksterne mails sendes.`);
-// Pilot setup reuses this authenticated local client instead of requesting a
-// second OTP and consuming the user's login allowance during one setup run.
-export { call };

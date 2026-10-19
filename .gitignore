@@ -48,3 +48,6 @@ skills-lock.json
 
 # Lokale Worker-variabler
 .dev.vars
+
+# Lokal agentkonfiguration
+.grok/
