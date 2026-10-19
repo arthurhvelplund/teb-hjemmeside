@@ -1,12 +1,12 @@
 # Samlet status for TEB hjemmesiden
 
 Opdateret 19. oktober 2026. Dette er projektets fælles status og afleveringssted.
-Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Én anden hovedtråd arbejder fortsat.
+Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsområdet bygges fortsat. Kalenderens visuelle udtryk afventer brugerens designvalg.
 
 ## Det fælles arbejdssted
 
 - Aktiv kode: `/Users/marinushvelplund/Projects/teb-kalender-faerdig`.
-- Integrationsgren: `local/teb-pilot-ready`. Den skal gemmes på GitHub som arbejdsgren.
+- Integrationsgren: `local/teb-pilot-ready`. Den gemmes på GitHub som arbejdsgren, adskilt fra produktionens `main`.
 - Web og backend: `site/` og `calendar-worker/`.
 - Denne status: `docs/STATUS.md`. Maskinlæsbar optælling: `docs/status/inventory.json`.
 - Lokal pilot og gennemgang: [PILOT_KLAR.md](PILOT_KLAR.md). Drift: [PORTAL_DRIFT.md](PORTAL_DRIFT.md).
@@ -19,8 +19,8 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Område | Status |
 | --- | --- |
 | Det sker | Medielinks med billeder og Facebook. Gemte commits `ffc8e74` og `ec33f28`. |
-| Kalender | Nyt uge/månedsoverblik, kommende arrangementer, kildesammenlægning og billeder. Samles og kontrolleres i denne gennemgang. |
-| Opret arrangement | Den nye fælles pop-up fra Desktop skal integreres med den nye kalender i Projects. |
+| Kalender | Nyt uge/månedsoverblik, kommende arrangementer, kildesammenlægning og billeder gemt i `ce5272b`. Teknisk samlet. Visuelt design afventer nyt valg. |
+| Opret arrangement | Fælles pop-up, billedupload og kalender/print-preview er integreret med den nye kalender i `313eac2`. |
 | Foreninger | 24 importerede udkast, 18 med billede/logo. Kompakt oversigt gemt i `6ea99c2`. |
 | Login og adgang | Lokal mailkode, profil og adgangsstyring samlet i pilotens `4209e48`. Ingen rigtig mail. |
 | Foreningsprofil og ejerens side | Aktiv tråd bygger ny profil, egne nyheder og samlet redaktion. Afventer commit og slutkontrol. |
@@ -29,6 +29,8 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 
 ## Tråde
 
+Rækkerne beskriver både færdige og stadig åbne tråde. De otte undertråde er historiske.
+
 T3-status fortæller, om en kørsel er afsluttet. Den betyder ikke i sig selv, at kode er testet, committet eller udgivet.
 `settled` betyder, at tråden er flyttet ud af den aktive liste.
 
@@ -36,8 +38,8 @@ T3-status fortæller, om en kørsel er afsluttet. Den betyder ikke i sig selv, a
 | --- | --- | --- |
 | [Samlet status over tråde og worktrees](t3-thread://v1/3846890d-c6d1-4a6b-884d-a742be850123) | running | Denne samling og status. |
 | [Foreningsside og ejerens startvisning](t3-thread://v1/103b95cc-5ffc-40b4-8120-27115e9ce1da) | running | Arbejder på offentlig profil, ejerens startside, nyhedsredigering og fælles TEB-redaktion i Projects-kopien. Slutleverance afventer. |
-| [Redesign kalender og fysisk kalender](t3-thread://v1/5e4e6bd7-5f88-44bd-875a-677f22ae3794) | completed | Ny uge/månedskalender, kommende arrangementer og billeder. Færdig kode i Projects, endnu ikke committet ved første aflæsning. Rapporterede tests 72 backend, 8 kalender og 28 portal. |
-| [Tilføj arrangementer med kalenderpreview](t3-thread://v1/3516ed04-6e1a-4d3d-8976-a6941ace66e6) | completed | Færdig pop-up med formular, kalender/print-preview og billed-upload. Ligger i Desktop, skal samles med Projects-versionen. |
+| [Redesign kalender og fysisk kalender](t3-thread://v1/5e4e6bd7-5f88-44bd-875a-677f22ae3794) | completed | Kalender gemt i `ce5272b`, popup samlet i `313eac2`. Nyt designønske kl. 22.20. Tre stilforslag præsenteret. Afventer brugerens valg og stillingtagen til Halloween-temaet. |
+| [Tilføj arrangementer med kalenderpreview](t3-thread://v1/3516ed04-6e1a-4d3d-8976-a6941ace66e6) | completed | Færdig pop-up med formular, kalender/print-preview og billed-upload. Samlet med Projects i `313eac2`. 32 portalforløb består. |
 | [Kortlæg kalenderarbejde og status](t3-thread://v1/2e5d2bcf-9fee-4798-9496-6bf262a3eda3) | completed, settled | Samlet pilot i Projects, commit 4209e48. Seneste kompakte foreningsoversigt 6ea99c2. Ældre statusvisning i output/status er afløst af denne status. |
 | [Saml Det sker her med billeder](t3-thread://v1/cdba8b01-0d2e-4997-846d-dfb6b61296d7) | completed, settled | Det sker som medielinks og Facebook. Gemte commits ffc8e74 og ec33f28 i Projects. |
 | [Importer Foreninger](t3-thread://v1/01060cc4-789f-44b3-92b8-29f30ef1cef2) | completed, settled | 24 foreningsudkast, 18 med billeder/logoer. Kode/import er gemt i den samlede pilot. Indhold skal godkendes før lancering. |
@@ -69,7 +71,7 @@ T3-status fortæller, om en kørsel er afsluttet. Den betyder ikke i sig selv, a
 | t3-2aec174b, t3/association-calendar-portal | `3a210ba` | Ren. Tidlig kalenderleverance. Senere versioner er integreret i hovedhistorikken. |
 | t3-70b4d892, t3/implement-association-portal | `c20fbdd` | Ren. Tidlig portal. Senere versioner er integreret i hovedhistorikken. |
 | t3-8a1ddbcd, t3/review-teb-portal | `03478b2` | Ren. Historisk reviewgrundlag. |
-| t3-a3174bf9, t3/calendar-worker-backend | `1ce68e0` | Printleverancen er indarbejdet i pilot. Lokale renderinger i output bevares. |
+| t3-a3174bf9, t3/calendar-worker-backend | `1ce68e0` | Printleverancen er indarbejdet i pilot. Udkast/PDF-renderinger er gemt i `64a7710`. |
 | t3-bdf217c0, t3/review-association-retries | `f2a72ef` | Ren. Historisk reviewgrundlag. |
 
 Worktrees ligger under `/Users/marinushvelplund/.t3/worktrees/TEB-hjemmeside/`.
@@ -88,7 +90,7 @@ Printleverancen er samlet som indhold i `4209e48`, ikke som en blind merge af de
 
 ## Før offentlig lancering
 
-1. Afslut og gennemgå den aktive foreningsleverance.
+1. Afslut og gennemgå den aktive foreningsleverance, og vælg kalenderens visuelle retning.
 2. Gennemgå foreningsoplysninger, billedbrug og indhold med TEB.
 3. Afprøv brugerforløbene med to eller tre foreninger.
 4. Opsæt og test særskilt staging, rigtig mail, backup og gendannelse efter `PORTAL_DRIFT.md`.
@@ -101,9 +103,47 @@ Gemte delingsønsker bestiller ikke noget hos andre.
 
 Den tråd, der afslutter en leverance, opdaterer dens række ovenfor og tilføjer commit, testresultat og eventuelle udeståender nedenfor.
 Commit kun den pågældende leverances filer. Bevar andre trådes ændringer.
+Forenings- og kalendertråden har begge modtaget besked om dette afleveringssted.
+Foreningstråden har desuden en kølagt opfølgning efter den igangværende kørsel.
 Gem på integrationsgrenen og push den efter kontrol, så den fælles kopi også findes på GitHub.
 
 ## Samlingens commits og kontrol
 
-Samlingen er i gang. Endelige commits og testresultater tilføjes inden aflevering.
+| Commit | Leverance |
+| --- | --- |
+| `4209e48` | Tidligere samling af portal, print og lokal pilot. |
+| `6ea99c2` | Kompakt foreningsoversigt. |
+| `ce5272b` | Ny kalender, arrangementskort, billeder og kildesammenlægning. |
+| `313eac2` | Fælles arrangementspop-up, billedupload og integration med kalender/forening. |
+| `d4f2573` | Fælles status, afleveringsregler og reviewartefakter. |
+| `64a7710` | Historiske printudkast og PDF-eksempler på backendgrenen. |
+
+Kontrolleret i denne samling: 74 backendtests, 32 portalforløb, 8 kalenderforløb,
+fælles layout på 15 sider, gentagen pilotopsætning og Worker-build med `--dry-run`.
+Browserforløbene bruger isolerede testdatabaser og sender ingen rigtig mail.
+Resultaterne gælder den færdige kalender/popup ved `313eac2`.
+Foreningstrådens nye leverance kræver sin egen slutkontrol.
+
+## Lokale data og previews
+
+| Placering eller port | Observeret tilstand |
+| --- | --- |
+| Projects, `.wrangler/local-pilot/calendar.sqlite` | 25 foreninger inklusive øveforeningen, 0 egne arrangementer, 0 opslag, 0 PDF-udgaver. Importerede kilder ligger i cache og er ikke med i arrangementstællingen. |
+| Desktop, `.wrangler/local-portal/calendar.sqlite` | 25 foreninger, 9 arrangementer, 0 opslag og 1 PDF-udgave. Bevares separat. |
+| Desktop, `.wrangler/event-composer-preview/calendar.sqlite` | 1 forening, 12 prøvearrangementer. |
+| Port 8787 | HTTP 200 på lokal config. Server fra Projects. |
+| Port 8797 | HTTP 200 på lokal config. Separat kalendertest fra Projects. |
+| Port 8789 | HTTP 200 på lokal config. Popup-preview fra Desktop. |
+| Port 8792 | Statisk foreningsprototype fra Desktop. |
+
+En kørende Node-server indlæser backendmoduler ved opstart. Filer på disken og
+allerede startede previewservere kan derfor vise forskellige backendversioner.
+Servere og deres databaser er bevaret. Ved næste samlet preview bruges Projects
+og en kontrolleret genstart, efter de aktive ændringer er klar.
+
+Offentlige `/kalender`, `/nyt` og `/api/kalender/config` svarede HTTP 403 på
+HTTP-læsning i denne samling. Der udledes ingen ny produktionsstatus af det.
+Produktionsworkflowet deployer ved relevante push til `main`; denne samling
+pusher arbejds- og arkivgrene og udfører ingen deploy.
+
 

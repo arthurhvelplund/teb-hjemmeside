@@ -1,7 +1,8 @@
 {
-  "capturedAt": "2026-10-19T20:18:04.167Z",
-  "scope": "TEB-hjemmeside T3 project",
+  "capturedAt": "2026-10-19T20:24:32.090Z",
   "currentThreadId": "3846890d-c6d1-4a6b-884d-a742be850123",
+  "canonicalRoot": "/Users/marinushvelplund/Projects/teb-kalender-faerdig",
+  "canonicalBranch": "local/teb-pilot-ready",
   "threads": [
     {
       "threadId": "3846890d-c6d1-4a6b-884d-a742be850123",
@@ -12,7 +13,7 @@
       "parentThreadId": null,
       "branch": "tistrup-kalender",
       "worktreePath": null,
-      "updatedAt": "2026-10-19T20:15:56.110Z",
+      "updatedAt": "2026-10-19T20:24:32.007Z",
       "pendingRequestCount": 0
     },
     {
@@ -24,19 +25,19 @@
       "parentThreadId": null,
       "branch": "tistrup-kalender",
       "worktreePath": null,
-      "updatedAt": "2026-10-19T20:15:28.341Z",
+      "updatedAt": "2026-10-19T20:24:31.337Z",
       "pendingRequestCount": 0
     },
     {
       "threadId": "5e4e6bd7-5f88-44bd-875a-677f22ae3794",
       "title": "Redesign kalender og fysisk kalender",
-      "status": "completed",
+      "status": "running",
       "settled": false,
       "relationshipToParent": null,
       "parentThreadId": null,
       "branch": "tistrup-kalender",
       "worktreePath": null,
-      "updatedAt": "2026-10-19T20:04:50.526Z",
+      "updatedAt": "2026-10-19T20:24:22.207Z",
       "pendingRequestCount": 0
     },
     {
@@ -303,5 +304,6 @@
       "updatedAt": "2026-08-17T19:37:57.893Z",
       "pendingRequestCount": 0
     }
-  ]
+  ],
+  "meaning": "Runtime snapshot only. Product status, delivery commits and open work are maintained in docs/STATUS.md."
 }
