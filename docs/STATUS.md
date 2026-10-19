@@ -36,8 +36,8 @@ T3-status fortæller, om en kørsel er afsluttet. Den betyder ikke i sig selv, a
 
 | Tråd | Kørsel ved aflæsning | Leverance |
 | --- | --- | --- |
-| [Samlet status over tråde og worktrees](t3-thread://v1/3846890d-c6d1-4a6b-884d-a742be850123) | running | Denne samling og status. |
-| [Foreningsside og ejerens startvisning](t3-thread://v1/103b95cc-5ffc-40b4-8120-27115e9ce1da) | running | Leveret i `53cc3c0`: offentlig profil, ejerens startside, nyheder og fælles redaktion. 81 backendtests, 42 portalforløb og 8 kalenderforløb består. Ingen deploy. |
+| [Samlet status over tråde og worktrees](t3-thread://v1/3846890d-c6d1-4a6b-884d-a742be850123) | running | Samlingen er afleveret på GitHub. Alle færdige leverancer og syv arkivgrene er bevaret. |
+| [Foreningsside og ejerens startvisning](t3-thread://v1/103b95cc-5ffc-40b4-8120-27115e9ce1da) | completed | Leveret i `53cc3c0`: offentlig profil, ejerens startside, nyheder og fælles redaktion. 81 backendtests, 42 portalforløb og 8 kalenderforløb består. Ingen deploy. |
 | [Redesign kalender og fysisk kalender](t3-thread://v1/5e4e6bd7-5f88-44bd-875a-677f22ae3794) | completed | Kalender gemt i `ce5272b`, popup samlet i `313eac2`. Nyt designønske kl. 22.20. Tre stilforslag præsenteret. Afventer brugerens valg og stillingtagen til Halloween-temaet. |
 | [Tilføj arrangementer med kalenderpreview](t3-thread://v1/3516ed04-6e1a-4d3d-8976-a6941ace66e6) | completed | Færdig pop-up med formular, kalender/print-preview og billed-upload. Samlet med Projects i `313eac2`. 32 portalforløb består. |
 | [Kortlæg kalenderarbejde og status](t3-thread://v1/2e5d2bcf-9fee-4798-9496-6bf262a3eda3) | completed, settled | Samlet pilot i Projects, commit 4209e48. Seneste kompakte foreningsoversigt 6ea99c2. Ældre statusvisning i output/status er afløst af denne status. |
@@ -104,7 +104,7 @@ Gemte delingsønsker bestiller ikke noget hos andre.
 Den tråd, der afslutter en leverance, opdaterer dens række ovenfor og tilføjer commit, testresultat og eventuelle udeståender nedenfor.
 Commit kun den pågældende leverances filer. Bevar andre trådes ændringer.
 Forenings- og kalendertråden har begge modtaget besked om dette afleveringssted.
-Foreningstrådens leverance er afleveret. Dens kølagte opfølgning kontrollerer kun den fælles registrering.
+Foreningstrådens leverance og opfølgning er afsluttet og registreret.
 Gem på integrationsgrenen og push den efter kontrol, så den fælles kopi også findes på GitHub.
 
 ## Samlingens commits og kontrol

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-19T20:36:19.475Z",
+  "capturedAt": "2026-10-19T20:38:33.076663+00:00",
   "meaning": "Runtime snapshot only. Product status and completed deliveries are maintained in docs/STATUS.md.",
   "canonicalRoot": "/Users/marinushvelplund/Projects/teb-kalender-faerdig",
   "canonicalBranch": "local/teb-pilot-ready",
@@ -14,19 +14,19 @@
       "parentThreadId": null,
       "branch": "tistrup-kalender",
       "worktreePath": null,
-      "updatedAt": "2026-10-19T20:36:04.648Z",
+      "updatedAt": "2026-10-19T20:38:32.320Z",
       "pendingRequestCount": 0
     },
     {
       "threadId": "103b95cc-5ffc-40b4-8120-27115e9ce1da",
       "title": "Foreningsside og ejerens startvisning",
-      "status": "starting",
+      "status": "completed",
       "settled": false,
       "relationshipToParent": null,
       "parentThreadId": null,
       "branch": "tistrup-kalender",
       "worktreePath": null,
-      "updatedAt": "2026-10-19T20:34:51.187Z",
+      "updatedAt": "2026-10-19T20:37:45.311Z",
       "pendingRequestCount": 0
     },
     {
