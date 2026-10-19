@@ -8,17 +8,17 @@ const origin='http://localhost:8787';
 let newsFetches=0;
 const mf=new Miniflare(convertV4MiniflareOptions({name:'calendar',scriptPath:resolve('.wrangler/build/worker.js'),modules:true,compatibilityDate:'2026-09-04',compatibilityFlags:['nodejs_compat'],
  outboundService:async request=>{
-  assert.equal(request.url,'https://tistrupnyt.dk/');newsFetches++;
-  return new Response('<a class="event frontpage" href="https://tistrupnyt.dk/id/2448700/cykelmotion"><img src="https://ruban.nu/foto/b/cykelmotion.avif"><h1>Tistrup Cykelmotion &amp; fællesskab</h1><h2>Der køres tirsdag</h2></a>',{headers:{'Content-Type':'text/html'}});
+  assert.equal(request.url,'https://tistrupnyt.dk/menu/kalender/lokal');newsFetches++;
+  return new Response('<div class="newslinkmonthsepdark">oktober 2026</div><div class="newslinkmonthsep">tirsdag 20. oktober</div><a class="newslink" href="https://tistrupnyt.dk/cid/2448700/cykelmotion"><div class="listtitle"><b>16:30</b> Tistrup Cykelmotion &amp; fællesskab</div></a>',{headers:{'Content-Type':'text/html'}});
  },
  d1Databases:['DB'],r2Buckets:['PDFS'],bindings:{PUBLIC_ORIGIN:origin,LOCAL_PREVIEW:'true',MAIL_ENCRYPTION_KEY:token(),EDITOR_EMAIL:'admin@example.test',EMAIL_FROM:'sender@example.test',TEB_ADMIN_EMAILS:'admin@example.test'},
  serviceBindings:{ASSETS:async request=>new Response(await readFile(new URL('../assets'+new URL(request.url).pathname,import.meta.url)))} }));
 try{
- const newsUrl=origin+'/api/kalender/nyheder/tistrup-nyt';
+ const newsUrl=origin+'/api/kalender/kilder/tistrup-nyt';
  const news=await (await mf.dispatchFetch(newsUrl)).json();
- assert.equal(news.items.length,1);assert.equal(news.items[0].title,'Tistrup Cykelmotion & fællesskab');assert.equal(news.stale,false);
+ assert.equal(news.items.length,0);assert.equal(news.events.length,1);assert.equal(news.events[0].date,'2026-10-20');assert.equal(news.events[0].title,'Tistrup Cykelmotion & fællesskab');assert.equal(news.stale,false);
  await mf.dispatchFetch(newsUrl);assert.equal(newsFetches,1);
- assert.ok(await (await mf.getR2Bucket('PDFS')).get('news/tistrup-nyt-v1.json'));
+ assert.ok(await (await mf.getR2Bucket('PDFS')).get('calendar-sources/tistrup-nyt-v2.json'));
  const db=await mf.getD1Database('DB');
  // db.exec deliberately splits at newlines, so execute whole migration scripts
  // as prepared statements, using the same SQLite parser as the D1 local engine.

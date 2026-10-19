@@ -1,6 +1,8 @@
 import {api, getSession, randomToken, requestKey, today, dateText, showMessage, showMode, busy} from './portal-api.js';
 
-import {calendarGrid} from './calendar-grid.js';
+import {calendarGrid, calendarBounds} from './calendar-grid.js';
+import {groupCalendarSources} from './feed-data.js';
+import {loadEarlierSubmission} from './kalender-opslag.js';
 
 // Identity, publication and revisions always come from the Worker.
 const $ = selector => document.querySelector(selector);
@@ -27,12 +29,6 @@ const validDate = value => /^\d{4}-\d{2}-\d{2}$/.test(value || '') && Number.isF
 const asDate = value => new Date(value + 'T12:00:00Z');
 const iso = value => value.toISOString().slice(0, 10);
 function shiftDate(value, days) { const d = asDate(value); d.setUTCDate(d.getUTCDate() + days); return iso(d); }
-function monday(value) { return shiftDate(value, -(asDate(value).getUTCDay() + 6) % 7); }
-function monthBounds(value) {
-  const d = asDate(value); d.setUTCDate(1); const start = iso(d);
-  d.setUTCMonth(d.getUTCMonth() + 1); d.setUTCDate(0);
-  return {from: start, to: iso(d)};
-}
 function safeURL(value) {
   try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.href : null; } catch { return null; }
 }
@@ -74,6 +70,8 @@ function eventCard(event, {detail = false, preview = false} = {}) {
     node('p', {class: 'cal-when'}, when(event)), node('p', {}, event.location || 'Sted'),
     node('p', {class: 'cal-organizer'}, event.association || 'Arrangør'));
   if (detail || preview) {
+    if(event.image && safeURL(event.image)) article.append(node('img',{src:event.image,alt:'',class:'cal-detail-image',referrerPolicy:'no-referrer'}));
+    if(event.body) article.append(node('p',{class:'cal-description'},event.body));
     if (event.description) article.append(node('p', {class: 'cal-description'}, event.description));
     if (event.price) article.append(node('p', {}, 'Pris: ' + event.price));
     const link = safeURL(event.link);
@@ -121,27 +119,52 @@ function downloadICS(event) {
 }
 
 let currentDate = validDate(query.get('dato')) ? query.get('dato') : today();
-let view = query.get('vis') === 'uge' ? 'week' : 'month';
+let view = query.get('vis') === 'maaned' ? 'month' : 'week';
+let importedEvents = [], search = '', sourceMessages = {};
 let events = [], calendarRequest = 0, calendarLoaded = false, lastPeriod = '';
 let workspaceRefresh = null;
-function period() {
-  if (view === 'week') { const from = monday(currentDate); return {from, to: shiftDate(from, 6), loadFrom: from, loadTo: shiftDate(from, 6)}; }
-  const bounds = monthBounds(currentDate);
-  return {...bounds, loadFrom: monday(bounds.from), loadTo: shiftDate(monday(bounds.to), 6)};
-}
+function period() { return calendarBounds(currentDate, view, {rolling:true}); }
 function periodLabel(bounds) {
-  return view === 'month' ? dateText(bounds.from, {day: undefined, month: 'long', year: 'numeric'}) : dateText(bounds.from) + ' til ' + dateText(bounds.to);
+  if(view==='month')return dateText(bounds.from,{day:undefined,month:'long',year:'numeric'});
+  const short=day=>dateText(day,{month:'short',year:undefined});
+  return bounds.from.slice(0,7)===bounds.to.slice(0,7)?Number(bounds.from.slice(-2))+'.–'+short(bounds.to):short(bounds.from)+' – '+short(bounds.to);
 }
 const overlaps = (event, from, to = from) => event.date <= to && (event.endDate || event.date) >= from;
 function renderCalendar(bounds) {
  const root=$('#calendar-events');
- root.replaceChildren(calendarGrid({events,bounds,mode:view,eventHref:event=>eventPath(event.id)}));
- if(!events.some(event=>overlaps(event,bounds.from,bounds.to)))root.append(note('Ingen arrangementer i perioden. Vælg en anden periode, eller tilføj jeres arrangement.'));
+ const visible = [...events,...groupCalendarSources(importedEvents)].sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')||a.title.localeCompare(b.title,'da')).filter(e=>!search || [e.title,e.description,e.location,e.association,e.sourceName].filter(Boolean).join(' ').toLocaleLowerCase('da').includes(search));
+ root.replaceChildren(calendarGrid({events:visible,bounds,mode:view,eventHref:event=>event.sourceId?event.url:eventPath(event.id),onOpen:event=>event.sourceId?openImported(event):location.assign(eventPath(event.id))}));
+ document.querySelector('.calendar-scroll-hint').hidden=view==='week';
+ if(!visible.some(event=>overlaps(event,bounds.from,bounds.to)))root.append(note('Ingen arrangementer i perioden. Vælg en anden periode, eller tilføj jeres arrangement.'));
+}
+async function loadSources() {
+ const ids=['tistrup-nyt','pulsen'], names=['Tistrup Nyt','Pulsen i Vest'];
+ const results=await Promise.allSettled(ids.map(id=>api('/kilder/'+id)));
+ const next=[];
+ for(let i=0;i<ids.length;i++){
+  const id=ids[i], name=names[i], result=results[i];
+  if(result.status==='fulfilled'){
+   next.push(...(result.value.events||[]).filter(e=>validDate(e.date)&&safeURL(e.url)).map(e=>({...e,sourceId:id,sourceName:name})));
+   sourceMessages[id]=name+(result.value.stale?': viser senest hentede arrangementer.':': opdateret.');
+  }else{
+   next.push(...importedEvents.filter(e=>e.sourceId===id));
+   sourceMessages[id]=name+': kunne ikke opdateres. Besøg kilden eller prøv Opdatér.';
+  }
+ }
+ importedEvents=next;
+ $('#calendar-source-status').textContent=Object.values(sourceMessages).join(' ');
+}
+function openImported(event){
+ const dialog=node('dialog',{class:'ds-dialog','aria-label':event.title});
+ const close=button('Luk ×',()=>dialog.close());
+ close.className='ds-close';
+ dialog.append(close,node('p',{class:'ds-meta'},event.sourceName),node('h2',{},event.title),node('p',{},when(event)),event.location?node('p',{},event.location):null,node('p',{},event.description||''),...(event.sources||[{name:event.sourceName,url:event.url}]).map(source=>node('p',{},node('a',{href:source.url,target:'_blank',rel:'noopener noreferrer'},'Se arrangementet hos '+source.name+' ↗'))));
+ if(event.image&&safeURL(event.image))dialog.insertBefore(node('img',{src:event.image,alt:'',referrerPolicy:'no-referrer'}),dialog.children[3]);
+ dialog.addEventListener('close',()=>dialog.remove());document.body.append(dialog);dialog.showModal();
 }
 async function loadCalendar({quiet = false} = {}) {
   const serial = ++calendarRequest, bounds = period(), key = bounds.loadFrom + bounds.loadTo;
   $('#calendar-period').textContent = periodLabel(bounds);
-  $('#calendar-date').value = currentDate;
   $('#calendar-month').setAttribute('aria-pressed', String(view === 'month'));
   $('#calendar-week').setAttribute('aria-pressed', String(view === 'week'));
   $('#calendar-events').setAttribute('aria-busy', 'true');
@@ -172,9 +195,9 @@ function setPeriodURL() {
 $('#calendar-prev').addEventListener('click', () => changePeriod(-1));
 $('#calendar-next').addEventListener('click', () => changePeriod(1));
 $('#calendar-today').addEventListener('click', () => { currentDate = today(); setPeriodURL(); loadCalendar(); });
-$('#calendar-date').addEventListener('change', event => { if (validDate(event.target.value)) { currentDate = event.target.value; setPeriodURL(); loadCalendar(); } });
+$('#calendar-search').addEventListener('input', event => { search=event.target.value.trim().toLocaleLowerCase('da'); renderCalendar(period()); });
 for (const mode of ['month', 'week']) $('#calendar-' + mode).addEventListener('click', () => { view = mode; setPeriodURL(); loadCalendar(); });
-$('#calendar-refresh').addEventListener('click', () => loadCalendar());
+$('#calendar-refresh').addEventListener('click', async () => { await Promise.allSettled([loadCalendar(),loadSources()]); renderCalendar(period()); });
 async function loadEditions() {
   const root = $('#calendar-editions');
   try {
@@ -255,12 +278,21 @@ function eventForm({data = {}, associations = [], selectedId = '', guest = false
     const trap = node('input', {type: 'text', name: 'website', id: 'event-website', tabIndex: -1, autoComplete: 'off'});
     form.append(node('div', {class: 'cal-honeypot', 'aria-hidden': 'true'}, node('label', {htmlFor: trap.id}, 'Lad dette felt være tomt'), trap));
   }
+  const printChoice=node('input',{type:'checkbox',id:'event-print',checked:data.printRequested===true});
+  const sharing=node('fieldset',{class:'cal-full-field cal-sharing'},node('legend',{},'Nå flere i byen'),node('label',{htmlFor:printChoice.id},printChoice,'Med på den analoge kalender'));
+  const channelChecks=[];
+  for(const [key,label] of [['flyers','Flyers i postkasser'],['portals','Analoge byportaler'],['screens','Infoskærme'],['posters','Plakater i byen']]){
+    const input=node('input',{type:'checkbox',id:'event-channel-'+key,value:key,checked:data.channels?.includes(key)});channelChecks.push(input);sharing.append(node('label',{htmlFor:input.id},input,label));
+  }
+  sharing.append(note('Ønskerne gemmes med arrangementet. Print kræver TEBs udvælgelse. Flyers, portaler, skærme og plakater aftaler I selv med udbyderen. Kontakter og link til Varde Kommunes byportal tilføjes, når TEB har dem.'));
+  form.append(sharing);
   const label = creating ? guest ? 'Send til TEBs godkendelse' : 'Udgiv arrangement' : guest ? 'Send rettelsen til TEB' : 'Gem og udgiv rettelsen';
   const submit = node('button', {type: 'submit', class: 'btn'}, label);
   const abort = onCancel ? button('Fortryd', onCancel) : null;
   form.append(node('div', {class: 'cal-full-field'}, note(guest ? 'TEB skal godkende indsendelsen. En eksisterende offentlig version bliver stående, indtil TEB godkender ændringen.' : 'Arrangementet offentliggøres med det samme for den valgte forening.'), message, node('div', {class: 'fp-actions'}, submit, abort)));
   function formData() {
     const event = Object.fromEntries(fields.map(([key]) => [key, inputs[key].value.trim()]));
+    event.printRequested=printChoice.checked; event.channels=channelChecks.filter(input=>input.checked).map(input=>input.value);
     if (associationId) event.associationId = associationId;
     return event;
   }
@@ -344,13 +376,14 @@ async function publicDetails(id) {
   }
   try {
     const {event} = await api('/events/' + encodeURIComponent(id));
+    if(event.postId){try{const {post}=await api('/posts/'+encodeURIComponent(event.postId));event.body=post.body;event.image=post.image;}catch{}}
     render(event);
     // Direct links must also work for historical events outside the visible range.
     if (!query.has('dato') && validDate(event.date)) { currentDate = event.date; await loadCalendar(); }
     workspaceRefresh = async () => {
       try {
         const {event: next} = await api('/events/' + encodeURIComponent(id));
-        if (JSON.stringify(next) !== JSON.stringify(current)) render(next);
+        if (JSON.stringify(next) !== JSON.stringify(current)) render({...next,...(current?.postId?{body:current.body,image:current.image}:{})});
       } catch { /* Keep the last detail; the calendar refresh reports connectivity errors. */ }
     };
   } catch (error) { retryWorkspace('Arrangementet kunne ikke hentes', error, () => publicDetails(id)); }
@@ -445,12 +478,14 @@ async function privateEvent(id) {
   };
   await refresh();
 }
+document.addEventListener('calendar-updated',()=>loadCalendar({quiet:true}));
 showMode();
-const route = query.has('privat') ? privateEvent(query.get('privat'))
+try { const session=await getSession(); if(session.authenticated) $('#calendar-login').textContent=session.user?.isAdmin?'TEB · administration →':'Mit foreningsområde →'; } catch {}
+const route = query.has('indsendelse') || query.has('opslag') || location.hash==='#godkendelse' ? loadEarlierSubmission() : query.has('privat') ? privateEvent(query.get('privat'))
   : query.has('ret') ? memberEdit(query.get('ret'))
   : query.get('opret') === '1' ? createEvent()
   : query.has('arrangement') ? publicDetails(query.get('arrangement')) : Promise.resolve();
-await Promise.allSettled([loadCalendar(), loadEditions(), route]);
+await Promise.allSettled([loadCalendar(), loadEditions(), route, loadSources().then(()=>renderCalendar(period()))]);
 if (!workspace.hidden) $('#workspace-heading')?.focus({preventScroll: true});
 
 // Refresh only visible pages, and never replace a form or a focused calendar link.
@@ -458,7 +493,7 @@ let lastRefresh = Date.now();
 async function periodicRefresh() {
   if (document.hidden || Date.now() - lastRefresh < 45000) return;
   lastRefresh = Date.now();
-  if (!$('#calendar-events').contains(document.activeElement)) await loadCalendar({quiet: true});
+  if (!$('#calendar-events').contains(document.activeElement)) { await Promise.allSettled([loadCalendar({quiet:true}),loadSources()]); renderCalendar(period()); }
   const focusedControl = workspace.contains(document.activeElement) && document.activeElement.matches('input, textarea, select, button, a, summary');
   if (workspaceRefresh && !focusedControl) await workspaceRefresh();
 }

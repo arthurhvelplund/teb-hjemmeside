@@ -34,7 +34,7 @@ function projectEvent(env,table,row,createdBy=null){
 // Both clients use the same validation and moderation. The legacy sandbox stays isolated.
 export async function handlePosts(request,env,auth,route,data,{legacy=false}={}){
  const table=legacy?'experiment_posts':'posts';
- const page=legacy?'nyt-eksperiment.html':'nyt.html';
+ const page=legacy?'nyt-eksperiment.html':'kalender.html';
  if(legacy)route=route.replace('/experiment/','/');
  if(legacy)ensure(local(env)&&loopback(request.url)&&loopback(env.PUBLIC_ORIGIN),404,'Forsøget er kun til lokal afprøvning.');
  const method=request.method;
@@ -95,7 +95,7 @@ export async function handlePosts(request,env,auth,route,data,{legacy=false}={})
   if(!member){
    for(const [suffix,to,subject,text] of [
     ['editor',env.EDITOR_EMAIL,'Opslag til godkendelse: '+post.title,`Et opslag afventer TEB.\n${post.title}\nOplyst afsender: ${post.author}\nTilknytningen er ikke verificeret.\nLog ind og gennemgå: ${env.PUBLIC_ORIGIN}/${page}#godkendelse`],
-    ['receipt',email,'Modtaget: '+post.title,`Dit opslag afventer TEBs godkendelse. Ingen ekstern deling er bestilt.\n${post.title}\n${legacy?env.PUBLIC_ORIGIN+'/'+page:env.PUBLIC_ORIGIN+'/nyt.html?privat='+id+'#adgang='+data.authorToken}\n${legacy?'':'Gem dit private link, og del det kun med dem, der må følge og rette indsendelsen.'}`]
+    ['receipt',email,'Modtaget: '+post.title,`Dit opslag afventer TEBs godkendelse. Ingen ekstern deling er bestilt.\n${post.title}\n${legacy?env.PUBLIC_ORIGIN+'/'+page:env.PUBLIC_ORIGIN+'/kalender.html?indsendelse='+id+'#adgang='+data.authorToken}\n${legacy?'':'Gem dit private link, og del det kun med dem, der må følge og rette indsendelsen.'}`]
    ])messages.push({key:`experiment:${id}:${suffix}`,statement:await mailStatement(env,{dedupe:`experiment:${id}:${suffix}`,to,subject,text,condition,args:[id]})});
   }
   const operations=[stmt(env,`INSERT OR IGNORE INTO ${table}(id,request_key,request_hash,owner_hash,contact_email,association_id,data_json,status,created_at,updated_at) SELECT ?,?,?,?,?,?,?,?,?,? WHERE ${member?g.sql:'1'}`,id,data.requestKey,signature,owner,email,data.associationId||null,JSON.stringify(post),status,stamp,stamp,...(member?g.args:[])),...(!legacy&&member?projectEvent(env,table,{id,request_hash:signature,owner_hash:owner,contact_email:email,association_id:data.associationId||null,data_json:JSON.stringify(post),created_at:stamp,updated_at:stamp,revision:1},auth.user.id):[]),...messages.map(m=>m.statement)];

@@ -62,6 +62,7 @@ try{
  const memberContext=await browser.newContext({baseURL:origin,viewport:{width:1440,height:1000}});
  const guestContext=await browser.newContext({baseURL:origin,viewport:{width:1440,height:1000}});
  const editorContext=await browser.newContext({baseURL:origin,viewport:{width:1440,height:1000}});
+ for(const context of [adminContext,memberContext,guestContext,editorContext]) await context.route('**/api/kalender/kilder/*',route=>route.fulfill({json:{items:[],events:[],stale:false,fetchedAt:new Date().toISOString()}}));
  const [admin,member,guest,editor]=await Promise.all([adminContext.newPage(),memberContext.newPage(),guestContext.newPage(),editorContext.newPage()]);
  pages.push(admin,member,guest,editor);for(const page of pages){page.setDefaultTimeout(20000);page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());}
  await login(admin,adminEmail,true);record('Two-step login, email correction, resend and wrong-code recovery use the real API');
@@ -109,7 +110,7 @@ try{
  record('Contact TEB opens the real contact form without submitting a message');
  await guest.goto('/kalender.html?opret=1');const guestForm=await mainForm(guest);
  await fill(guestForm,{title:'Gæstens integrationstest',association:'En gæsteforening',date,time:'18:00',location:'Eksempelhuset',description:'Gæsteindsendelsen skal først godkendes.',email:'gaest@example.org'});
- await guest.getByText('Gæstens integrationstest',{exact:true}).first().waitFor();await guest.waitForTimeout(1600);
+ await guest.getByText('Gæstens integrationstest',{exact:true}).first().waitFor();await guestForm.locator('#event-print').check();await guest.waitForTimeout(1600);
  const createdResponse=guest.waitForResponse(r=>new URL(r.url()).pathname==='/api/kalender/events'&&r.request().method()==='POST');
  await guestForm.locator('button[type="submit"]').click();const response=await createdResponse;assert.ok(response.ok());const result=await response.json();const payload=JSON.parse(response.request().postData());
  const receipt=(await json(guestContext,'/local-mail')).messages.find(message=>message.recipient==='gaest@example.org'&&message.body.includes('#adgang='));
@@ -126,6 +127,7 @@ try{
  await guest.getByRole('button',{name:/Ret oplysningerne/}).click();const editGuest=await mainForm(guest);await fill(editGuest,{time:'19:00'});await editGuest.locator('button[type="submit"]').click();
  await guest.getByText('Afventer TEBs godkendelse',{exact:false}).first().waitFor();assert.equal((await published(guestContext,result.id)).time,'18:00');record('Pending guest revision preserves public version');
  await member.goto('/kalender.html?opret=1&forening='+association.id);const memberForm=await mainForm(member);await fill(memberForm,{title:'Foreningens direkte arrangement',associationId:association.id,date,time:'17:00',location:'Eksempelhallen',description:'Udgivet med godkendt foreningsadgang.'});
+ await memberForm.locator('#event-print').check();
  const directResponse=member.waitForResponse(r=>new URL(r.url()).pathname==='/api/kalender/events'&&r.request().method()==='POST');await memberForm.locator('button[type="submit"]').click();const direct=await (await directResponse).json();
  assert.equal((await published(guestContext,direct.id)).title,'Foreningens direkte arrangement');record('Member publishes directly through the real API');
  await member.goto('/forening.html#arbejdsrum?forening='+association.id+'&fane=personer');const invite=member.locator('form[data-action="invite-member"]');await fill(invite,{name:'Ny redaktør',email:editorEmail});await invite.locator('button').click();await member.getByText('Invitationen er gemt.',{exact:false}).waitFor();

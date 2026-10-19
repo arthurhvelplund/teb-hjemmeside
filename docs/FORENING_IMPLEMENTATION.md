@@ -42,7 +42,9 @@ oprettelse, delbart eventlink, ICS, aflysningsmarkering, kalender/PDF fra samme
 offentliggjorte data. Gæsters kontaktmail vises aldrig offentligt.
 Delingsmuligheder vises ved oprettelse og efter indsendelse med ærlige kontakt-
 pladsholdere, hvor aftaler mangler. Ingen automatisk Facebook/Gmail/partnerimport.
-Det sker beholder eksisterende Facebook-embed + eksterne links. TEBs egne
+Det sker indeholder eksterne medielinks og det eksisterende Facebook-embed. Kalenderen
+ligger på Kalender og importerer kun kalenderbegivenheder fra Tistrup Nyt og
+Pulsen i Vest. Forsiden har også Facebook nederst. TEBs egne
 kalenderbokse flyttes til Kalender. Historiske PDF'er bevares i arkivet.
 
 ## API-aftale

@@ -95,3 +95,5 @@
 .cal-archive{display:none}
 }
 .cal-toolbar .btn::after{content:none}
+
+.cal-sharing label{display:flex;align-items:flex-start;gap:.7rem;margin:.7rem 0;font-size:.9rem}.cal-sharing input[type=checkbox]{width:18px;min-width:18px;height:18px;margin-top:.2rem}.cal-sharing{border:1px solid var(--line);border-radius:6px;padding:1rem}.cal-detail-image{width:100%;max-height:350px;object-fit:cover;border-radius:6px}

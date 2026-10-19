@@ -85,13 +85,14 @@ vurderes særskilt, fordi den kan fjerne ændringer modtaget efter backupen.
 - Hold øje med fejl i mailafsendelse og ubehandlede indsendelser.
 
 Der bygges ikke automatisk Gmail-import, opslag hos medier eller Facebook-
-publicering. Det sker viser kalenderen, lokale opslag og importerede kort fra
-Tistrup Nyt og Pulsen i Vest. TEBs eget Facebook-feed ligger på forsiden.
+publicering. Kalender viser foreningernes arrangementer og importerede kalenderbegivenheder
+fra Tistrup Nyt og Pulsen i Vest. Det sker har eksterne medielinks og Facebook.
+TEBs eget Facebook-feed ligger også nederst på forsiden. Nyhedsartikler importeres ikke.
 
 ## Kontrol af den integrerede lokale version
 
-Valideret 19. oktober 2026: 67 backendtests, HTTP-integration, lokal
-Cloudflare-runtime med D1/R2, 28 portalforløb og 7 Det sker-forløb. Den nye
+Valideret 19. oktober 2026: 70 backendtests, HTTP-integration, lokal
+Cloudflare-runtime med D1/R2, 28 portalforløb og 8 forløb for sideflytning og kildeimport. Den nye
 pilotopsætning er desuden afprøvet to gange uden dubletter, ekstra invitationer
 eller fiktive offentlige arrangementer. Browserkontrollen omfatter
 faktiske kvitteringslinks, genforsøg efter mistede, afkortede og ufuldstændige

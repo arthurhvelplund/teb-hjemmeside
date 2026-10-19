@@ -243,7 +243,7 @@ async function memberPage(a, canManage, isAdmin = false) {
 async function adminPage(r) {
   const tab = r.params.get('fane') || 'afventer';
   const tabs = [['afventer', 'Afventer godkendelse'], ['arrangementer', 'Alle arrangementer'], ['adgang', 'Adgangsanmodninger'], ['foreninger', 'Foreninger og ansvarlige'], ['print', 'Printudgaver']];
-  const top = heading('TEBs arbejdsområde') + `<nav class="fp-tabs" aria-label="TEB administration">${tabs.map(([key, label]) => `<a href="${esc(adminURL(key))}"${tab === key ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</nav>`;
+  const top = heading('TEBs arbejdsområde') + '<p class="fp-note"><a href="kalender.html#godkendelse">Tidligere opslag til godkendelse</a></p>' + `<nav class="fp-tabs" aria-label="TEB administration">${tabs.map(([key, label]) => `<a href="${esc(adminURL(key))}"${tab === key ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</nav>`;
   if (tab === 'adgang') return top + await adminAccess();
   if (tab === 'foreninger') return top + await adminAssociations(r.params.get('forening'));
   if (tab === 'print') return top + await printPage();
@@ -256,6 +256,11 @@ async function adminPage(r) {
 function eventSummary(e) {
   return `<p><strong>${esc(e.title)}</strong><br>${esc(e.association)}<br>${esc(dateLabel(e.date))} kl. ${esc(e.time)}${e.endDate || e.endTime ? ` til ${esc(e.endDate ? dateLabel(e.endDate) : dateLabel(e.date))} kl. ${esc(e.endTime || '')}` : ''}<br>${esc(e.location)}</p><p class="fa-preline">${esc(e.description)}</p><p>${esc(e.price)}${e.link ? `<br>${esc(e.link)}` : ''}</p>${e.state === 'cancelled' ? status('cancelled') : ''}`;
 }
+function sharingWishes(e) {
+ const names={flyers:'Flyers i postkasser',portals:'Analoge byportaler',screens:'Infoskærme',posters:'Plakater i byen'};
+ const wishes=[e.printRequested?'Analog kalender':null,...(e.channels||[]).map(key=>names[key])].filter(Boolean);
+ return wishes.length?`<p class="fp-notice">Ønsker til synlighed: ${esc(wishes.join(', '))}. Der er ikke bestilt ekstern deling.</p>`:'';
+}
 function eventInputs(e) {
   return input('title', 'Titel', e.title, 'text', 'required maxlength="100"') +
     input('association', 'Arrangør', e.association, 'text', 'required maxlength="100"') +
@@ -265,7 +270,7 @@ function eventInputs(e) {
     input('location', 'Sted', e.location, 'text', 'required maxlength="180"') +
     textarea('description', 'Beskrivelse', e.description, 'maxlength="1500"') +
     input('price', 'Pris', e.price, 'text', 'maxlength="100"') +
-    input('link', 'Link', e.link, 'url', 'maxlength="500"');
+    input('link', 'Link', e.link, 'url', 'maxlength="500"') + sharingWishes(e);
 }
 function reviewForm(e) {
   const snapshotKey = e.id + ':' + e.revision;

@@ -51,29 +51,31 @@ lokale mailjobs ved læsning. Nye koder og private links ligger ikke i klartekst
 i SQLite. Den oprindelige pilots lokale postkasse bevares ved en eksplicit
 opgradering og er underlagt samme loopback-kontrol.
 
-## Test med nyheder fra Tistrup Nyt
+## Eksterne kalenderbegivenheder
 
-`GET /api/kalender/nyheder/tistrup-nyt` henter forsiden på
-`https://tistrupnyt.dk/` direkte fra backend uden cookies, login, RSS eller API.
-Importen læser højst 12 unikke artikelkort fra Tistrup Nyt i deres rækkefølge
-på forsiden. Kalenderkort og andre domæner udelades. Overskrifter og korte
-beskrivelser returneres som tekst, aldrig som eksekverbar HTML. Billeder vises
-fra kildens Ruban-billedserver, og artikler åbner hos Tistrup Nyt.
+`GET /api/kalender/kilder/tistrup-nyt` læser kalenderen på
+`https://tistrupnyt.dk/menu/kalender/lokal`. Datoer kommer fra kalenderens
+måned/år og dagsoverskrifter, klokkeslæt fra begivenhedskortene. Kun Tistrup
+Nyts egne `/cid/`-links med eksplicit dato importeres. Nabosiders kort og
+nyhedsartikler udelades. Datoer gættes aldrig fra overskrifter.
 
-Cachen gemmes under `news/tistrup-nyt-v1.json` i den eksisterende R2-binding
-`PDFS`, separat fra PDF-objekterne. Den lokale server bruger samme adapter på
-disk. Første besøg henter nyheder; senere besøg genbruger dem i en time og
-udløser derefter næste hentning. Der er ingen baggrundstimer uden besøg.
-Samtidige forespørgsler i samme worker deler hentningen. En kildefejl eller
-ændret HTML beholder sidste gode resultat med `stale:true` og fem minutters
-pause før næste forsøg. Uden nogen gemt kopi returneres HTTP 503.
+`GET /api/kalender/kilder/pulsen` læser daterede `city-event`-kort på
+`https://pulsenivest.dk/by/tistrup`. Artikler udelades. Kildernes viste
+kalenderkort er omfanget, ikke komplette årsarkiver.
 
-`site/nyt.html` viser nyhederne med kilde, billeder og tidspunkt for hentning.
-Tidspunktet er ikke artiklernes udgivelsesdato. Parseren findes i
-`src/news.mjs`, og `test/news.test.mjs` dækker udtræk, cache og fejltilstande.
-Kør `npm test` og `npm run build`. Routen ligger under den eksisterende
-kalender-API, så der kræves ingen ekstra Worker-route eller database-migration.
-Dette aktiverer ikke deployment.
+Cachen ligger i R2-bindingen `PDFS` under `calendar-sources/*-v2.json`,
+separat fra gamle artikelcacher og PDF-objekter. Et besøg genbruger data i en
+time og udløser derefter næste hentning. Samtidige forespørgsler deler
+hentningen. Ved kildefejl beholdes seneste data med `stale:true`, og næste
+forsøg sker efter fem minutter. Uden en gemt kopi returneres HTTP 503.
+En genkendt, tom kalender er et gyldigt resultat. HTML og scripts sendes ikke
+til browseren. De tidligere `/nyheder/*`-ruter er kompatible aliaser med samme
+arrangementsdata og en tom `items`-liste.
+
+`site/kalender.html` viser arrangementerne med kildelinks og fejlstatus.
+`site/nyt.html` er en medieoversigt med links og TEBs Facebook-feed.
+Forsiden har også Facebook nederst. Ingen af de to sider henter nyhedsartikler.
+Parser og cache testes i `test/news.test.mjs` og `test/experiment.test.mjs`.
 
 ## Foreningsudkast til lokal prototype
 
@@ -105,20 +107,28 @@ oversigt, når katalogets rigtige foreninger er indlæst. Der er ikke deployet.
 
 ## Adgang og revisioner
 
-Den samlede side er nu `/nyt.html`. Den bruger `GET/POST /posts` og
-`GET /admin/posts` samt `POST /admin/posts/:id` til TEBs godkendelse.
-Migration `0005_posts.sql` tilføjer rigtige opslag uden at flytte forsøgsdata.
-Gæster afventer godkendelse; godkendte foreningsmedlemmer og TEB udgiver straks.
-Et arrangementsopslag opretter sin kanoniske kalenderpost atomisk ved udgivelse.
-Det har samme id i nyheder og kalender, og rettelser/aflysninger følger kalenderen.
-Valget af fysisk kalender gemmes som `printRequested`, som printarkivet respekterer.
-Allerede afsluttede PDF-filer ændres ikke. Ekstern deling bestilles ikke automatisk.
+Kalender og oprettelse ligger på `/kalender.html`. Nye arrangementer bruger
+`GET/POST /events` med de eksisterende private links, revisioner, rettelser,
+aflysninger og ICS. Godkendte foreningsmedlemmer udgiver direkte. Gæster og
+brugere uden foreningsadgang afventer TEB i Forening → TEBs arbejdsområde.
+
+Ønsker om flyers, analoge byportaler, skærme og plakater gemmes i `channels`.
+Ønsket om papirkalender gemmes i `printRequested`. De markeres under
+oprettelse og bevares gennem rettelser og godkendelse. Papirkalender kræver
+fortsat manuel udvælgelse, korrektur og et låst snapshot. Afsluttede PDF-filer
+ændres ikke. Ekstern deling bestilles ikke automatisk. Præcise partnerlinks
+afventer TEB.
+
+Tidligere data i `posts` og `/posts`-API'en bevares. Gamle
+`nyt.html?privat=...#adgang=...`-links viderestilles til
+`kalender.html?indsendelse=...#adgang=...`. Det hemmelige token bliver i
+fragmentet. Tidligere offentlige opslag og oprettelseslinks viderestilles
+også. Gamle opslag kan gennemgås via `kalender.html#godkendelse`; udgivne
+arrangementsopslag bruger stadig samme kanoniske arrangements-id. Nye
+kvitteringsmails peger direkte på kalendersiden.
 
 Den gamle `/experiment/*`-API og `experiment_posts` bevares som et separat,
-kun lokalt sandkasselager. De er ikke datakilden til den rigtige side.
-Pulsen i Vest leverer nyheds- og arrangementskort via
-`GET /api/kalender/nyheder/pulsen`, cached separat fra Tistrup Nyt.
-Importen dækker kildernes viste kort, ikke komplette årsarkiver.
+kun lokalt sandkasselager. De er ikke datakilden til den offentlige kalender.
 
 OTP har seks tilfældige cifre, ti minutters levetid og højst fem forsøg.
 Anmodninger begrænses pr. mail, IP og globalt. Verifikation begrænses pr.

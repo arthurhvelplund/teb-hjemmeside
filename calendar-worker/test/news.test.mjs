@@ -4,29 +4,29 @@ import { parseTistrupNews, createNewsService, NEWS_TTL } from '../src/news.mjs';
 import worker from '../src/worker.mjs';
 import { localR2 } from '../scripts/r2.mjs';
 
-const card = ({ id = '2448700', host = 'tistrupnyt.dk', path = 'id', title = 'Tistrup Cykelmotion &amp; fællesskab', image = 'https://ruban.nu/foto/b/cykelmotion.avif' } = {}) =>
-  `<a class="event by2small frontpage shadow" href="https://${host}/${path}/${id}/lokal-historie"><div><img src="${image}"></div><div class="text"><h1>${title}</h1><h2>Der køres tirsdag kl. 16.30</h2></div></a>`;
+const card = ({ id = '2448700', host = 'tistrupnyt.dk', path = 'cid', title = 'Tistrup Cykelmotion &amp; fællesskab' } = {}) =>
+  `<div class="newslinkmonthsepdark">oktober 2026</div><div class="newslinkmonthsep">tirsdag 20. oktober</div><a class="newslink" href="https://${host}/${path}/${id}/lokal-historie"><div class="listtitle"><b>16:30</b> ${title}</div><div class="listsubtitle">Vi starter fra klubhuset.</div></a>`;
 const htmlResponse = html => new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 
-test('extracts text and photos, excludes calendar/neighbouring sites, deduplicates article IDs', () => {
-  const items = parseTistrupNews(card() + card() + card({ host: 'olgod.dk', id: '2' }) + card({ path: 'cid', id: '3' }));
-  assert.equal(items.length, 1);
-  assert.equal(items[0].title, 'Tistrup Cykelmotion & fællesskab');
-  assert.equal(items[0].image, 'https://ruban.nu/foto/b/cykelmotion.avif');
-  assert.equal(items[0].id, '2448700');
+test('extracts calendar dates and times, excludes articles and neighbouring sites, deduplicates events', () => {
+ const {items,events}=parseTistrupNews(card()+card()+card({host:'olgod.dk',id:'2'})+card({path:'id',id:'3'}));
+ assert.deepEqual(items,[]);assert.equal(events.length,1);assert.equal(events[0].title,'Tistrup Cykelmotion & fællesskab');
+ assert.equal(events[0].date,'2026-10-20');assert.equal(events[0].time,'16:30');assert.match(events[0].url,/\/cid\/2448700/);
 });
-
-test('never imports executable HTML or foreign image hosts; changed layouts fail visibly', () => {
-  const items = parseTistrupNews(card({ title: 'Byens <em>historie</em><script>alert(1)</script>', image: 'https://unknown.example/photo.jpg' }));
-  assert.equal(items[0].title, 'Byens historie');
-  assert.equal(items[0].image, null);
-  assert.throws(() => parseTistrupNews('<h1>En ny sidestruktur</h1>'));
+test('ignores executable text, never guesses dates from titles, detects changed layout and accepts explicit empty months', () => {
+ const {events}=parseTistrupNews(card({title:'Byens <em>arrangement</em><script>alert(1)</script>'}));
+ assert.equal(events[0].title,'Byens arrangement');
+ assert.equal(parseTistrupNews(card().replace('20. oktober','31. februar')).events.length,0);
+ assert.throws(()=>parseTistrupNews('<h1>Arrangement 20. oktober 2026</h1>'));
+ assert.deepEqual(parseTistrupNews('<div class="newslinkmonthsepdark">november 2026</div>').events,[]);
+ const rollover=card().replace('oktober 2026','december 2026').replace('20. oktober','31. december')+card({id:'2'}).replace('oktober 2026','januar 2027').replace('20. oktober','01. januar');
+ assert.deepEqual(parseTistrupNews(rollover).events.map(e=>e.date),['2026-12-31','2027-01-01']);
 });
 
 test('one fetch serves concurrent requests and the saved cache survives a service restart', async () => {
   const bucket = localR2(); let calls = 0, now = Date.parse('2026-10-18T12:00:00Z');
   const fetcher = async (url, options) => {
-    calls++; assert.equal(url, 'https://tistrupnyt.dk/'); assert.equal(options.redirect, 'manual');
+    calls++; assert.equal(url, 'https://tistrupnyt.dk/menu/kalender/lokal'); assert.equal(options.redirect, 'manual');
     assert.equal(options.headers.Cookie, undefined);
     return htmlResponse(card());
   };
@@ -38,7 +38,7 @@ test('one fetch serves concurrent requests and the saved cache survives a servic
   now += NEWS_TTL; await restarted(bucket); assert.equal(calls, 2);
 });
 
-test('source failures and parser changes preserve the last good news and back off', async () => {
+test('source failures and parser changes preserve the last good events and back off', async () => {
   const bucket = localR2(); let now = Date.now(), calls = 0, mode = 'good';
   const service = createNewsService({ clock: () => now, fetcher: async () => {
     calls++;
@@ -48,7 +48,7 @@ test('source failures and parser changes preserve the last good news and back of
   const first = await service(bucket);
   now += NEWS_TTL; mode = 'offline'; const stale = await service(bucket);
   assert.equal(stale.stale, true); assert.equal(stale.fetchedAt, first.fetchedAt);
-  assert.deepEqual(stale.items, first.items);
+  assert.deepEqual(stale.events, first.events);
   await service(bucket); assert.equal(calls, 2);
   now += 5 * 60 * 1000; mode = 'changed';
   assert.equal((await service(bucket)).stale, true);
@@ -77,4 +77,12 @@ test('public endpoint needs no calendar login/DB, rejects writes, and reports mi
   const denied = await worker.fetch(new Request(url, { method: 'POST' }), {});
   assert.equal(denied.status, 405); assert.equal(denied.headers.get('allow'), 'GET');
   assert.equal((await worker.fetch(new Request('http://localhost/api/formular'), {})).status, 404);
+});
+
+test('valid empty calendars are fresh; article caches cannot reappear in event-only endpoints',async()=>{
+ const bucket=localR2();
+ await bucket.put('news/tistrup-nyt-v1.json',new TextEncoder().encode(JSON.stringify({version:1,items:[{title:'Old article'}],nextCheckAt:Date.now()+NEWS_TTL})));
+ const service=createNewsService({fetcher:async()=>htmlResponse('<div class="newslinkmonthsepdark">november 2026</div>')});
+ const data=await service(bucket);assert.deepEqual(data.items,[]);assert.deepEqual(data.events,[]);assert.equal(data.stale,false);assert.ok(data.fetchedAt);
+ const endpoint=await worker.fetch(new Request('http://localhost/api/kalender/kilder/tistrup-nyt'),{PDFS:bucket});assert.equal(endpoint.status,200);assert.deepEqual((await endpoint.json()).items,[]);
 });

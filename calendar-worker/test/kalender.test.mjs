@@ -391,3 +391,20 @@ test('revoked invitations and superseded OTP messages cannot be retried',async t
 test('abandoned sends become uncertain in both job status and event wrapper',async t=>{
  const f=fixture(t);f.env.TEB_EMAIL=null;const s=await f.submit();await f.DB.prepare("UPDATE mail_jobs SET state='sending',lease_until=? WHERE event_id=?").bind(new Date(Date.now()-1).toISOString(),s.id).run();await flushMail(f.env);assert.equal((await f.privateEvent(s)).notificationState,'uncertain');assert.equal((await f.privateEvent(s)).receiptState,'uncertain');
 });
+
+test('calendar visibility wishes survive guest review, edits and member publication without external orders',async t=>{
+ const f=fixture(t);
+ const saved=await f.submit({event:event({printRequested:true,channels:['flyers','portals','flyers']})});
+ let privateEvent=await f.privateEvent(saved);
+ assert.deepEqual(privateEvent.data.channels,['flyers','portals']);assert.equal(privateEvent.data.printRequested,true);
+ await f.admin.login('admin@example.test');await ok(await f.decide(saved));
+ assert.deepEqual((await f.publicEvents())[0].channels,['flyers','portals']);
+ privateEvent=await f.privateEvent(saved);
+ await ok(await f.guest.call('/private/'+saved.id,{authorization:saved.payload.authorToken,data:{action:'edit',revision:privateEvent.revision,event:{...privateEvent.data,time:'19:00',channels:['screens']}}}));
+ assert.equal((await f.publicEvents())[0].time,'18:00');await ok(await f.decide(saved));
+ const published=(await f.publicEvents())[0];assert.deepEqual(published.channels,['screens']);assert.equal(published.printRequested,true);
+ const {a,user}=await f.member(),direct=await f.memberEvent(user,a,{event:event({printRequested:false,channels:['posters']})});
+ const member=(await f.publicEvents()).find(e=>e.id===direct.id);assert.deepEqual(member.channels,['posters']);assert.equal(member.printRequested,false);
+ const invalid=await f.guest.call('/events',{data:{...saved.payload,requestKey:crypto.randomUUID(),event:event({channels:['unknown']})}});assert.equal(invalid.status,400);
+ assert.ok(f.messages.every(m=>['admin@example.test','guest@example.test','manager@example.test'].includes(m.to)));
+});

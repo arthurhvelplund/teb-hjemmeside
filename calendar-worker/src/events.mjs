@@ -18,8 +18,8 @@ export async function publicEvents(env,url,id){
  if(id){const row=await stmt(env,'SELECT id,published_json FROM events WHERE id=? AND published_json IS NOT NULL',id).first();ensure(row,404,'Arrangementet findes ikke.');return json({event:{id:row.id,...JSON.parse(row.published_json)}});}
  const from=url.searchParams.get('from'),to=url.searchParams.get('to');
  ensure((!from||validDate(from))&&(!to||validDate(to))&&(!from||!to||from<=to),400,'Vælg et gyldigt datointerval.');
- const rows=await all(stmt(env,'SELECT id,published_json FROM events WHERE published_json IS NOT NULL'));
- return json({events:rows.map(r=>({id:r.id,...JSON.parse(r.published_json)})).filter(e=>(e.endDate||e.date)>=(from||(!to?copenhagenDate():'2000-01-01'))&&(!to||e.date<=to)).sort(eventSort)});
+ const rows=await all(stmt(env,'SELECT e.id,e.published_json,p.data_json AS post_json FROM events e LEFT JOIN posts p ON p.id=e.id WHERE e.published_json IS NOT NULL'));
+ return json({events:rows.map(r=>{const event={id:r.id,...JSON.parse(r.published_json)};if(r.post_json){const post=JSON.parse(r.post_json);if(post.image)event.image=post.image;}return event;}).filter(e=>(e.endDate||e.date)>=(from||(!to?copenhagenDate():'2000-01-01'))&&(!to||e.date<=to)).sort(eventSort)});
 }
 async function eventMail(env,{id,revision,event,email,kind,authorToken,condition,args,review=false,note=''}){
  const keys=[],statements=[];
@@ -95,7 +95,7 @@ export async function memberUpdate(env,auth,id,data){
  ensure(!associationId||a,404,'Foreningen findes ikke.');
  const event=data.action==='cancel'?JSON.parse(row.published_json):validateEvent({...data.event,...(a?{association:a.name}:{})},{allowPast:true});
  if(associationId)event.associationId=associationId;
- if(row.published_json){const previous=JSON.parse(row.published_json);if(previous.postId){event.postId=previous.postId;event.printRequested=previous.printRequested;}}
+ if(row.published_json){const previous=JSON.parse(row.published_json);if(previous.postId){event.postId=previous.postId;if(event.printRequested===undefined)event.printRequested=previous.printRequested;}}
  event.state=data.action==='cancel'?'cancelled':'approved';
  const result=await stmt(env,`UPDATE events SET published_json=?,pending_json=NULL,pending_kind=NULL,status=?,moderation_note='',revision=revision+1,association_id=?,updated_at=? WHERE id=? AND revision=? AND ${g.sql}`,
  JSON.stringify(event),event.state==='cancelled'?'approved':event.state,associationId,now(),id,row.revision,...g.args).run();
@@ -110,7 +110,7 @@ export async function review(env,auth,id,data){
  let published=row.published_json,event=JSON.parse(row.pending_json||row.published_json);
  if(data.action==='approve'){
   event=row.pending_kind==='cancel'?JSON.parse(row.published_json):validateEvent(data.event||event,{allowPast:true});
-  if(row.published_json){const previous=JSON.parse(row.published_json);if(previous.postId){event.postId=previous.postId;event.printRequested=previous.printRequested;}}
+  if(row.published_json){const previous=JSON.parse(row.published_json);if(previous.postId){event.postId=previous.postId;if(event.printRequested===undefined)event.printRequested=previous.printRequested;}}
   event.state=row.pending_kind==='cancel'?'cancelled':'approved';published=JSON.stringify(event);
  }
  const status=data.action==='approve'?'approved':'rejected';
