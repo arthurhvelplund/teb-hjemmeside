@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kalenderen på papir · Tre udkast</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 var(--font-sans,system-ui,sans-serif);color:var(--foreground,#19342e);background:transparent}button{font:inherit;cursor:pointer}p{margin:0 0 15px} .intro{font-size:19px;line-height:1.45;margin-bottom:20px}.muted{color:var(--muted-foreground,#637068)}.designs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.choice{text-align:left;background:var(--card,#fff);color:var(--foreground,#19342e);border:1px solid var(--border,#d5dfd8);border-radius:10px;padding:12px;transition:background .15s}.choice span{display:block;font-size:12px;color:var(--muted-foreground,#637068)}.choice strong{display:block;font-size:14px;margin-top:3px}.choice[aria-pressed=true]{border:2px solid var(--foreground,#19342e);padding:11px;background:var(--accent-surface,#e8f1ea)}.choice:hover{background:var(--muted,#f1f4f0)}.compare{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0}.compare button{border:1px solid var(--border,#d5dfd8);background:transparent;color:var(--foreground,#19342e);padding:6px 11px;border-radius:30px;font-size:12px}.compare button[aria-pressed=true]{background:var(--foreground,#19342e);color:var(--background,#fff)}.compare span{font-size:12px}.caption{display:flex;justify-content:space-between;gap:14px;align-items:start;margin-top:20px}.caption h2{font-size:20px;line-height:1.3;margin:0 0 7px;letter-spacing:-.4px}.badge{white-space:nowrap;border:1px solid var(--border,#d5dfd8);padding:4px 9px;border-radius:5px;font-size:11px}.desc{font-size:14px;color:var(--muted-foreground,#637068);margin:0 0 16px}.stage{padding:20px;background:#e6e9e3;border-radius:12px;display:flex;justify-content:center}.stage img{display:block;width:100%;height:auto;max-width:570px;box-shadow:0 5px 18px #17332a24}.note{font-size:12px;color:var(--muted-foreground,#637068);margin:12px 0 27px}.workflow{border-top:1px solid var(--border,#d5dfd8);padding-top:20px}.workflow h3{font-size:19px;line-height:1.35;margin:0 0 10px}.steps{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}.step{padding:14px;background:var(--muted,#f2f5f1);border-radius:10px}.step b{font-size:13px}.step p{font-size:13px;color:var(--muted-foreground,#637068);margin:5px 0 0}.proposal{font-size:13px;padding-left:14px;border-left:3px solid #a2c6ad;margin-bottom:0}button:focus-visible{outline:3px solid #6091b7;outline-offset:3px}@media(max-width:450px){.intro{font-size:17px}.choice{padding:10px 8px}.choice[aria-pressed=true]{padding:9px 7px}.choice strong{font-size:12px}.choice span{font-size:10px}.stage{padding:12px}.caption h2{font-size:18px}.steps{grid-template-columns:1fr}.badge{font-size:10px}}
+</style>
+</head>
+<body>
+<p class="intro">Jeg ville gå videre med <strong>nr. 1</strong>. Den har noget af den gamle plakats genkendelighed, med tydeligere datoer og mere ro i teksten.</p>
+<nav class="designs" aria-label="Vælg et kalenderudkast">
+<button class="choice" data-id="01" aria-pressed="true"><span>01 · Tættest på originalen</span><strong>Farver og fællesskab</strong></button>
+<button class="choice" data-id="02" aria-pressed="false"><span>02 · Rolig og enkel</span><strong>Det sker lige her</strong></button>
+<button class="choice" data-id="03" aria-pressed="false"><span>03 · Et hurtigt overblik</span><strong>To måneder, to spalter</strong></button>
+</nav>
+<div class="compare"><span class="muted">Sammenlign med</span><button data-id="old" aria-pressed="false">Den gamle Canva-plakat</button><button data-id="current" aria-pressed="false">Den autogenererede PDF nu</button></div>
+<div class="caption" aria-live="polite"><h2 id="heading">01 · Farver og fællesskab</h2><span class="badge" id="format">A3 · 1 side</span></div>
+<p class="desc" id="description">Den store overskrift bliver. Hver måned får sin farve, og datoerne får deres egen kolonne. Let at finde næste arrangement på opslagstavlen.</p>
+<div class="stage"><img id="poster" src="01.jpg" alt="Kalenderudkast 1. Farver og fællesskab. Store datoer og grønne og rosa månedsfelter."></div>
+<p class="note" id="note">Designudkast med de samme 14 historiske arrangementer som den gamle plakat. Teksten er forkortet til print. PDF'erne er A3 og kan også skaleres til en større plakat. QR-koden går til TEBs forside.</p>
+<section class="workflow">
+<h3>I vælger indholdet. Skabelonen sætter det op.</h3>
+<p class="muted">Godkendelse til netkalenderen og udvælgelse til papir skal være to forskellige beslutninger.</p>
+<div class="steps">
+<div class="step"><b>1. Vælg perioden</b><p>For eksempel september og oktober. Hent de godkendte arrangementer i perioden.</p></div>
+<div class="step"><b>2. Gennemgå hvert arrangement</b><p>Markér med eller uden for printudgaven. Kontrollér dato, sted og tidspunkt.</p></div>
+<div class="step"><b>3. Ret og se prøven</b><p>Forkort printteksten, og saml gentagelser. Gennemse plakaten i den valgte skabelon.</p></div>
+<div class="step"><b>4. Godkend den færdige PDF</b><p>Gem udgaven fast, når korrekturen er færdig. Senere netrettelser ændrer ikke den trykte udgave.</p></div>
+</div>
+<p class="proposal">Dette er et forslag til printarbejdsgangen. Den særskilte udvælgelse af arrangementer til papir er endnu ikke bygget ind i kalenderen.</p>
+</section>
+<script>
+const variants={
+'01':{image:'01.jpg',title:'01 · Farver og fællesskab',format:'A3 · 1 side',description:'Den store overskrift bliver. Hver måned får sin farve, og datoerne får deres egen kolonne. Let at finde næste arrangement på opslagstavlen.',alt:'Kalenderudkast 1. Farver og fællesskab. Store datoer og grønne og rosa månedsfelter.'},
+'02':{image:'02.jpg',title:'02 · Det sker lige her',format:'A3 · 1 side',description:'Et roligere udtryk med en varm papirfarve, stor overskrift og diskrete skillelinjer. God til indendørs opslag, hvor man kommer tæt på.',alt:'Kalenderudkast 2. Det sker lige her. Varm hvid baggrund og en stor overskrift med seriffer.'},
+'03':{image:'03.jpg',title:'03 · To måneder, to spalter',format:'A3 · 1 side',description:'Én måned i hver spalte og en mørkegrøn overskrift, der fanger øjet. God til et hurtigt overblik, men de smalle spalter giver mindre plads til lange tekster.',alt:'Kalenderudkast 3. Kom med. September og oktober i hver sin spalte.'},
+'old':{image:'gammel-kalender.jpg',title:'Den gamle Canva-plakat',format:'Stor plakat · 1 side',description:'PDF’en fra dit link. Stor sort overskrift, fire brede farvebånd og 14 arrangementer. Datoer, foreninger og beskrivelser står tæt i samme tekstblok.',alt:'Den oprindelige kalender for september og oktober 2026 med grønne, rosa, limegrønne og blå farvebånd.'},
+'current':{image:'nuvaerende-proeveudgave.jpg',title:'Den autogenererede prøve-PDF nu',format:'A3 · 1 side',description:'Fundet på den lokale server. Oktober og november 2026 med otte fiktive testarrangementer, grønne månedsbjælker og meget ubrugt plads nederst.',alt:'Den nuværende autogenererede kalender. Hvid A3-side, grønne månedsbjælker og otte fiktive arrangementer.'}
+};
+const draftNote="Designudkast med de samme 14 historiske arrangementer som den gamle plakat. Teksten er forkortet til print. PDF'erne er A3 og kan også skaleres til en større plakat. QR-koden går til TEBs forside.";
+function select(id){const v=variants[id];document.getElementById('heading').textContent=v.title;document.getElementById('format').textContent=v.format;document.getElementById('description').textContent=v.description;const img=document.getElementById('poster');img.src=v.image;img.alt=v.alt;document.querySelectorAll('[data-id]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.id===id)));document.getElementById('note').textContent=id==='current'?'Den nuværende PDF er en lokal prøve med opdigtede arrangementer. QR-koden i denne prøve peger på localhost.':id==='old'?'Originalen er lavet i Canva. Udkastene bruger dens historiske indhold som fælles grundlag, så layoutene kan sammenlignes.':draftNote;}
+document.querySelectorAll('[data-id]').forEach(b=>b.addEventListener('click',()=>select(b.dataset.id)));
+for(const id of Object.keys(variants)){select(id);console.assert(document.getElementById('heading').textContent===variants[id].title,'Variant '+id);console.assert(document.querySelectorAll('[aria-pressed=true]').length===1,'Exactly one selected variant');}
+select('01');console.log('All five calendar views initialized and selection checks passed.');
+</script>
+</body></html>

@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-18T18:14:03.933Z",
+  "checks": [
+    "TEB email-code login",
+    "Lost, truncated and incomplete creation responses retain one key and create one association",
+    "TEB creates a real association record",
+    "Invited manager gains only assigned association",
+    "Profile update visible to a separate visitor",
+    "Guest remains private before approval",
+    "TEB approval publishes guest event",
+    "Actual receipt URL and on-page private status link open the approved event",
+    "Approval mail opens public event details",
+    "Pending guest revision preserves public version",
+    "Member publishes directly through the real API",
+    "Invitation accepted by matching email without manager privileges",
+    "Revocation affects an existing session",
+    "Print starts with no preselected events and requires manual review",
+    "Print preview includes only selected events and supports separate print text",
+    "Editing print text invalidates the proof and finalization",
+    "Saving print-specific text preserves the public event",
+    "Newly saved print appears in the archive without a reload",
+    "Print editor fits desktop and small phones",
+    "Published PDF bytes remain unchanged after event edit",
+    "Public pages fit 390px and 320px without horizontal overflow"
+  ],
+  "errors": [],
+  "externalMailSent": false
+}

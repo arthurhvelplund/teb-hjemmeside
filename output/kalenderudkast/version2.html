@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Farver og fællesskab · Version 2</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:transparent;color:var(--foreground,#163b32);font:15px/1.5 var(--font-sans,system-ui,sans-serif)}p{margin:0 0 16px}.lead{font-size:19px;line-height:1.4}.controls{display:flex;align-items:center;gap:8px;margin-bottom:15px;flex-wrap:wrap}button{font:inherit;font-size:13px;border:1px solid var(--border,#d7dfd8);background:var(--card,#fff);color:var(--foreground,#163b32);border-radius:8px;padding:9px 14px;cursor:pointer}button[aria-pressed=true]{background:#163b32;color:#fff;border-color:#163b32}button:focus-visible{outline:3px solid #78a5c3;outline-offset:3px}.format{margin-left:auto;font-size:12px;color:var(--muted-foreground,#617367)}.stage{padding:20px;background:#e7ebe5;border-radius:12px;display:flex;justify-content:center}.stage img{display:block;width:100%;max-width:620px;height:auto;box-shadow:0 5px 18px #17332a22}.caption{color:var(--muted-foreground,#617367);font-size:12px;margin-top:10px}.changes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.change{padding:15px;border-radius:9px;background:var(--muted,#f1f5f0);font-size:13px}.change b{display:block;margin-bottom:5px}.change span{color:var(--muted-foreground,#617367)}@media(max-width:450px){.lead{font-size:17px}.format{flex-basis:100%;margin:0}.stage{padding:12px}.changes{grid-template-columns:1fr}}
+</style></head><body>
+<p class="lead">Samme plakat, lidt mere gennemarbejdet. Jeg har især gjort datoerne og de små oplysninger lettere at læse.</p>
+<div class="controls" role="group" aria-label="Sammenlign versioner"><button id="new" aria-pressed="true">Den forbedrede version</button><button id="old" aria-pressed="false">Første udkast</button><span class="format">A3 + plakat på 50 × 70 cm</span></div>
+<div class="stage"><img id="poster" src="01-v2.jpg" alt="Den forbedrede kalender med grønne og rosa månedsoverskrifter, ugedage under datoerne og TEBs trolde øverst."></div>
+<p class="caption" id="caption" aria-live="polite">Version 2. Samme 14 historiske arrangementer. Stadig et designudkast.</p>
+<div class="changes">
+<div class="change"><b>Dato og ugedag samlet</b><span>Man kan se både dato og ugedag i den farvede kolonne. Gentagne aktiviteter står som “hver uge”.</span></div>
+<div class="change"><b>Større små bogstaver</b><span>Foreningsnavne er cirka 16 % større. Tid og sted har også fået lidt større skrift.</span></div>
+<div class="change"><b>Roligere farver</b><span>Grøn og rosa holder sammen på månederne. Hvide tekstfelter og fine linjer gør arrangementerne lettere at skelne.</span></div>
+<div class="change"><b>Tydeligere afsender</b><span>TEBs trolde er med i toppen. Mailadresse, frist og QR-kode har hver sin plads i bunden.</span></div>
+</div>
+<script>
+const assets={new:'01-v2.jpg',old:'01.jpg'};
+function show(id){document.getElementById('poster').src=assets[id];document.getElementById('poster').alt=id==='new'?'Den forbedrede kalender med grønne og rosa månedsoverskrifter, ugedage under datoerne og TEBs trolde øverst.':'Første udkast med grønne og rosa striber bag hele arrangementet.';for(const key of ['new','old'])document.getElementById(key).setAttribute('aria-pressed',String(key===id));document.getElementById('caption').textContent=id==='new'?'Version 2. Samme 14 historiske arrangementer. Stadig et designudkast.':'Første udkast til sammenligning. Indholdet er det samme.';}
+for(const id of ['new','old'])document.getElementById(id).addEventListener('click',()=>show(id));
+show('old');console.assert(document.getElementById('old').getAttribute('aria-pressed')==='true');show('new');console.assert(document.getElementById('new').getAttribute('aria-pressed')==='true');console.log('Both calendar versions initialized.');
+</script></body></html>
