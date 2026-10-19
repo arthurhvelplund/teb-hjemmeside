@@ -54,7 +54,7 @@ async function login(page,email,exerciseSteps=false){
 async function mainForm(page){const form=page.locator('form').filter({has:page.locator('[name="title"]')}).first();await form.waitFor();return form;}
 async function published(context,id){return (await json(context,'/events/'+id)).event;}
 try{
- for(let i=0;i<300;i++){try{if((await fetch(origin+'/api/kalender/config')).ok)break;}catch{}if(i===299)throw Error('Server did not start: '+serviceError.slice(-1200));await new Promise(r=>setTimeout(r,150));}
+ for(let i=0;i<800;i++){try{if((await fetch(origin+'/api/kalender/config')).ok)break;}catch{}if(i===799)throw Error('Server did not start: '+serviceError.slice(-1200));await new Promise(r=>setTimeout(r,150));}
  let executablePath=process.env.CHROME_PATH;
  if(!executablePath&&process.platform==='darwin'){const path='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';try{await access(path);executablePath=path;}catch{}}
  browser=await chromium.launch({headless:true,...(executablePath?{executablePath}:{})});
@@ -110,15 +110,35 @@ try{
  record('Contact TEB opens the real contact form without submitting a message');
  await guest.goto('/kalender.html?opret=1');const guestForm=await mainForm(guest);
  await fill(guestForm,{title:'Gæstens integrationstest',association:'En gæsteforening',date,time:'18:00',location:'Eksempelhuset',description:'Gæsteindsendelsen skal først godkendes.',email:'gaest@example.org'});
- await guest.getByText('Gæstens integrationstest',{exact:true}).first().waitFor();await guestForm.locator('#event-print').check();await guest.waitForTimeout(1600);
+ await guest.getByText('Gæstens integrationstest',{exact:true}).first().waitFor();
+ await guestForm.locator('[name="photo"]').setInputFiles(resolve(root,'site/images/tistrup-torv.jpg'));
+ await guest.getByText('Billedet er klar. Du kan se det i forhåndsvisningen.',{exact:true}).waitFor();
+ await guestForm.locator('[name="printRequested"]').check();
+ await guest.keyboard.press('Escape');await guest.locator('dialog[open]').waitFor({state:'hidden'});
+ await guest.locator('a[href="kalender.html?opret=1"]').first().click();await guestForm.waitFor();
+ assert.equal(await guestForm.locator('[name="title"]').inputValue(),'Gæstens integrationstest');
+ assert.equal(await guestForm.locator('[name="printRequested"]').isChecked(),true);
+ assert.ok((await guest.locator('.ec-image-mini img').getAttribute('src')).startsWith('data:image/webp;'));
+ await guest.getByRole('button',{name:'I kalenderen',exact:true}).click();await guest.locator('.ec-web-preview').waitFor();
+ assert.equal(await guest.locator('.ec-next').count(),0);await guest.locator('.ec-invitation summary').click();await guest.locator('.ec-invitation-details').waitFor();assert.ok((await guest.locator('.ec-invitation-details').innerText()).includes('Gæsteindsendelsen skal først godkendes.'));
+ assert.equal(await guestForm.isVisible(),true);record('Single-step form stays visible while opening the invitation and changing previews');
+ await guest.getByRole('button',{name:'På tryk',exact:true}).click();await guest.locator('.ec-print-preview').waitFor();
+ assert.ok((await guest.locator('.ec-print-event').innerText()).includes('Gæstens integrationstest'));
+ await guest.locator('.ec-poster-button').click();await guest.locator('.ec-poster-full').waitFor();
+ await guest.getByRole('button',{name:'I kalenderen',exact:true}).click();
+ record('Popup retains the draft and photo after closing; website and print previews show the event');
+ await guest.waitForTimeout(1600);
  const createdResponse=guest.waitForResponse(r=>new URL(r.url()).pathname==='/api/kalender/events'&&r.request().method()==='POST');
- await guestForm.locator('button[type="submit"]').click();const response=await createdResponse;assert.ok(response.ok());const result=await response.json();const payload=JSON.parse(response.request().postData());
+ await guest.locator('.ec-send').click();const response=await createdResponse;assert.ok(response.ok());const result=await response.json();const payload=JSON.parse(response.request().postData());
+ await guest.locator('.ec-receipt .ec-channels').waitFor();await guest.locator('.ec-channel summary').filter({hasText:'Flyers i postkasserne'}).click();await guest.getByText('Kontakt, pris og frist kommer her.',{exact:true}).waitFor();record('Receipt offers optional local sharing with honest contact placeholders');
  const receipt=(await json(guestContext,'/local-mail')).messages.find(message=>message.recipient==='gaest@example.org'&&message.body.includes('#adgang='));
  const privateURL=receipt?.body.match(/http:\/\/localhost:\d+\/kalender\.html\?privat=[^\s]+/)?.[0];
  assert.ok(privateURL,'Receipt contains the actual private route');assert.equal(new URL(privateURL).hash,'#adgang='+payload.authorToken);
  assert.equal((await guestContext.request.get('/api/kalender/events/'+result.id)).status(),404);record('Guest remains private before approval');
  await admin.goto('/forening.html#teb');const review=admin.locator('details').filter({hasText:'Gæstens integrationstest'});await review.locator('summary').click();await review.locator('button[value="approve"]').click();
- await admin.getByText('Arrangementet er godkendt.',{exact:true}).waitFor();assert.equal((await published(guestContext,result.id)).title,'Gæstens integrationstest');record('TEB approval publishes guest event');
+ await admin.getByText('Arrangementet er godkendt.',{exact:true}).waitFor();assert.equal((await published(guestContext,result.id)).title,'Gæstens integrationstest');
+ const guestPublished=await published(guestContext,result.id);assert.equal(guestPublished.printRequested,true);assert.ok(guestPublished.imageUrl.startsWith('/api/kalender/event-images/'));assert.ok((await guestContext.request.get(guestPublished.imageUrl)).ok());
+ record('TEB approval publishes guest event with the uploaded photo and print request');
  await guest.getByRole('link',{name:/Se status og ret arrangementet/}).click();await guest.getByText('Godkendt og offentliggjort',{exact:true}).waitFor();
  await guest.goto('/kalender.html');await guest.goto(privateURL);await guest.getByText('Godkendt og offentliggjort',{exact:true}).waitFor();record('Actual receipt URL and on-page private status link open the approved event');
  const decision=(await json(guestContext,'/local-mail')).messages.find(message=>message.recipient==='gaest@example.org'&&message.body.includes('?arrangement='));
@@ -126,10 +146,10 @@ try{
  const publicPage=await guestContext.newPage();await publicPage.goto(publicLink);await publicPage.locator('dialog[open]').getByRole('heading',{name:'Gæstens integrationstest',exact:true}).waitFor();await publicPage.close();record('Approval mail opens public event details');
  await guest.getByRole('button',{name:/Ret oplysningerne/}).click();const editGuest=await mainForm(guest);await fill(editGuest,{time:'19:00'});await editGuest.locator('button[type="submit"]').click();
  await guest.getByText('Afventer TEBs godkendelse',{exact:false}).first().waitFor();assert.equal((await published(guestContext,result.id)).time,'18:00');record('Pending guest revision preserves public version');
- await member.goto('/kalender.html?opret=1&forening='+association.id);const memberForm=await mainForm(member);await fill(memberForm,{title:'Foreningens direkte arrangement',associationId:association.id,date,time:'17:00',location:'Eksempelhallen',description:'Udgivet med godkendt foreningsadgang.'});
- await memberForm.locator('#event-print').check();
- const directResponse=member.waitForResponse(r=>new URL(r.url()).pathname==='/api/kalender/events'&&r.request().method()==='POST');await memberForm.locator('button[type="submit"]').click();const direct=await (await directResponse).json();
- assert.equal((await published(guestContext,direct.id)).title,'Foreningens direkte arrangement');record('Member publishes directly through the real API');
+ await member.goto('/forening.html#arbejdsrum?forening='+association.id);await member.getByRole('link',{name:/^Opret arrangement/}).click();assert.ok(member.url().includes('/forening.html'));const memberForm=await mainForm(member);assert.equal(await memberForm.locator('[name=associationId]').inputValue(),association.id);await fill(memberForm,{title:'Foreningens direkte arrangement',associationId:association.id,date,time:'17:00',location:'Eksempelhallen',description:'Udgivet med godkendt foreningsadgang.'});
+ await memberForm.locator('[name=printRequested]').check();
+ const directResponse=member.waitForResponse(r=>new URL(r.url()).pathname==='/api/kalender/events'&&r.request().method()==='POST');await member.locator('.ec-send').click();const direct=await (await directResponse).json();
+ assert.equal((await published(guestContext,direct.id)).title,'Foreningens direkte arrangement');record('Member publishes directly through the real API');await member.locator('.ec-done').click();await member.getByRole('heading',{name:'Foreningens direkte arrangement',exact:true}).waitFor();record('Association creation stays in its own popup and refreshes the event list');
  await member.goto('/forening.html#arbejdsrum?forening='+association.id+'&fane=personer');const invite=member.locator('form[data-action="invite-member"]');await fill(invite,{name:'Ny redaktør',email:editorEmail});await invite.locator('button').click();await member.getByText('Invitationen er gemt.',{exact:false}).waitFor();
  await login(editor,editorEmail);await editor.goto('/forening.html#arbejdsrum?forening='+association.id+'&fane=personer');await editor.getByText('Den foreningsansvarlige kan invitere og fjerne redaktører.').waitFor();record('Invitation accepted by matching email without manager privileges');
  await member.reload();const revoke=member.locator('form[data-action="revoke-member"][data-email="'+editorEmail+'"]');await revoke.locator('button').click();await member.getByText('Adgangen er fjernet.').waitFor();
@@ -173,13 +193,13 @@ try{
  await guest.goto('/kalender.html');await guest.locator('#calendar-events[aria-busy="false"]').waitFor();await guest.screenshot({path:resolve(output,'kalender-desktop.png'),fullPage:true});
  for(const width of [390,320]){
   await guest.setViewportSize({width,height:844});
-  for(const path of ['/forening.html','/kalender.html','/kalender.html?opret=1','/nyt.html']){await guest.goto(path);await guest.waitForTimeout(150);assert.equal(await guest.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,path+' at '+width);}
+  for(const path of ['/forening.html','/kalender.html','/kalender.html?opret=1','/nyt.html']){await guest.goto(path);await guest.waitForTimeout(150);if(path.includes('opret')){await guest.locator('dialog[open] #ec-form').waitFor();assert.equal(await guest.locator('dialog[open]').evaluate(d=>d.scrollWidth>innerWidth),false,'dialog at '+width);await guest.screenshot({path:resolve(output,'arrangement-popup-'+width+'.png')});await guest.keyboard.press('Escape');assert.equal(await guest.locator('dialog[open]').count(),0);}assert.equal(await guest.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,path+' at '+width);}
  }
  await guest.goto('/kalender.html');await guest.screenshot({path:resolve(output,'kalender-mobil.png'),fullPage:true});record('Public pages fit 390px and 320px without horizontal overflow');
  assert.deepEqual(errors,[]);await writeFile(resolve(output,'checks.json'),JSON.stringify({date:new Date().toISOString(),checks,errors,externalMailSent:false},null,2));
  console.log('Portal browser checks passed: '+checks.length+' complete real API/UI scenarios. No external mail sent.');
 }catch(error){
- console.error(error.message);for(const [i,page]of pages.entries())await page.screenshot({path:resolve(output,'failure-'+i+'.png'),fullPage:true}).catch(()=>{});process.exitCode=1;
+ console.error(error.stack || error.message);for(const [i,page]of pages.entries())await page.screenshot({path:resolve(output,'failure-'+i+'.png'),fullPage:true}).catch(()=>{});process.exitCode=1;
 }finally{
  await browser?.close();if(service.exitCode===null){service.kill('SIGTERM');await new Promise(resolve=>service.once('exit',resolve));}await rm(runtime,{recursive:true,force:true});
 }

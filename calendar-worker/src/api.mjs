@@ -8,6 +8,7 @@ import { localMailbox, flushMail } from './mail.mjs';
 import { handlePosts } from './posts.mjs';
 import { experiment } from './experiment.mjs';
 import { uploadAssociationImage, associationImage, storedImagePath } from './association-images.mjs';
+import { uploadEventImage, eventImage, eventImagePath } from './event-images.mjs';
 const base='/api/kalender';
 async function body(request,env){
  ensure(request.headers.get('Origin')===env.PUBLIC_ORIGIN,403,'Indsendelsen skal komme fra hjemmesiden.');
@@ -27,6 +28,9 @@ async function api(request,env){
  if(image&&method==='POST')return uploadAssociationImage(request,env,await identity(request,env),image[1]);
  const storedImage=url.pathname.match(storedImagePath);
  if(storedImage&&method==='GET')return associationImage(env,storedImage[1],storedImage[2]);
+ if(route==='/event-images'&&method==='POST')return uploadEventImage(request,env);
+ const storedEventImage=url.pathname.match(eventImagePath);
+ if(storedEventImage&&method==='GET')return eventImage(env,storedEventImage[1]);
  const data=method==='POST'?await body(request,env):null;
  if(route==='/local-mail'&&method==='GET')return json(await localMailbox(request,env));
  if(route==='/auth/request'&&method==='POST')return requestOtp(request,env,data);

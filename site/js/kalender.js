@@ -1,3 +1,6 @@
+import {installEventComposer, openEventComposer} from './event-composer.js';
+installEventComposer();
+document.addEventListener('teb:event-saved', () => loadCalendar({quiet: true}));
 import {api, getSession, randomToken, requestKey, today, dateText, showMessage, showMode, busy} from './portal-api.js';
 
 import {calendarBounds} from './calendar-grid.js';
@@ -66,7 +69,7 @@ function sharingChannels() {
 // One detail layout for previews, published events and imported events. Empty fields are left out.
 function eventCard(event, {detail = false, preview = false, heading = 'h3'} = {}) {
   const cancelled = event.state === 'cancelled', imported = Boolean(event.sourceId);
-  const image = photo(event.image, 'cal-detail-image');
+  const image = photo(event.imageUrl || event.image, 'cal-detail-image');
   const fact = (label, value) => value ? [node('dt', {}, label), node('dd', {}, value)] : null;
   const texts = [...new Set([event.body, event.description].map(text => (text || '').trim()).filter(text => text && text !== event.title))];
   const copy = node('div', {class: 'cal-detail-copy'},
@@ -309,7 +312,7 @@ function eventForm({data = {}, associations = [], selectedId = '', guest = false
   const abort = onCancel ? button('Fortryd', onCancel) : null;
   form.append(node('div', {class: 'cal-full-field'}, note(guest ? 'TEB skal godkende indsendelsen. En eksisterende offentlig version bliver stående, indtil TEB godkender ændringen.' : 'Arrangementet offentliggøres med det samme for den valgte forening.'), message, node('div', {class: 'fp-actions'}, submit, abort)));
   function formData() {
-    const event = Object.fromEntries(fields.map(([key]) => [key, inputs[key].value.trim()]));
+    const event = {...data, ...Object.fromEntries(fields.map(([key]) => [key, inputs[key].value.trim()]))};
     event.printRequested=printChoice.checked; event.channels=channelChecks.filter(input=>input.checked).map(input=>input.value);
     if (associationId) event.associationId = associationId;
     return event;
@@ -350,42 +353,9 @@ function eventForm({data = {}, associations = [], selectedId = '', guest = false
 }
 
 async function createEvent() {
-  openWorkspace('Tilføj arrangement', 'Udfyld oplysningerne. Forhåndsvisningen følger med, mens du skriver.');
-  workspace.append(node('p', {}, 'Henter adgang og foreninger…'));
-  try {
-    const [session, config] = await Promise.all([getSession(), api('/config')]);
-    openWorkspace('Tilføj arrangement', 'Udfyld oplysningerne. Forhåndsvisningen følger med, mens du skriver.');
-    if (!config.submissionsEnabled) {
-      workspace.append(node('p', {class: 'fp-notice'}, 'Indsendelse er ikke åben lige nu. Prøv igen senere, eller kontakt TEB.'), node('a', {href: 'kontakt.html'}, 'Kontakt TEB'), button('Prøv igen', createEvent)); return;
-    }
-    let associations = (session.memberships || []).map(membership => membership.association).filter(Boolean);
-    if (session.user?.isAdmin) associations = (await api('/associations')).associations || [];
-    associations = [...new Map(associations.map(association => [association.id, association])).values()];
-    const guest = !session.authenticated || !associations.length;
-    let data = {}, selectedId = query.get('forening') || '';
-    if (guest && selectedId) {
-      const {association} = await api('/associations/' + encodeURIComponent(selectedId));
-      data = {association: association.name, associationId: association.id};
-    }
-    if (guest) workspace.append(note('Du kan indsende uden login. TEB godkender, før arrangementet bliver synligt.'), node('p', {}, node('a', {href: loginURL('kalender.html?opret=1')}, 'Har du foreningsadgang? Log ind her.')));
-    workspace.append(eventForm({data, associations, selectedId, guest, email: session.user?.email || '', creating: true, onSave: async attempt => {
-      const result = await api('/events', {body: attempt});
-      if (!result.id) throw new Error('Kvitteringen mangler. Prøv samme indsendelse igen.');
-      const published = result.published === true;
-      openWorkspace(published ? 'Arrangementet er udgivet' : 'Tak. Vi har modtaget det.', published ? 'Arrangementet er synligt i byens kalender.' : 'Arrangementet afventer TEBs godkendelse. Det er endnu ikke offentligt.');
-      if (mailState(result)) workspace.append(node('p', {class: 'fp-notice'}, mailState(result)));
-      if (guest && attempt.authorToken) {
-        history.replaceState(null, '', privateURL(result.id, attempt.authorToken));
-        workspace.append(privateAccessLink(result.id, attempt.authorToken));
-      } else if (published) workspace.append(node('a', {class: 'btn', href: eventPath(result.id)}, 'Se arrangementet'), node('p', {}, node('a', {href: 'kalender.html?ret=' + encodeURIComponent(result.id)}, 'Ret eller aflys arrangementet')));
-      else workspace.append(node('a', {href: 'forening.html#arbejdsrum'}, 'Se status i foreningsområdet'));
-      workspace.append(node('p', {}, node('a', {href: 'kalender.html?opret=1'}, 'Tilføj endnu et arrangement')), sharingChannels());
-      await loadCalendar({quiet: true}); $('#workspace-heading')?.focus();
-    }}), sharingChannels());
-  } catch (error) { retryWorkspace('Arrangementet kunne ikke åbnes', error, createEvent); }
+  return openEventComposer({associationId: query.get('forening') || ''});
 }
 
-// Public event details open over the calendar. The address keeps ?arrangement= so the event can be shared.
 async function publicDetails(id, {direct = false} = {}) {
   try {
     const {event} = await api('/events/' + encodeURIComponent(id));

@@ -109,7 +109,7 @@ export async function review(env,auth,id,data){
  const note=field(data,'note',500,data.action==='reject'),revision=row.revision+1,stamp=now();
  let published=row.published_json,event=JSON.parse(row.pending_json||row.published_json);
  if(data.action==='approve'){
-  event=row.pending_kind==='cancel'?JSON.parse(row.published_json):validateEvent(data.event||event,{allowPast:true});
+  event=row.pending_kind==='cancel'?JSON.parse(row.published_json):validateEvent({...event,...data.event},{allowPast:true});
   if(row.published_json){const previous=JSON.parse(row.published_json);if(previous.postId){event.postId=previous.postId;if(event.printRequested===undefined)event.printRequested=previous.printRequested;}}
   event.state=row.pending_kind==='cancel'?'cancelled':'approved';published=JSON.stringify(event);
  }

@@ -42,6 +42,11 @@ export function validateEvent(input, { allowPast=false } = {}) {
   if (input.channels !== undefined) result.channels = channels;
   ensure(input.printRequested === undefined || typeof input.printRequested === 'boolean', 400, 'Vælg et gyldigt ønske til printkalenderen.');
   if (input.printRequested !== undefined) result.printRequested = input.printRequested;
+  if(Object.hasOwn(input,'imageUrl')){
+    const path=typeof input.imageUrl==='string'?input.imageUrl:'';
+    ensure(!path||/^\/api\/kalender\/event-images\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.(jpg|png|webp)$/.test(path),400,'Vælg et billede fra telefonen eller computeren.');
+    result.imageUrl=path;
+  }
   return result;
 }
 export function validateMonth(month) {

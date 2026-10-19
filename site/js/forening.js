@@ -1,3 +1,6 @@
+import {installEventComposer} from './event-composer.js';
+installEventComposer();
+document.addEventListener('teb:event-saved', () => { if (currentRoute?.page === 'arbejdsrum') render(); });
 import {printEditorHtml,mountPrintEditor} from './kalender-print.js';
 import { api, getSession, escapeHTML as esc, requestKey, today, dateText, showMessage, showMode, busy } from './portal-api.js';
 
@@ -291,7 +294,7 @@ function reviewForm(e) {
   return `<details class="fp-panel fa-review fa-section"><summary>${esc(data.title || 'Arrangement uden titel')} · ${esc(statusNames[e.pendingKind] || 'Afventer')}</summary><div class="fa-status-row">${status(e.pendingKind)}${status(e.status)}</div>` +
     (e.published ? `<section class="fa-event-compare"><h3>Allerede offentliggjort</h3>${eventSummary(e.published)}<p class="fp-note">Denne version bevares, hvis ændringen afvises.</p></section>` : '<p class="fp-note">Arrangementet er endnu ikke offentliggjort.</p>') +
     (e.possibleDuplicates?.length ? `<p class="fp-notice">Mulige dubletter: ${e.possibleDuplicates.map(d => esc(d.title)).join(', ')}. Kontrollér dem under Alle arrangementer.</p>` : '') +
-    `${mailWarnings(e)}${formStart('review-event', `data-id="${esc(e.id)}" data-snapshot="${esc(snapshotKey)}" data-revision="${esc(e.revision)}"`)}<h3>${e.pendingKind === 'cancel' ? 'Anmodning om aflysning' : 'Indsendt indhold'}</h3>${eventInputs(data)}${textarea('note', 'Besked til afsenderen. Skal udfyldes ved afvisning.', e.note || '', 'maxlength="500"')}<div class="fp-actions">${button(e.pendingKind === 'cancel' ? 'Godkend aflysning' : 'Godkend og offentliggør', 'approve')}${button('Afvis', 'reject', 'formnovalidate')}</div>${resultBox()}</form></details>`;
+    `${mailWarnings(e)}${formStart('review-event', `data-id="${esc(e.id)}" data-snapshot="${esc(snapshotKey)}" data-revision="${esc(e.revision)}"`)}<h3>${e.pendingKind === 'cancel' ? 'Anmodning om aflysning' : 'Indsendt indhold'}</h3>${data.imageUrl && /^\/api\/kalender\/event-images\/[a-f0-9-]{36}\.(jpg|png|webp)$/.test(data.imageUrl) ? `<img class="cal-event-photo" src="${esc(data.imageUrl)}" alt="Indsendt arrangementsbillede">` : ''}${eventInputs(data)}${textarea('note', 'Besked til afsenderen. Skal udfyldes ved afvisning.', e.note || '', 'maxlength="500"')}<div class="fp-actions">${button(e.pendingKind === 'cancel' ? 'Godkend aflysning' : 'Godkend og offentliggør', 'approve')}${button('Afvis', 'reject', 'formnovalidate')}</div>${resultBox()}</form></details>`;
 }
 async function adminAccess() {
   const [{ requests }, { associations }] = await Promise.all([api('/admin/access-requests'), api('/associations')]);

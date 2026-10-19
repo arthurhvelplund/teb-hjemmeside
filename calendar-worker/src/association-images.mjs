@@ -5,8 +5,9 @@ import { requireAccess } from './auth.mjs';
 export const maxImageBytes=2*1024*1024;
 const uuid='[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
 export const storedImagePath=new RegExp('^/api/kalender/association-images/('+uuid+')/('+uuid+'\\.(?:jpg|png|webp))$');
-const types={jpg:'image/jpeg',png:'image/png',webp:'image/webp'};
-function extension(bytes){
+export const imageTypes={jpg:'image/jpeg',png:'image/png',webp:'image/webp'};
+const types=imageTypes;
+export function extension(bytes){
  const text=(start,end)=>String.fromCharCode(...bytes.slice(start,end));
  if(bytes.length>=12&&text(0,4)==='RIFF'&&text(8,12)==='WEBP'&&new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength).getUint32(4,true)===bytes.length-8&&['VP8 ','VP8L','VP8X'].includes(text(12,16)))return 'webp';
  if(bytes.length>=24&&[137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v)&&text(12,16)==='IHDR'){
@@ -16,7 +17,7 @@ function extension(bytes){
  if(bytes.length>=4&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255&&bytes.at(-2)===255&&bytes.at(-1)===217)return 'jpg';
  return null;
 }
-async function readImage(request){
+export async function readImage(request){
  ensure(Number(request.headers.get('Content-Length')||0)<=maxImageBytes,413,'Billedet er for stort. Vælg et mindre billede.');
  ensure(request.body,400,'Vælg et billede.');
  const reader=request.body.getReader(),chunks=[];let length=0;

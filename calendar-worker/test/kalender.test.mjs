@@ -408,3 +408,46 @@ test('calendar visibility wishes survive guest review, edits and member publicat
  const invalid=await f.guest.call('/events',{data:{...saved.payload,requestKey:crypto.randomUUID(),event:event({channels:['unknown']})}});assert.equal(invalid.status,400);
  assert.ok(f.messages.every(m=>['admin@example.test','guest@example.test','manager@example.test'].includes(m.to)));
 });
+
+test('event photo and print request survive guest review, edits and direct member publication',async t=>{
+ const f=fixture(t);
+ const bytes=Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==','base64'));
+ const upload=(headers={})=>handleApi(new Request(origin+'/api/kalender/event-images',{method:'POST',headers:{Origin:origin,'Content-Type':'image/png',...headers},body:bytes}),f.env);
+ assert.equal((await upload({Origin:'https://other.example.test'})).status,403);
+ assert.equal((await upload({'Content-Type':'image/svg+xml'})).status,415);
+ const {imageUrl}=await ok(await upload(),201);
+ assert.match(imageUrl,/^\/api\/kalender\/event-images\//);
+ const photo=await handleApi(new Request(origin+imageUrl),f.env);
+ assert.equal(photo.headers.get('Content-Type'),'image/png');
+ assert.deepEqual(new Uint8Array(await photo.arrayBuffer()),bytes);
+ const submitted=await f.submit({event:event({imageUrl,printRequested:true})});
+ assert.equal((await f.guest.call('/events/'+submitted.id)).status,404);
+ assert.equal((await f.privateEvent(submitted)).data.imageUrl,imageUrl);
+ await f.admin.login('admin@example.test');
+ // An existing review form may only send the original text fields.
+ await ok(await f.decide(submitted,'approve',{event:event({title:'Gennemgået af TEB'})}));
+ const publicData=(await ok(await f.guest.call('/events/'+submitted.id))).event;
+ assert.equal(publicData.imageUrl,imageUrl);assert.equal(publicData.printRequested,true);
+ const wrapper=await f.privateEvent(submitted);
+ await ok(await f.guest.call('/private/'+submitted.id,{authorization:submitted.payload.authorToken,data:{action:'edit',revision:wrapper.revision,event:{...wrapper.data,title:'Ny tekst',printRequested:false}}}));
+ assert.equal((await ok(await f.guest.call('/events/'+submitted.id))).event.printRequested,true);
+ await ok(await f.decide(submitted));
+ assert.equal((await ok(await f.guest.call('/events/'+submitted.id))).event.printRequested,false);
+ const {a,user}=await f.member();
+ const direct=await f.memberEvent(user,a,{event:event({imageUrl,printRequested:false})});
+ const directData=(await ok(await f.guest.call('/events/'+direct.id))).event;
+ assert.equal(directData.imageUrl,imageUrl);assert.equal(directData.printRequested,false);
+ const data=await snapshot(f.env,editionOptions({month,deadline:copenhagenDate()}));
+ assert.equal(data.events.some(e=>e.id===direct.id||e.id===submitted.id),false);
+});
+
+test('event images reject unsupported bodies, unsafe paths and oversized uploads',async t=>{
+ const f=fixture(t);
+ const send=body=>handleApi(new Request(origin+'/api/kalender/event-images',{method:'POST',headers:{Origin:origin,'Content-Type':'image/png'},body}),f.env);
+ assert.equal((await send('not an image')).status,415);
+ assert.equal((await send(new Uint8Array(2*1024*1024+1))).status,413);
+ const payload={event:event({imageUrl:'javascript:alert(1)'}),email:'guest@example.test',authorToken:token(),requestKey:crypto.randomUUID(),startedAt:Date.now()-5000};
+ assert.equal((await f.guest.call('/events',{data:payload})).status,400);
+ payload.event=event({printRequested:'yes'});
+ assert.equal((await f.guest.call('/events',{data:payload})).status,400);
+});

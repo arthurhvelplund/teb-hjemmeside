@@ -35,7 +35,7 @@ export function calendarBoard({events,bounds,mode,onPickDay,...handlers}){
    const chip=link(event,handlers,'cal-chip'),cancelled=event.state==='cancelled';
    const caption=cancelled?'Aflyst':event.date!==day?'Fortsat':event.time?clock(event.time):'Hele dagen';
    chip.setAttribute('aria-label',(cancelled?'Aflyst. ':'')+event.title+'. '+dateText(day)+(event.time?' kl. '+clock(event.time):''));
-   if(mode==='week'){const img=photo(event.image,'cal-chip-image');if(img){img.addEventListener('error',()=>img.remove());chip.append(img);}}
+   if(mode==='week'){const img=photo(event.imageUrl || event.image,'cal-chip-image');if(img){img.addEventListener('error',()=>img.remove());chip.append(img);}}
    chip.append(element('span','cal-chip-time',caption),element('strong','cal-chip-title',event.title));
    if(mode==='week'&&event.location)chip.append(element('span','cal-chip-place',event.location));
    list.append(chip);
@@ -49,7 +49,7 @@ export function calendarBoard({events,bounds,mode,onPickDay,...handlers}){
 export function upcomingCards({events,...handlers}){
  const list=element('div','cal-upcoming-grid');
  for(const event of events){
-  const card=link(event,handlers,'cal-card'),media=element('span','cal-card-media'),img=photo(event.image,'cal-card-image');
+  const card=link(event,handlers,'cal-card'),media=element('span','cal-card-media'),img=photo(event.imageUrl || event.image,'cal-card-image');
   const tile=element('span','cal-card-tile');tile.append(element('span','',weekday(event.date)),element('strong','',String(Number(event.date.slice(-2)))),element('span','',dateText(event.date,{day:undefined,month:'short',year:undefined})));
   if(img){img.addEventListener('error',()=>img.replaceWith(tile));media.append(img);}else media.append(tile);
   const copy=element('span','cal-card-copy');
