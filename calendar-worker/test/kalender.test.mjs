@@ -81,6 +81,66 @@ test('directory exposes profile contacts, never login memberships; optimistic pr
  assert.equal((await user.call('/associations/'+a.id,{data:{association:a,revision:1}})).status,409);
  const s=await ok(await user.call('/session'));assert.equal(s.memberships[0].association.id,a.id);assert.equal(s.memberships[0].associationId,a.id);assert.equal(s.memberships[0].role,'manager');
 });
+test('association images persist through profiles, directory and sessions; legacy edits preserve them',async t=>{
+ const f=fixture(t),{a,user}=await f.member();
+ const saved=await ok(await user.call('/associations/'+a.id,{data:{association:{...a,imageUrl:'https://images.example.test/forening.jpg'},revision:1}}));
+ assert.equal(saved.association.imageUrl,'https://images.example.test/forening.jpg');
+ assert.equal((await ok(await f.guest.call('/associations'))).associations[0].imageUrl,saved.association.imageUrl);
+ assert.equal((await ok(await user.call('/session'))).memberships[0].association.imageUrl,saved.association.imageUrl);
+ const legacy={...saved.association,description:'Gemt fra en ældre klient'};delete legacy.imageUrl;
+ const preserved=await ok(await user.call('/associations/'+a.id,{data:{association:legacy,revision:2}}));
+ assert.equal(preserved.association.imageUrl,saved.association.imageUrl);
+ const local=await ok(await user.call('/associations/'+a.id,{data:{association:{...a,imageUrl:'/images/forening-faellesskab.webp'},revision:3}}));
+ assert.equal(local.association.imageUrl,'/images/forening-faellesskab.webp');
+ const cleared=await ok(await user.call('/associations/'+a.id,{data:{association:{...a,imageUrl:''},revision:4}}));
+ assert.equal(cleared.association.imageUrl,'');
+});
+test('members upload a real image, publish its URL and serve immutable image bytes without login',async t=>{
+ const f=fixture(t),{a,user}=await f.member();
+ const bytes=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j6hkAAAAASUVORK5CYII=','base64');
+ const uploaded=await ok(await handleApi(new Request(origin+'/api/kalender/associations/'+a.id+'/image',{method:'POST',headers:{Origin:origin,Cookie:user.cookie(),'Content-Type':'image/png'},body:bytes}),f.env),201);
+ assert.match(uploaded.imageUrl,/^\/api\/kalender\/association-images\/[a-f0-9-]+\/[a-f0-9-]+\.png$/);
+ await ok(await user.call('/associations/'+a.id,{data:{association:{...a,imageUrl:uploaded.imageUrl},revision:1}}));
+ assert.equal((await ok(await f.guest.call('/associations/'+a.id))).association.imageUrl,uploaded.imageUrl);
+ const image=await handleApi(new Request(origin+uploaded.imageUrl),f.env);
+ assert.equal(image.status,200);assert.equal(image.headers.get('Content-Type'),'image/png');assert.equal(image.headers.get('X-Content-Type-Options'),'nosniff');assert.match(image.headers.get('Cache-Control'),/immutable/);
+ assert.deepEqual(Buffer.from(await image.arrayBuffer()),bytes);
+});
+test('image upload checks association permissions, origin, byte limits and actual file signature',async t=>{
+ const f=fixture(t),{a,user}=await f.member(),other=await f.association('Anden forening');
+ const bytes=await readFile(new URL('../../site/images/forening-faellesskab.webp',import.meta.url));
+ const upload=(client,id,body=bytes,headers={})=>handleApi(new Request(origin+'/api/kalender/associations/'+id+'/image',{method:'POST',headers:{Origin:origin,...(client?{Cookie:client.cookie()}:{}),'Content-Type':'image/webp',...headers},body}),f.env);
+ assert.equal((await upload(null,a.id)).status,401);
+ assert.equal((await upload(user,other.id)).status,403);
+ assert.equal((await upload(user,a.id,bytes,{Origin:'https://other.test'})).status,403);
+ assert.equal((await upload(user,a.id,new Uint8Array(2*1024*1024+1))).status,413);
+ assert.equal((await upload(user,a.id,Buffer.from('<svg onload="alert(1)"></svg>'),{'Content-Type':'image/png'})).status,415);
+ assert.equal((await upload(user,a.id,bytes,{'Content-Type':'image/jpeg'})).status,415);
+ const saved=await ok(await upload(user,a.id),201);assert.ok(saved.imageUrl.endsWith('.webp'));
+ await f.DB.prepare("UPDATE memberships SET status='revoked' WHERE association_id=?").bind(a.id).run();
+ assert.equal((await upload(user,a.id)).status,403);
+});
+test('revocation during image storage prevents the upload from granting further access',async t=>{
+ const f=fixture(t),{a,user}=await f.member(),storage=f.env.PDFS;
+ f.env.PDFS={...storage,async put(...args){const result=await storage.put(...args);await f.DB.prepare("UPDATE memberships SET status='revoked' WHERE association_id=?").bind(a.id).run();return result;}};
+ const bytes=await readFile(new URL('../../site/images/forening-faellesskab.webp',import.meta.url));
+ const response=await handleApi(new Request(origin+'/api/kalender/associations/'+a.id+'/image',{method:'POST',headers:{Origin:origin,Cookie:user.cookie(),'Content-Type':'image/webp'},body:bytes}),f.env);
+ assert.equal(response.status,403);assert.equal((await ok(await f.guest.call('/associations/'+a.id))).association.imageUrl,'');
+});
+test('association images reject executable, insecure and credential-bearing URLs before saving',async t=>{
+ const f=fixture(t),{a,user}=await f.member();
+ for(const imageUrl of ['javascript:alert(1)','data:image/svg+xml,test','http://images.example.test/a.jpg','https://user:secret@example.test/a.jpg','//example.test/a.jpg','/images/../private.jpg','/images/a.jpg?token=private','https://example.test/\\private.jpg']){
+  const response=await user.call('/associations/'+a.id,{data:{association:{...a,imageUrl},revision:1}});assert.equal(response.status,400,imageUrl);
+ }
+ assert.equal((await ok(await f.guest.call('/associations/'+a.id))).association.revision,1);
+});
+test('association creation stores an image and includes it in retry identity',async t=>{
+ const f=fixture(t);await f.admin.login('admin@example.test');
+ const payload={association:{name:'Forening med billede',imageUrl:'https://images.example.test/photo.jpg'},requestKey:crypto.randomUUID()};
+ const first=await ok(await f.admin.call('/admin/associations',{data:payload}));assert.equal(first.association.imageUrl,payload.association.imageUrl);
+ assert.equal((await ok(await f.admin.call('/admin/associations',{data:payload}))).association.id,first.association.id);
+ assert.equal((await f.admin.call('/admin/associations',{data:{...payload,association:{...payload.association,imageUrl:'https://images.example.test/other.jpg'}}})).status,409);
+});
 test('association creation retries and concurrent requests create one directory entry',async t=>{
  const f=fixture(t);await f.admin.login('admin@example.test');
  const payload={association:{name:' Retry Forening ',email:' PUBLIC@example.test ',website:'https://example.test'},requestKey:crypto.randomUUID()};

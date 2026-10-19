@@ -27,6 +27,23 @@ Frontend kalder `/api/kalender/*`. Backend i `calendar-worker/` kontrollerer
 login, adgang, data og offentliggørelse. Der er ingen faste prøvekoder eller
 roller gemt i frontend. Gamle arrangementslinks viderestilles til de nye sider.
 
+Foreningsoversigten viser billedkort som standard. Besøgende kan skifte til en
+liste, og browseren husker valget. Søgning og interessevalg bevares ved skift.
+"Kontakt TEB" åbner `kontakt.html#form`. Login viser først e-mail og derefter
+kodefeltet. Efter login åbnes egen forening; personer med flere tilknytninger
+vælger mellem deres foreninger. Overblikket samler egne arrangementer, og
+profilredigeringen er delt op i oplysninger, kontakt og billede.
+
+Foreningsansvarlige og TEB kan vælge et JPG-, PNG- eller WebP-billede fra
+telefon/computer. Browseren begrænser filen til 1600 pixels og fjerner metadata
+ved at danne en ny billedfil. Billedet overføres til den eksisterende R2-binding
+`PDFS` under `association-images/`; profilen opdateres først ved "Gem profil".
+Serveren begrænser filer til 2 MB, kontrollerer filtype og foreningsadgang og
+serverer billeder gennem `/api/kalender/association-images/*`. Ældre gemte
+billedadresser understøttes fortsat. Uden eget billede, eller hvis det ikke kan indlæses,
+vises et foto fra byen mærket "Glimt fra byen". Databasen kræver den additive
+migration `0006_association_images.sql` før den nye backend sættes i drift.
+
 ## Lokalt preview
 
 Følg [backendens vejledning](../calendar-worker/README.md) for server og lokal

@@ -28,8 +28,10 @@ const editorEmail=process.env.EDITOR_EMAIL||'tistrup.kalender@gmail.com';
 const env={DB,PDFS:localR2(resolve(runtime,'r2')),LOCAL_PREVIEW:'true',PUBLIC_ORIGIN:`http://localhost:${port}`,EDITOR_EMAIL:editorEmail,EMAIL_FROM:'kalender@example.test',TEB_ADMIN_EMAILS:process.env.TEB_ADMIN_EMAILS||editorEmail,MAIL_ENCRYPTION_KEY:mailKey,ASSETS:assets};
 const server=http.createServer(async(req,res)=>{
  try{
+  const imageUpload=req.method==='POST'&&/^\/api\/kalender\/associations\/[^/]+\/image$/.test(req.url);
+  const limit=imageUpload?2*1024*1024:20000;
   const parts=[];let size=0;
-  for await(const part of req){size+=part.length;if(size>20000){res.writeHead(413);res.end('For stor forespørgsel');return;}parts.push(part);}
+  for await(const part of req){size+=part.length;if(size>limit){res.writeHead(413,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'Indsendelsen er for stor.'}));return;}parts.push(part);}
   // Keep the actual Host for loopback-only endpoints. A forwarded external Host
   // must not become localhost merely because the server binds to loopback.
   const host=req.headers.host||`localhost:${port}`;

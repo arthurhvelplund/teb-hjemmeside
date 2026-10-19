@@ -70,6 +70,34 @@ Kør `npm test` og `npm run build`. Routen ligger under den eksisterende
 kalender-API, så der kræves ingen ekstra Worker-route eller database-migration.
 Dette aktiverer ikke deployment.
 
+## Foreningsudkast til lokal prototype
+
+Med serveren kørende kan `npm run seed:associations` tilføje 24 rigtige
+foreninger og lokale fællesskaber til den lokale database. Importen kræver
+loopback og lokal tilstand. Den sender ingen eksterne mails og opretter ingen
+foreningsmedlemmer. Gentagelse bevarer eksisterende profiler uden dubletter
+eller overskrivning. `CALENDAR_ORIGIN` kan vælge en anden lokal serverport.
+
+Kataloget i `../site/data/foreninger-udkast.json` er undersøgt 18. oktober 2026
+med Tistrup Nyts foreningsoversigt som udgangspunkt. Hver post har et kildelink
+og eventuelt billedkilde, kreditering og researchnote. De 18 billeder/logoer i
+`../site/images/foreninger/` er lokale kopier til prototypen. Fotografier og
+logoer beholder deres ophav hos kilderne. Billedbrug skal afklares før en
+offentlig lancering.
+
+Siden viser udkastmarkering og kilde på profilerne i lokal tilstand. Seks
+profiler mangler et eget billede: FTF, Horne-Tistrup Aftenskole, Janusbygningen,
+jagtforeningen, Tistrup i bevægelse og Tistruplunds Venner. Janusbygningen,
+hallen og forsamlingshuset er lokale kultur-/mødesteder. HTS er et samarbejde
+på tværs af klubber. De er med i oversigten som fællesskaber, ikke som ekstra
+selvstændige medlemsforeninger.
+
+Den tidligere aftenskolehjemmeside gav 404. Beskrivelser af FTF, aftenskolen,
+jagtforeningen og Tistruplunds Venner er derfor bevidst korte og afventer
+bekræftelse. Ingen kontaktpersoner er gættet. Eksempelforeningen Solsiden
+bevares i databasen og arbejdsområderne, men udelades fra den offentlige lokale
+oversigt, når katalogets rigtige foreninger er indlæst. Der er ikke deployet.
+
 ## Adgang og revisioner
 
 Den samlede side er nu `/nyt.html`. Den bruger `GET/POST /posts` og

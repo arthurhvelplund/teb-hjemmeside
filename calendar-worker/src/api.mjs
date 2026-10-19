@@ -7,6 +7,7 @@ import { previewEdition, finalizeEdition, listEditions, editionPdf } from './edi
 import { localMailbox, flushMail } from './mail.mjs';
 import { handlePosts } from './posts.mjs';
 import { experiment } from './experiment.mjs';
+import { uploadAssociationImage, associationImage, storedImagePath } from './association-images.mjs';
 const base='/api/kalender';
 async function body(request,env){
  ensure(request.headers.get('Origin')===env.PUBLIC_ORIGIN,403,'Indsendelsen skal komme fra hjemmesiden.');
@@ -22,6 +23,10 @@ async function api(request,env){
  if(route==='/config'&&method==='GET')return json({mode:local(env)?'local':'live',submissionsEnabled:Boolean(env.DB&&env.MAIL_ENCRYPTION_KEY&&(local(env)||env.TEB_EMAIL)&&env.PUBLIC_ORIGIN&&env.EDITOR_EMAIL&&env.EMAIL_FROM),editorEmail:env.EDITOR_EMAIL||''});
  ensure(env.DB&&env.PUBLIC_ORIGIN,503,'Databasen er ikke tilsluttet.');
  ensure(['GET','POST'].includes(method),405,'Denne handling er ikke tilladt.');
+ const image=route.match(/^\/associations\/([^/]+)\/image$/);
+ if(image&&method==='POST')return uploadAssociationImage(request,env,await identity(request,env),image[1]);
+ const storedImage=url.pathname.match(storedImagePath);
+ if(storedImage&&method==='GET')return associationImage(env,storedImage[1],storedImage[2]);
  const data=method==='POST'?await body(request,env):null;
  if(route==='/local-mail'&&method==='GET')return json(await localMailbox(request,env));
  if(route==='/auth/request'&&method==='POST')return requestOtp(request,env,data);
