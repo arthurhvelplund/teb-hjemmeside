@@ -145,5 +145,3 @@ Offentlige `/kalender`, `/nyt` og `/api/kalender/config` svarede HTTP 403 på
 HTTP-læsning i denne samling. Der udledes ingen ny produktionsstatus af det.
 Produktionsworkflowet deployer ved relevante push til `main`; denne samling
 pusher arbejds- og arkivgrene og udfører ingen deploy.
-
-
