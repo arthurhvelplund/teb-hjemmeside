@@ -41,8 +41,8 @@ try{
  browser=await chromium.launch({headless:true,...(executablePath?{executablePath}:{})});
  const guest=await context(),page=await guest.newPage();page.setDefaultTimeout(12000);
  const sourceRequests=[];page.on('request',r=>{if(r.url().includes('/kilder/'))sourceRequests.push(r.url());});
- await page.goto('/nyt.html');await page.locator('.news-source-card').first().waitFor();
- assert.equal(await page.locator('.news-source-card').count(),5);assert.equal(await page.locator('#calendar-events,#ds-events,#ds-feed').count(),0);
+ await page.goto('/nyt.html');await page.locator('.ds-source-card').first().waitFor();assert.equal(await page.locator('main h1').textContent(),'Det sker her.');assert.equal(await page.locator('main h1').count(),1);
+ assert.equal(await page.locator('.ds-group .ds-source-card').count(),7);assert.equal(await page.locator('.ds-source-card img').count(),7);assert.equal(await page.locator('#calendar-events,#ds-events,#ds-feed').count(),0);
  assert.equal(await page.locator('#facebook').count(),1);assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');assert.equal(sourceRequests.length,0);
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:resolve(output,'nyt-'+width+'.png'),fullPage:true});}
  await page.goto('/index.html');assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');

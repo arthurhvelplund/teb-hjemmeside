@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Links til lokale nyhedssider og TEBs Facebook-opslag. Find arrangementerne i byens kalender.">
+<meta name="description" content="Det sker her: lokale nyheder, foreninger, arrangementer og TEBs Facebook-opslag fra Tistrup og Hodde.">
 <title>Det sker i Tistrup | TEB</title>
 <link rel="stylesheet" href="css/style.css?v=a37d3c51d78f">
 <link rel="stylesheet" href="css/layout.css?v=b6a5ad24290b">
-<link rel="stylesheet" href="css/det-sker.css?v=6f4d4e720d7e">
+<link rel="stylesheet" href="css/det-sker.css?v=a96ea3b45c28">
 <link rel="icon" href="images/teb-trolde-haandtegnet.png">
 <link rel="stylesheet" href="css/seasonal-themes.css?v=7450862d89d1">
 <script src="js/seasonal-theme.js?v=5a1758734788"></script>
@@ -42,21 +42,35 @@
   </div>
 </header>
 <main class="site-main">
- <section class="hero page-hero page-hero--compact"><div class="wrap page-heading"><h1>Det <em>sker.</em></h1><p class="lead">Find de lokale nyhedssider og følg med hos TEB.</p></div></section>
- <section class="section"><div class="wrap"><h2>Nyt fra <em>byen.</em></h2><p>Læs nyhederne hos de lokale medier. Leder du efter arrangementer, finder du dem i <a href="kalender.html">byens kalender</a>.</p><div class="news-source-grid"><a class="news-source-card" href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer"><h3>Tistrup Nyt ↗</h3><p>Lokale nyheder fra Tistrup og Hodde.</p><span>Åbn siden</span></a>
-<a class="news-source-card" href="https://pulsenivest.dk/by/tistrup" target="_blank" rel="noopener noreferrer"><h3>Pulsen i Vest ↗</h3><p>Historier fra Tistrup og egnen.</p><span>Åbn siden</span></a>
-<a class="news-source-card" href="https://www.tistrupnews.dk/" target="_blank" rel="noopener noreferrer"><h3>Tistrupnews ↗</h3><p>Nyt fra lokalområdet.</p><span>Åbn siden</span></a>
-<a class="news-source-card" href="https://vores-tistrup.dk/" target="_blank" rel="noopener noreferrer"><h3>VORES Tistrup ↗</h3><p>Nyheder og lokale opslag.</p><span>Åbn siden</span></a>
-<a class="news-source-card" href="https://sundhedsfremme.vardekommune.dk/lokalsamfund/" target="_blank" rel="noopener noreferrer"><h3>Fællesskaber i Varde ↗</h3><p>Find fællesskaber i kommunen.</p><span>Åbn siden</span></a>
-</div></div></section>
- <section class="section facebook-section" id="facebook" aria-labelledby="facebook-heading">
+ <section class="hero page-hero page-hero--compact"><div class="wrap ds-hero">
+  <h1>Det sker <em>her.</em></h1>
+  <p class="lead">Nyheder, foreninger og arrangementer i Tistrup og Hodde. Du bliver sendt videre til dem, der har skrevet det.</p>
+  <nav class="ds-jump" aria-label="Spring til"><a href="#nyheder">Nyheder</a><a href="#faellesskaber">Fællesskaber og arrangementer</a><a href="#facebook">TEB på Facebook</a></nav>
+ </div></section>
+ <div class="wrap ds-groups">
+  <section class="ds-group" id="nyheder" aria-labelledby="nyheder-heading">
+   <h2 class="ds-group-label" id="nyheder-heading">Nyheder <span>Lokale medier</span></h2>
+   <div class="ds-card-grid">
+   <a class="ds-source-card" href="https://tistrupnyt.dk/" target="_blank" rel="noopener noreferrer"><img src="images/det-sker/tistrup-nyt.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Tistrup Nyt</strong><span>Byens egen nyhedsside for Tistrup og Hodde.</span><small>tistrupnyt.dk ↗</small></span></a>
+   <a class="ds-source-card" href="https://pulsenivest.dk/by/tistrup" target="_blank" rel="noopener noreferrer"><img src="images/det-sker/pulsen.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Pulsen i Vest</strong><span>Historier og arrangementer fra Tistrup og egnen.</span><small>pulsenivest.dk ↗</small></span></a>
+   <a class="ds-source-card" href="https://www.tistrupnews.dk/" target="_blank" rel="noopener noreferrer"><img src="images/det-sker/tistrupnews.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Tistrupnews</strong><span>Lokale nyheder fra Tistrup og omegn.</span><small>tistrupnews.dk ↗</small></span></a>
+   <a class="ds-source-card" href="https://vores-tistrup.dk/" target="_blank" rel="noopener noreferrer"><img src="images/det-sker/vores-tistrup.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>VORES Tistrup</strong><span>Lokale historier fra 6862 Tistrup.</span><small>vores-tistrup.dk ↗</small></span></a>
+   </div>
+  </section>
+  <section class="ds-group" id="faellesskaber" aria-labelledby="faellesskaber-heading">
+   <h2 class="ds-group-label" id="faellesskaber-heading">Fællesskaber og arrangementer <span>Foreninger og kalender</span></h2>
+   <div class="ds-card-grid">
+   <a class="ds-source-card" href="kalender.html"><img src="images/det-sker/kalender.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Byens kalender</strong><span>Alle arrangementer fra foreningerne. Her kan du også oprette dit eget.</span><small>Se kalenderen →</small></span></a>
+   <a class="ds-source-card" href="forening.html"><img src="images/det-sker/foreninger.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Foreninger i Tistrup</strong><span>Find en forening, et hold eller et fællesskab.</span><small>Se foreningerne →</small></span></a>
+   <a class="ds-source-card" href="https://sundhedsfremme.vardekommune.dk/lokalsamfund/" target="_blank" rel="noopener noreferrer"><img src="images/det-sker/faellesskaber-varde.jpg" alt="" width="760" height="475" loading="lazy" decoding="async"><span class="ds-source-body"><strong>Fællesskaber i Varde</strong><span>Varde Kommunes oversigt over fællesskaber i lokalsamfundene.</span><small>vardekommune.dk ↗</small></span></a>
+   </div>
+  </section>
+ </div>
+ <section class="section facebook-section ds-facebook" id="facebook" aria-labelledby="facebook-heading">
     <div class="wrap facebook-layout">
-      <div class="facebook-intro">
-        <span class="eyebrow">Følg med i fællesskabet</span>
-        <h2 id="facebook-heading">Seneste fra TEB på <em>Facebook</em>.</h2>
-        <p>Nyheder, billeder og små glimt fra livet i Tistrup. Her kan du følge vores seneste opslag direkte fra Facebook.</p>
-        <a class="btn" href="https://www.facebook.com/p/Tistrup-Erhvervs-og-Borgerforening-61594168058446/" target="_blank" rel="noopener">Se alle opslag på Facebook</a>
-        <p class="facebook-note">Hvis opslagene ikke vises her, kan du altid åbne Facebook-siden via knappen.</p>
+      <div class="facebook-intro ds-facebook-intro">
+        <h2 id="facebook-heading" class="ds-group-label">TEB på Facebook <span>Vores egne opslag</span></h2>
+        <a class="ds-text-link" href="https://www.facebook.com/p/Tistrup-Erhvervs-og-Borgerforening-61594168058446/" target="_blank" rel="noopener">Åbn Facebook-siden ↗</a>
       </div>
       <div class="facebook-feed">
         <script type="text/javascript" src="https://www.juicer.io/embed/61594168058446/embed-code.js" async defer></script>
