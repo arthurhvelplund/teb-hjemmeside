@@ -26,18 +26,28 @@ async function json(context,path,options={}){
  const result=await response.json();assert.ok(response.ok(),path+': '+response.status()+' '+(result.error||''));return result;
 }
 async function fill(form,values){for(const [name,value]of Object.entries(values)){const field=form.locator('[name="'+name+'"]');if(await field.evaluate(node=>node.tagName==='SELECT'))await field.selectOption(value);else await field.fill(value);}}
-async function login(page,email){
+async function login(page,email,exerciseSteps=false){
  await page.goto('/forening.html#login');
  const request=page.locator('form[data-action="request-code"]');await request.waitFor();await fill(request,{email});
  const response=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');
  await request.locator('button[type="submit"]').click();assert.ok((await response).ok());
+ await page.locator('form[data-action="verify-code"]').waitFor();
+ assert.equal(await page.locator('form[data-action="request-code"]').count(),0,'Email and code are separate steps');
+ if(exerciseSteps){
+  await page.locator('[data-change-email]').click();await request.waitFor();assert.equal(await request.locator('[name="email"]').inputValue(),email);
+  const next=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');await request.locator('button[type="submit"]').click();assert.ok((await next).ok());
+  const resend=page.locator('form[data-action="resend-code"]');await resend.waitFor();
+  const resent=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');await resend.locator('button[type="submit"]').click();assert.ok((await resent).ok());await page.locator('form[data-action="verify-code"]').waitFor();
+ }
  const mailbox=await page.context().newPage();mailbox.on('pageerror',error=>errors.push(error.message));
  await mailbox.goto('/kalender-postkasse.html');
  const message=mailbox.locator('details.fp-mail').filter({has:mailbox.locator('summary').filter({hasText:email})}).filter({hasText:'Din engangskode til TEB'}).first();
  await message.locator('summary').click();
  const code=(await message.innerText()).match(/\b\d{6}\b/)?.[0];
  assert.ok(code,'Requested OTP is readable through the actual local mailbox page');await mailbox.close();
- const verify=page.locator('form[data-action="verify-code"]');await verify.waitFor();await fill(verify,{code});await verify.locator('button').click();
+ const verify=page.locator('form[data-action="verify-code"]');await verify.waitFor();
+ if(exerciseSteps){await fill(verify,{code:code==='000000'?'111111':'000000'});await verify.locator('button').click();await page.getByText('Koden er forkert eller udløbet.',{exact:false}).waitFor();}
+ await fill(verify,{code});await verify.locator('button').click();
  await page.waitForURL(url=>!url.hash.startsWith('#login'));
  const session=await json(page.context(),'/session');assert.equal(session.user.email.toLowerCase(),email.toLowerCase());
 }
@@ -54,7 +64,7 @@ try{
  const editorContext=await browser.newContext({baseURL:origin,viewport:{width:1440,height:1000}});
  const [admin,member,guest,editor]=await Promise.all([adminContext.newPage(),memberContext.newPage(),guestContext.newPage(),editorContext.newPage()]);
  pages.push(admin,member,guest,editor);for(const page of pages){page.setDefaultTimeout(20000);page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());}
- await login(admin,adminEmail);record('TEB email-code login');
+ await login(admin,adminEmail,true);record('Two-step login, email correction, resend and wrong-code recovery use the real API');
  await admin.goto('/forening.html#teb?fane=foreninger&forening=ny');
  const create=admin.locator('form[data-action="create-association"]');await fill(create,{name:'Integrationens eksempelforening',category:'Fællesskab',description:'Kun testdata i en isoleret database.',chair:'Eksempel Formand',email:'kontakt@example.org',phone:'12 34 56 78',place:'Eksempelhallen'});
  let creationAttempt=0;const creationKeys=[];
@@ -76,9 +86,27 @@ try{
  const membership=admin.locator('form[data-action="admin-member"]');await fill(membership,{name:'Foreningsansvarlig',email:memberEmail,role:'manager'});await membership.locator('[name="verified"]').check();
  await membership.locator('button').click();await admin.getByText('Adgangen er gemt.',{exact:false}).waitFor();
  await login(member,memberEmail);const memberSession=await json(memberContext,'/session');record('Invited manager gains only assigned association',memberSession.memberships.length===1&&memberSession.memberships[0].associationId===association.id);
+ await member.locator('.fa-workspace-header h1').waitFor();assert.equal(await member.locator('.fa-workspace-header h1').innerText(),association.name);
+ assert.equal(await member.getByRole('link',{name:'TEBs arbejdsområde',exact:true}).count(),0);record('Single-association login opens its own overview without TEB administration');
  await member.goto('/forening.html#arbejdsrum?forening='+association.id+'&fane=profil');
- const profile=member.locator('form[data-action="save-profile"]');await fill(profile,{description:'Profil ændret gennem den rigtige API.'});await profile.locator('button').click();await member.getByText('Profilen er gemt og kan ses af alle.').waitFor();
+ const profile=member.locator('form[data-action="save-profile"]');await fill(profile,{description:'Profil ændret gennem den rigtige API.'});
+ const imageUpload=member.waitForResponse(r=>r.url().endsWith('/associations/'+association.id+'/image')&&r.request().method()==='POST');
+ await profile.locator('[data-profile-image]').setInputFiles(resolve(root,'site/images/tistrup-torv.jpg'));
+ const uploadResponse=await imageUpload;assert.equal(uploadResponse.status(),201);const uploadedImageURL=(await uploadResponse.json()).imageUrl;
+ await profile.getByText('Billedet er klar.',{exact:false}).waitFor();await profile.locator('button[type="submit"]').click();await member.getByText('Profilen er gemt og kan ses af alle.').waitFor();
  await guest.goto('/forening.html?id='+association.id);await guest.getByText('Profil ændret gennem den rigtige API.').waitFor();record('Profile update visible to a separate visitor');
+ assert.equal(await guest.locator('.fa-profile-photo img').getAttribute('src'),uploadedImageURL);assert.ok((await guestContext.request.get(uploadedImageURL)).ok());record('File picker uploads and publishes a real association photo');
+ await guest.goto('/forening.html');await guest.locator('.fa-association').waitFor();
+ assert.equal(await guest.locator('#association-results').getAttribute('data-view'),'cards');
+ await guest.locator('#association-search').fill('Integrationens');await guest.locator('#association-category').selectOption('Fællesskab');
+ await guest.getByRole('button',{name:'Liste',exact:true}).click();assert.equal(await guest.locator('#association-results').getAttribute('data-view'),'list');
+ assert.equal(await guest.locator('#association-search').inputValue(),'Integrationens');assert.equal(await guest.locator('#association-category').inputValue(),'Fællesskab');assert.equal(await guest.locator('.fa-association').count(),1);
+ await guest.reload();await guest.locator('.fa-association').waitFor();assert.equal(await guest.locator('#association-results').getAttribute('data-view'),'list');
+ await guest.getByRole('button',{name:'Billeder',exact:true}).click();await guest.locator('.fa-association-photo img').waitFor();
+ assert.equal(await guest.locator('.fa-association-photo img').getAttribute('src'),uploadedImageURL);
+ record('Card/list switching preserves search and filters; browser remembers the selected view');
+ await guest.getByRole('link',{name:/^Kontakt TEB/}).click();await guest.locator('#form form[action="/api/formular"]').waitFor();assert.ok(guest.url().endsWith('/kontakt.html#form'));
+ record('Contact TEB opens the real contact form without submitting a message');
  await guest.goto('/kalender.html?opret=1');const guestForm=await mainForm(guest);
  await fill(guestForm,{title:'Gæstens integrationstest',association:'En gæsteforening',date,time:'18:00',location:'Eksempelhuset',description:'Gæsteindsendelsen skal først godkendes.',email:'gaest@example.org'});
  await guest.getByText('Gæstens integrationstest',{exact:true}).first().waitFor();await guest.waitForTimeout(1600);
@@ -104,13 +132,42 @@ try{
  await login(editor,editorEmail);await editor.goto('/forening.html#arbejdsrum?forening='+association.id+'&fane=personer');await editor.getByText('Den foreningsansvarlige kan invitere og fjerne redaktører.').waitFor();record('Invitation accepted by matching email without manager privileges');
  await member.reload();const revoke=member.locator('form[data-action="revoke-member"][data-email="'+editorEmail+'"]');await revoke.locator('button').click();await member.getByText('Adgangen er fjernet.').waitFor();
  assert.equal((await json(editorContext,'/session')).memberships.length,0);record('Revocation affects an existing session');
- await admin.goto('/forening.html#teb?fane=print');const print=admin.locator('form[data-action="print-edition"]');await fill(print,{start:currentMonth+'-01',end:new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5)),0)).toISOString().slice(0,10),deadline:today,format:'a3'});
- const previewResponse=adminContext.waitForEvent('response',r=>new URL(r.url()).pathname==='/api/kalender/admin/editions/preview');await print.locator('button[value="preview"]').click();const preview=await previewResponse;assert.ok(preview.ok());assert.equal(preview.headers()['content-type'],'application/pdf');record('Current-period preview accepts a deadline within the period');
- await print.locator('button[value="finalize"]').click();await admin.getByText('Printudgaven er gemt med',{exact:false}).waitFor();const editions=(await json(adminContext,'/editions')).editions;assert.equal(editions.length,1);
+ await admin.goto('/forening.html#teb?fane=print');const print=admin.locator('form[data-print-form]');await fill(print,{start:currentMonth+'-01',end:new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5)),0)).toISOString().slice(0,10),deadline:today,format:'a3'});
+ await print.locator('[data-print-load]').click();await print.locator('[data-print-event]').first().waitFor();
+ assert.ok(await print.locator('[data-print-finalize]').isDisabled());
+ const choices=print.locator('[data-print-choice]');for(const choice of await choices.all())assert.equal(await choice.inputValue(),'');record('Print starts with no preselected events and requires manual review');
+ for(const row of await print.locator('[data-print-event]').all())await row.locator('select').selectOption(await row.getAttribute('data-print-event')===direct.id?'include':'exclude');
+ const selected=print.locator('[data-print-event="'+direct.id+'"]');await selected.locator('summary').click();await selected.locator('[data-print-field="title"]').fill('Kort titel til plakaten');
+ const previewResponse=adminContext.waitForEvent('response',r=>new URL(r.url()).pathname==='/api/kalender/admin/editions/preview');await print.locator('[data-print-preview]').click();const preview=await previewResponse;assert.ok(preview.ok());assert.equal(preview.headers()['content-type'],'application/pdf');assert.equal(preview.headers()['x-calendar-event-count'],'1');record('Print preview includes only selected events and supports separate print text');
+ const popupPromise=admin.waitForEvent('popup');await print.locator('[data-print-link]').click();const popup=await popupPromise;await popup.close();await print.locator('[name="proofread"]').check();
+ await selected.locator('[data-print-field="title"]').fill('Endelig kort printtitel');assert.ok(await print.locator('[data-print-finalize]').isDisabled());assert.equal(await print.locator('[name="proofread"]').isChecked(),false);record('Editing print text invalidates the proof and finalization');
+ await print.locator('[data-print-preview]').click();await print.locator('[data-print-link]').waitFor({state:'visible'});const proofPopup=admin.waitForEvent('popup');await print.locator('[data-print-link]').click();await (await proofPopup).close();await print.locator('[name="proofread"]').check();
+ await print.locator('[data-print-finalize]').click();await admin.getByText('Printudgaven er gemt med',{exact:false}).waitFor();const editions=(await json(adminContext,'/editions')).editions;assert.equal(editions.length,1);assert.equal(editions[0].eventCount,1);
+ assert.equal((await published(guestContext,direct.id)).title,'Foreningens direkte arrangement');record('Saving print-specific text preserves the public event');
+ assert.equal(await admin.locator('[data-print-archive] [data-edition-id]').count(),1);record('Newly saved print appears in the archive without a reload');
+ await admin.screenshot({path:resolve(output,'print-redaktion-desktop.png'),fullPage:true});
+ for(const width of [390,320]){await admin.setViewportSize({width,height:844});assert.equal(await admin.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Print editor at '+width);}
+ await admin.screenshot({path:resolve(output,'print-redaktion-mobil.png'),fullPage:true});record('Print editor fits desktop and small phones');
  const pdf1=await (await guestContext.request.get('/api/kalender/editions/'+editions[0].id+'/pdf')).body();assert.equal(pdf1.subarray(0,5).toString(),'%PDF-');await writeFile(resolve(output,'kalender-a3.pdf'),pdf1);
  await member.goto('/kalender.html?ret='+direct.id);const editMember=await mainForm(member);await fill(editMember,{title:'Rettet efter print'});await editMember.locator('button[type="submit"]').click();
  await member.getByText('Rettelsen er gemt og offentliggjort.',{exact:true}).waitFor();assert.equal((await published(guestContext,direct.id)).title,'Rettet efter print');const pdf2=await (await guestContext.request.get('/api/kalender/editions/'+editions[0].id+'/pdf')).body();assert.ok(pdf1.equals(pdf2));record('Published PDF bytes remain unchanged after event edit');
- await guest.goto('/forening.html');await guest.locator('.fp-card').first().waitFor();await guest.screenshot({path:resolve(output,'forening-desktop.png'),fullPage:true});
+ await member.goto('/forening.html#arbejdsrum');await member.locator('.fa-workspace-header').waitFor();await member.locator('.fa-workspace-header img').evaluate(image=>image.decode());await member.screenshot({path:resolve(output,'min-forening-desktop.png'),fullPage:true});
+ await member.goto('/forening.html#arbejdsrum?forening='+association.id+'&fane=profil');await member.locator('[data-profile-image]').waitFor();await member.screenshot({path:resolve(output,'profil-desktop.png'),fullPage:true});
+ await guest.goto('/forening.html#login');await guest.locator('form[data-action="request-code"]').waitFor();await guest.screenshot({path:resolve(output,'login-desktop.png'),fullPage:true});
+ for(const width of [390,320]){
+  await member.setViewportSize({width,height:844});await guest.setViewportSize({width,height:844});
+  for(const tab of ['overblik','profil','personer']){await member.goto('/forening.html#arbejdsrum?forening='+association.id+'&fane='+tab);await member.locator('.fa-workspace-header').waitFor();assert.equal(await member.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,tab+' at '+width);}
+  await guest.goto('/forening.html#login');await guest.locator('form[data-action="request-code"]').waitFor();assert.equal(await guest.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'login at '+width);
+ }
+ record('Login, overview, profile editor and access list fit 390px and 320px');
+ await member.setViewportSize({width:1440,height:1000});await guest.setViewportSize({width:1440,height:1000});
+ const second=(await json(adminContext,'/admin/associations',{method:'POST',data:{requestKey:crypto.randomUUID(),association:{name:'Anden integrationstestforening'}}})).association;
+ await json(adminContext,'/admin/associations/'+second.id+'/members',{method:'POST',data:{email:memberEmail,name:'Foreningsansvarlig',role:'manager'}});
+ await member.locator('form[data-action="logout"] button').click();await member.waitForURL(url=>!url.hash);await login(member,memberEmail);await member.getByRole('heading',{name:'Hvilken forening vil du åbne?'}).waitFor();
+ await member.locator('.fa-membership-choices a').filter({hasText:second.name}).click();await member.locator('.fa-workspace-header h1').filter({hasText:second.name}).waitFor();record('Multiple-association users choose only among their own associations');
+ await login(guest,'ny-forening@example.org');await guest.getByRole('heading',{name:'Din e-mail er bekræftet.'}).waitFor();assert.equal(await guest.getByRole('link',{name:/^Kontakt TEB/}).getAttribute('href'),'kontakt.html#form');
+ await guest.locator('form[data-action="logout"] button').click();await guest.waitForURL(url=>!url.hash);record('Unassigned verified users get Contact TEB without editing access');
+ await guest.goto('/forening.html');await guest.locator('.fa-association').first().waitFor();await guest.screenshot({path:resolve(output,'forening-desktop.png'),fullPage:true});
  await guest.goto('/kalender.html');await guest.locator('#calendar-events[aria-busy="false"]').waitFor();await guest.screenshot({path:resolve(output,'kalender-desktop.png'),fullPage:true});
  for(const width of [390,320]){
   await guest.setViewportSize({width,height:844});

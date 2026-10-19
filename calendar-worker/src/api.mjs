@@ -3,10 +3,11 @@ import { local, stmt, all } from './db.mjs';
 import { identity, sessionData, requestOtp, verifyOtp, logout, requireAccess } from './auth.mjs';
 import { associations, saveAssociation, createAssociation, members, invite, revoke, accessRequests, requestAccess, decideAccess } from './associations.mjs';
 import { publicEvents, createEvent, author, privateData, guestUpdate, memberUpdate, review, myEvents, adminEvents } from './events.mjs';
-import { previewEdition, finalizeEdition, listEditions, editionPdf } from './editions.mjs';
+import { editionCandidates, previewEdition, finalizeEdition, listEditions, editionPdf } from './editions.mjs';
 import { localMailbox, flushMail } from './mail.mjs';
 import { handlePosts } from './posts.mjs';
 import { experiment } from './experiment.mjs';
+import { uploadAssociationImage, associationImage, storedImagePath } from './association-images.mjs';
 const base='/api/kalender';
 async function body(request,env){
  ensure(request.headers.get('Origin')===env.PUBLIC_ORIGIN,403,'Indsendelsen skal komme fra hjemmesiden.');
@@ -22,6 +23,10 @@ async function api(request,env){
  if(route==='/config'&&method==='GET')return json({mode:local(env)?'local':'live',submissionsEnabled:Boolean(env.DB&&env.MAIL_ENCRYPTION_KEY&&(local(env)||env.TEB_EMAIL)&&env.PUBLIC_ORIGIN&&env.EDITOR_EMAIL&&env.EMAIL_FROM),editorEmail:env.EDITOR_EMAIL||''});
  ensure(env.DB&&env.PUBLIC_ORIGIN,503,'Databasen er ikke tilsluttet.');
  ensure(['GET','POST'].includes(method),405,'Denne handling er ikke tilladt.');
+ const image=route.match(/^\/associations\/([^/]+)\/image$/);
+ if(image&&method==='POST')return uploadAssociationImage(request,env,await identity(request,env),image[1]);
+ const storedImage=url.pathname.match(storedImagePath);
+ if(storedImage&&method==='GET')return associationImage(env,storedImage[1],storedImage[2]);
  const data=method==='POST'?await body(request,env):null;
  if(route==='/local-mail'&&method==='GET')return json(await localMailbox(request,env));
  if(route==='/auth/request'&&method==='POST')return requestOtp(request,env,data);
@@ -62,7 +67,8 @@ async function api(request,env){
  if(route==='/admin/events'&&method==='GET')return adminEvents(env,auth);
  match=route.match(/^\/admin\/events\/([^/]+)$/);
  if(match&&method==='POST')return review(env,auth,match[1],data);
- if(route==='/admin/editions/preview'&&method==='GET')return previewEdition(env,auth,url);
+ if(route==='/admin/editions/events'&&method==='GET')return editionCandidates(env,auth,url);
+ if(route==='/admin/editions/preview')return previewEdition(env,auth,url,data);
  if(route==='/admin/editions'&&method==='POST')return finalizeEdition(env,auth,data);
  if(route==='/editions'&&method==='GET')return listEditions(env);
  match=route.match(/^\/editions\/([^/]+)\/pdf$/);

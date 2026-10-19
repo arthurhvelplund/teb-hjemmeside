@@ -76,6 +76,9 @@ html[data-seasonal-theme="halloween"] .audience-card:last-child::after{backgroun
   html[data-seasonal-theme="halloween"] .halloween-secondary .max-skeleton,
   html[data-seasonal-theme="halloween"] .halloween-secondary::before,
   html[data-seasonal-theme="halloween"] .halloween-secondary::after{display:none}
+  /* Narrow page gutters cannot hold figures beside headings or login actions. */
+  html[data-seasonal-theme="halloween"] .halloween-secondary > :not(.halloween-web){display:none}
+  html[data-seasonal-theme="halloween"] .halloween-secondary > .halloween-web{width:20px;height:20px}
 }
 @media(max-width:600px){
   html[data-seasonal-theme="halloween"] .halloween-web{width:65px;height:65px}

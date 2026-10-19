@@ -122,3 +122,26 @@ test('real member publication is idempotent; print opt-out and news-only publica
  assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM publications WHERE event_id=?').bind(saved.id).first()).n,1);
  f.env.LOCAL_PREVIEW='false';assert.equal((await f.guest.call('/posts')).status,200);assert.equal((await f.guest.call('/experiment/posts')).status,404);
 });
+
+test('real guest receipt keeps its secret in the fragment and follows approval into existing event editing',async t=>{
+ const f=fixture(t),p=payload(),saved=await ok(await f.guest.call('/posts',p),201);
+ const path='/posts/private/'+saved.id,headers={Authorization:'Bearer '+p.authorToken};
+ assert.equal(saved.receiptState,'local');
+ assert.equal((await f.guest.call(path)).status,404);
+ assert.equal((await f.guest.call(path,undefined,{Authorization:'Bearer '+token()})).status,404);
+ let status=await ok(await f.guest.call(path,undefined,headers));assert.equal(status.post.status,'pending');assert.equal(status.post.hasEvent,false);
+ const mail=(await ok(await f.guest.call('/local-mail'))).messages.find(m=>m.recipient===p.email&&m.subject.startsWith('Modtaget:'));
+ const url=new URL(mail.body.match(/https?:\/\/[^\s]+/)[0]);assert.equal(url.searchParams.get('privat'),saved.id);assert.equal(url.searchParams.has('adgang'),false);assert.equal(url.hash,'#adgang='+p.authorToken);
+ assert.ok(!JSON.stringify(status).includes(p.authorToken));
+ await f.admin.login();await ok(await f.admin.call('/admin/posts/'+saved.id,{action:'approve',revision:1}));
+ status=await ok(await f.guest.call(path,undefined,headers));assert.equal(status.post.status,'approved');assert.equal(status.post.hasEvent,true);
+ const event=await ok(await f.guest.call('/private/'+saved.id,undefined,headers));
+ await ok(await f.guest.call('/private/'+saved.id,{action:'edit',revision:event.revision,event:{...event.data,title:'Gæstens rettelse'}},headers));
+ const pending=await ok(await f.admin.call('/admin/events'));const revision=pending.events.find(e=>e.id===saved.id).revision;
+ await ok(await f.admin.call('/admin/events/'+saved.id,{action:'approve',revision}));
+ assert.equal((await ok(await f.guest.call('/posts/'+saved.id))).post.title,'Gæstens rettelse');
+ const revised=await ok(await f.guest.call('/private/'+saved.id,undefined,headers));
+ await ok(await f.guest.call('/private/'+saved.id,{action:'cancel',revision:revised.revision},headers));
+ const cancellations=await ok(await f.admin.call('/admin/events'));await ok(await f.admin.call('/admin/events/'+saved.id,{action:'approve',revision:cancellations.events.find(e=>e.id===saved.id).revision}));
+ assert.equal((await ok(await f.guest.call('/posts/'+saved.id))).post.state,'cancelled');
+});

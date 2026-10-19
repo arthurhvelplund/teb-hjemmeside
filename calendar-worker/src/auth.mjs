@@ -30,7 +30,7 @@ export async function sessionData(env,auth){
  return {authenticated:true,user:{id:auth.user.id,email:auth.user.email,isAdmin:Boolean(auth.user.is_admin)},memberships:rows.map(row=>({id:row.membership_id,associationId:row.association_id,role:row.membership_role,association:associationData(row)}))};
 }
 export function associationData(row){
- return Object.fromEntries(['id','name','category','description','chair','email','phone','website','place','revision'].map(k=>[k,row[k]]));
+ return {...Object.fromEntries(['id','name','category','description','chair','email','phone','website','place','revision'].map(k=>[k,row[k]])),imageUrl:row.image_url||''};
 }
 function randomCode(){
  let number;do{number=crypto.getRandomValues(new Uint32Array(1))[0];}while(number>=4294000000);

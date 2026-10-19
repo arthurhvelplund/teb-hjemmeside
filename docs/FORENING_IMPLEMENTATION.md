@@ -108,7 +108,13 @@ pendingKind = `new`/`edit`/`cancel` eller null; status normalt pending/approved/
 Printudgave = `{id,start,end,deadline,format,createdAt,eventCount,month?}`.
 - GET `/editions` -> `{editions}`. GET `/editions/:id/pdf` -> lagret PDF.
 - GET `/admin/editions/preview?start=&end=&deadline=&format=poster|a3` -> PDF.
-- POST `/admin/editions` `{start,end,deadline,format,requestKey}` -> `{id,pages,eventCount}`.
+- GET `/admin/editions/events?start=&end=&deadline=&format=` -> godkendte kandidater
+  og `reviewHash`. Redaktionen vælger til eller fra ved hvert arrangement.
+- POST `/admin/editions/preview` `{start,end,deadline,format,eventIds,reviewHash,printOverrides?}` -> PDF.
+- POST `/admin/editions` `{start,end,deadline,format,requestKey,eventIds,reviewHash,printOverrides?}` -> `{id,pages,eventCount}`.
+- `printOverrides` er valgfri tekst pr. valgt event-id med felterne
+  `title,details,association,dateLabel,dateNote`. Teksterne gemmes kun i udgaven.
+  Intet forvalg i redaktionen. Ændret grundlag kræver ny gennemgang og korrektur.
 - Historik anvendes pr. frist i Europe/Copenhagen, også hvis event senere er
   rettet/aflyst. Kun godkendt indhold ved fristen inden for datointervallet.
 - Gem selve den endelige PDF i R2 og datakopi i D1. Lokal R2-adapter til test.

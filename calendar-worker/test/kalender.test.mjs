@@ -22,7 +22,7 @@ function fixture(t){
  const DB=database(),messages=[];t.after(()=>DB.close());
  const env={DB,PDFS:localR2(),PUBLIC_ORIGIN:origin,MAIL_ENCRYPTION_KEY:token(),TEB_ADMIN_EMAILS:'admin@example.test',EDITOR_EMAIL:'admin@example.test',EMAIL_FROM:'sender@example.test',
   TEB_EMAIL:{async send(message){messages.push(message);return {messageId:crypto.randomUUID()};}},
-  ASSETS:{async fetch(request){return new Response(await readFile(new URL('../assets/fonts/'+new URL(request.url).pathname.split('/').at(-1),import.meta.url)));}}};
+  ASSETS:{async fetch(request){return new Response(await readFile(new URL('../assets'+new URL(request.url).pathname,import.meta.url)));}}};
  function client(){
   let cookie='';const ip=crypto.randomUUID();
   const call=(path,{data,authorization,headers={},method}={})=>handleApi(new Request(env.PUBLIC_ORIGIN+'/api/kalender'+path,{method:method||(data?'POST':'GET'),headers:{'CF-Connecting-IP':ip,...(data?{'Content-Type':'application/json',Origin:env.PUBLIC_ORIGIN}:{}),...(cookie?{Cookie:cookie}:{}),...(authorization?{Authorization:'Bearer '+authorization}:{}),...headers},...(data?{body:JSON.stringify(data)}:{})}),env);
@@ -42,6 +42,7 @@ function fixture(t){
  const memberEvent=async(user,a,extra={})=>{const payload={event:event(),associationId:a.id,requestKey:crypto.randomUUID(),...extra},r=await user.call('/events',{data:payload});assert.equal(r.status,201,await r.clone().text());return {...await r.json(),payload};};
  return {DB,env,messages,client,guest,admin,submit,privateEvent,decide,publicEvents,association,invite,member,memberEvent};
 }
+async function reviewed(f,options){const data=await ok(await f.admin.call('/admin/editions/events?'+new URLSearchParams(options)));return {...options,eventIds:data.events.map(e=>e.id),reviewHash:data.reviewHash};}
 const ok=async(response,status=200)=>{assert.equal(response.status,status,await response.clone().text());return response.json();};
 
 test('anonymous session, secret-free OTP responses and secure authenticated session',async t=>{
@@ -80,6 +81,66 @@ test('directory exposes profile contacts, never login memberships; optimistic pr
  const changed=await ok(await user.call('/associations/'+a.id,{data:{association:{...a,description:'Opdateret'},revision:1}}));assert.equal(changed.association.revision,2);
  assert.equal((await user.call('/associations/'+a.id,{data:{association:a,revision:1}})).status,409);
  const s=await ok(await user.call('/session'));assert.equal(s.memberships[0].association.id,a.id);assert.equal(s.memberships[0].associationId,a.id);assert.equal(s.memberships[0].role,'manager');
+});
+test('association images persist through profiles, directory and sessions; legacy edits preserve them',async t=>{
+ const f=fixture(t),{a,user}=await f.member();
+ const saved=await ok(await user.call('/associations/'+a.id,{data:{association:{...a,imageUrl:'https://images.example.test/forening.jpg'},revision:1}}));
+ assert.equal(saved.association.imageUrl,'https://images.example.test/forening.jpg');
+ assert.equal((await ok(await f.guest.call('/associations'))).associations[0].imageUrl,saved.association.imageUrl);
+ assert.equal((await ok(await user.call('/session'))).memberships[0].association.imageUrl,saved.association.imageUrl);
+ const legacy={...saved.association,description:'Gemt fra en ældre klient'};delete legacy.imageUrl;
+ const preserved=await ok(await user.call('/associations/'+a.id,{data:{association:legacy,revision:2}}));
+ assert.equal(preserved.association.imageUrl,saved.association.imageUrl);
+ const local=await ok(await user.call('/associations/'+a.id,{data:{association:{...a,imageUrl:'/images/forening-faellesskab.webp'},revision:3}}));
+ assert.equal(local.association.imageUrl,'/images/forening-faellesskab.webp');
+ const cleared=await ok(await user.call('/associations/'+a.id,{data:{association:{...a,imageUrl:''},revision:4}}));
+ assert.equal(cleared.association.imageUrl,'');
+});
+test('members upload a real image, publish its URL and serve immutable image bytes without login',async t=>{
+ const f=fixture(t),{a,user}=await f.member();
+ const bytes=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j6hkAAAAASUVORK5CYII=','base64');
+ const uploaded=await ok(await handleApi(new Request(origin+'/api/kalender/associations/'+a.id+'/image',{method:'POST',headers:{Origin:origin,Cookie:user.cookie(),'Content-Type':'image/png'},body:bytes}),f.env),201);
+ assert.match(uploaded.imageUrl,/^\/api\/kalender\/association-images\/[a-f0-9-]+\/[a-f0-9-]+\.png$/);
+ await ok(await user.call('/associations/'+a.id,{data:{association:{...a,imageUrl:uploaded.imageUrl},revision:1}}));
+ assert.equal((await ok(await f.guest.call('/associations/'+a.id))).association.imageUrl,uploaded.imageUrl);
+ const image=await handleApi(new Request(origin+uploaded.imageUrl),f.env);
+ assert.equal(image.status,200);assert.equal(image.headers.get('Content-Type'),'image/png');assert.equal(image.headers.get('X-Content-Type-Options'),'nosniff');assert.match(image.headers.get('Cache-Control'),/immutable/);
+ assert.deepEqual(Buffer.from(await image.arrayBuffer()),bytes);
+});
+test('image upload checks association permissions, origin, byte limits and actual file signature',async t=>{
+ const f=fixture(t),{a,user}=await f.member(),other=await f.association('Anden forening');
+ const bytes=await readFile(new URL('../../site/images/forening-faellesskab.webp',import.meta.url));
+ const upload=(client,id,body=bytes,headers={})=>handleApi(new Request(origin+'/api/kalender/associations/'+id+'/image',{method:'POST',headers:{Origin:origin,...(client?{Cookie:client.cookie()}:{}),'Content-Type':'image/webp',...headers},body}),f.env);
+ assert.equal((await upload(null,a.id)).status,401);
+ assert.equal((await upload(user,other.id)).status,403);
+ assert.equal((await upload(user,a.id,bytes,{Origin:'https://other.test'})).status,403);
+ assert.equal((await upload(user,a.id,new Uint8Array(2*1024*1024+1))).status,413);
+ assert.equal((await upload(user,a.id,Buffer.from('<svg onload="alert(1)"></svg>'),{'Content-Type':'image/png'})).status,415);
+ assert.equal((await upload(user,a.id,bytes,{'Content-Type':'image/jpeg'})).status,415);
+ const saved=await ok(await upload(user,a.id),201);assert.ok(saved.imageUrl.endsWith('.webp'));
+ await f.DB.prepare("UPDATE memberships SET status='revoked' WHERE association_id=?").bind(a.id).run();
+ assert.equal((await upload(user,a.id)).status,403);
+});
+test('revocation during image storage prevents the upload from granting further access',async t=>{
+ const f=fixture(t),{a,user}=await f.member(),storage=f.env.PDFS;
+ f.env.PDFS={...storage,async put(...args){const result=await storage.put(...args);await f.DB.prepare("UPDATE memberships SET status='revoked' WHERE association_id=?").bind(a.id).run();return result;}};
+ const bytes=await readFile(new URL('../../site/images/forening-faellesskab.webp',import.meta.url));
+ const response=await handleApi(new Request(origin+'/api/kalender/associations/'+a.id+'/image',{method:'POST',headers:{Origin:origin,Cookie:user.cookie(),'Content-Type':'image/webp'},body:bytes}),f.env);
+ assert.equal(response.status,403);assert.equal((await ok(await f.guest.call('/associations/'+a.id))).association.imageUrl,'');
+});
+test('association images reject executable, insecure and credential-bearing URLs before saving',async t=>{
+ const f=fixture(t),{a,user}=await f.member();
+ for(const imageUrl of ['javascript:alert(1)','data:image/svg+xml,test','http://images.example.test/a.jpg','https://user:secret@example.test/a.jpg','//example.test/a.jpg','/images/../private.jpg','/images/a.jpg?token=private','https://example.test/\\private.jpg']){
+  const response=await user.call('/associations/'+a.id,{data:{association:{...a,imageUrl},revision:1}});assert.equal(response.status,400,imageUrl);
+ }
+ assert.equal((await ok(await f.guest.call('/associations/'+a.id))).association.revision,1);
+});
+test('association creation stores an image and includes it in retry identity',async t=>{
+ const f=fixture(t);await f.admin.login('admin@example.test');
+ const payload={association:{name:'Forening med billede',imageUrl:'https://images.example.test/photo.jpg'},requestKey:crypto.randomUUID()};
+ const first=await ok(await f.admin.call('/admin/associations',{data:payload}));assert.equal(first.association.imageUrl,payload.association.imageUrl);
+ assert.equal((await ok(await f.admin.call('/admin/associations',{data:payload}))).association.id,first.association.id);
+ assert.equal((await f.admin.call('/admin/associations',{data:{...payload,association:{...payload.association,imageUrl:'https://images.example.test/other.jpg'}}})).status,409);
 });
 test('association creation retries and concurrent requests create one directory entry',async t=>{
  const f=fixture(t);await f.admin.login('admin@example.test');
@@ -236,7 +297,7 @@ test('local mailbox is loopback-only even when LOCAL_PREVIEW is accidentally tru
  const response=await handleApi(new Request('https://public.test/api/kalender/local-mail'),f.env);assert.equal(response.status,404);
 });
 test('PDF finalization stores immutable bytes and snapshot, supports custom range and A3',async t=>{
- const f=fixture(t),{a,user}=await f.member(),s=await f.memberEvent(user,a),payload={start:month+'-01',end:month+'-20',deadline:copenhagenDate(),format:'a3',requestKey:crypto.randomUUID()};
+ const f=fixture(t),{a,user}=await f.member(),s=await f.memberEvent(user,a),payload={...await reviewed(f,{start:month+'-01',end:month+'-20',deadline:copenhagenDate(),format:'a3'}),requestKey:crypto.randomUUID()};
  const edition=await ok(await f.admin.call('/admin/editions',{data:payload}),201),first=await f.guest.call('/editions/'+edition.id+'/pdf');assert.equal(first.status,200);const bytes=await first.arrayBuffer(),pdf=await PDFDocument.load(bytes);assert.equal(pdf.getPageCount(),1);assert.ok(Math.abs(pdf.getPage(0).getWidth()-297*72/25.4)<.1);assert.ok(Math.abs(pdf.getPage(0).getHeight()-420*72/25.4)<.1);
  await ok(await user.call('/member/events/'+s.id,{data:{action:'update',revision:1,event:event({time:'21:00'})}}));assert.equal((await f.publicEvents())[0].time,'21:00');
  const second=await (await f.guest.call('/editions/'+edition.id+'/pdf')).arrayBuffer();assert.deepEqual(new Uint8Array(second),new Uint8Array(bytes));
@@ -254,14 +315,42 @@ test('deadline snapshots choose latest approved Copenhagen-day revision before l
  const following=await snapshot(f.env,editionOptions({month,deadline:'2026-03-30'}));assert.equal(following.events[0].time,'22:00');
  const today=await snapshot(f.env,editionOptions({month,deadline:copenhagenDate()}));assert.equal(today.events.length,0);
 });
+test('manual print selection excludes other events and keeps print edits out of the live calendar',async t=>{
+ const f=fixture(t),{a,user}=await f.member(),first=await f.memberEvent(user,a),second=await f.memberEvent(user,a,{event:event({title:'Kun på nettet'})});
+ await f.submit({event:event({title:'Afventer godkendelse'})});
+ const options={month,deadline:copenhagenDate(),format:'a3'},review=await reviewed(f,options);
+ assert.deepEqual(new Set(review.eventIds),new Set([first.id,second.id]));
+ assert.equal((await f.guest.call('/admin/editions/events?'+new URLSearchParams(options))).status,401);
+ assert.equal((await user.call('/admin/editions/events?'+new URLSearchParams(options))).status,403);
+ assert.equal((await f.admin.call('/admin/editions',{data:{...options,requestKey:crypto.randomUUID()}})).status,400);
+ const payload={...review,eventIds:[first.id],printOverrides:{[first.id]:{title:'Kort printtitel',details:'Onsdage kl. 18.00 · Eksempelhuset',dateLabel:'HVER UGE',dateNote:'onsdag'}},requestKey:crypto.randomUUID()};
+ const preview=await f.admin.call('/admin/editions/preview',{data:payload});assert.equal(preview.status,200);assert.equal(preview.headers.get('X-Calendar-Event-Count'),'1');
+ assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM editions').first()).n,0);
+ const saved=await ok(await f.admin.call('/admin/editions',{data:payload}),201);assert.equal(saved.eventCount,1);
+ const frozen=JSON.parse((await f.DB.prepare('SELECT data_json FROM editions WHERE id=?').bind(saved.id).first()).data_json);
+ assert.equal(frozen.events.length,1);assert.equal(frozen.events[0].id,first.id);assert.equal(frozen.events[0].print.title,'Kort printtitel');
+ assert.equal((await f.publicEvents()).find(e=>e.id===first.id).title,event().title);
+ assert.equal((await f.admin.call('/admin/editions',{data:{...payload,eventIds:[second.id],printOverrides:{}}})).status,409);
+});
+test('print selection rejects stale reviews, unknown IDs, duplicates and invalid print text',async t=>{
+ const f=fixture(t),{a,user}=await f.member(),s=await f.memberEvent(user,a),options={month,deadline:copenhagenDate()},review=await reviewed(f,options);
+ for(const extra of [{eventIds:['not-an-event']},{eventIds:[s.id,s.id]},{printOverrides:{[s.id]:{title:'x'.repeat(101)}}},{printOverrides:{[s.id]:{dateNote:'onsdag'}}}]){
+  assert.equal((await f.admin.call('/admin/editions/preview',{data:{...review,...extra}})).status,400);
+ }
+ assert.equal((await f.admin.call('/admin/editions',{data:{...review,eventIds:[],requestKey:crypto.randomUUID()}})).status,400);
+ await ok(await user.call('/member/events/'+s.id,{data:{action:'update',revision:1,event:event({time:'20:00'})}}));
+ const stale=await f.admin.call('/admin/editions',{data:{...review,requestKey:crypto.randomUUID()}});assert.equal(stale.status,409);
+ assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM edition_builds').first()).n,0);
+ const fresh=await reviewed(f,options);await ok(await f.admin.call('/admin/editions',{data:{...fresh,requestKey:crypto.randomUUID()}}),201);
+});
 test('PDF cannot finalize without R2 or after failed storage; same key recovers',async t=>{
- const f=fixture(t),{a,user}=await f.member();await f.memberEvent(user,a);const payload={month,deadline:copenhagenDate(),requestKey:crypto.randomUUID()},r2=f.env.PDFS;f.env.PDFS=null;
+ const f=fixture(t),{a,user}=await f.member();await f.memberEvent(user,a);const payload={...await reviewed(f,{month,deadline:copenhagenDate()}),requestKey:crypto.randomUUID()},r2=f.env.PDFS;f.env.PDFS=null;
  assert.equal((await f.admin.call('/admin/editions',{data:payload})).status,503);assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM editions').first()).n,0);
  f.env.PDFS={get:async()=>null,put:async()=>{throw new Error('storage down');}};assert.equal((await f.admin.call('/admin/editions',{data:payload})).status,500);assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM editions').first()).n,0);
  f.env.PDFS=r2;await ok(await f.admin.call('/admin/editions',{data:payload}),201);assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM editions').first()).n,1);
 });
 test('concurrent edition creation is idempotent and cannot overwrite R2 bytes',async t=>{
- const f=fixture(t),{a,user}=await f.member();await f.memberEvent(user,a);const payload={month,deadline:copenhagenDate(),requestKey:crypto.randomUUID()};
+ const f=fixture(t),{a,user}=await f.member();await f.memberEvent(user,a);const payload={...await reviewed(f,{month,deadline:copenhagenDate()}),requestKey:crypto.randomUUID()};
  const rs=await Promise.all([f.admin.call('/admin/editions',{data:payload}),f.admin.call('/admin/editions',{data:payload})]);assert.deepEqual(rs.map(r=>r.status).sort(),[200,201]);const bodies=await Promise.all(rs.map(r=>r.json()));assert.equal(bodies[0].id,bodies[1].id);assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM editions').first()).n,1);
  assert.equal((await f.admin.call('/admin/editions',{data:{...payload,format:'a3'}})).status,409);
 });

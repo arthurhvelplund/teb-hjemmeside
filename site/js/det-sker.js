@@ -33,6 +33,7 @@ function openDetails(item){
  if(safeURL(item.link)&&(!item.sourceId||item.link!==item.url))root.append(el('a',{href:item.link,target:'_blank',rel:'noopener noreferrer'},'Læs mere eller tilmeld dig ↗'));
  if(item.sourceId&&safeURL(item.url))root.append(el('a',{href:item.url,target:'_blank',rel:'noopener noreferrer'},'Se arrangementet hos '+item.sourceName+' ↗'));
  if(item.standardEvent)root.append(el('a',{href:'kalender.html?arrangement='+encodeURIComponent(item.id)},'Se arrangementet i aktivitetskalenderen →'));
+ if(item.standardEvent&&(session.user?.isAdmin||session.memberships.some(m=>m.associationId===item.associationId)))root.append(el('p',{},el('a',{href:'kalender.html?ret='+encodeURIComponent(item.id)},'Ret eller aflys arrangementet')));
  if(!$('#ds-detail').open)$('#ds-detail').showModal();
 }
 $('#ds-detail-close').addEventListener('click',()=>$('#ds-detail').close());
@@ -190,6 +191,10 @@ async function compose(initialKind='both'){
   try{
    const result=await api('/posts',{body:attempt});if(!result.id)throw new Error('Kvitteringen mangler. Prøv samme indsendelse igen.');
    draft=null;root.replaceChildren(el('h2',{},result.published?'Opslaget er udgivet':'Tak. TEB har modtaget det.'),el('p',{},result.published?'Opslaget kan nu ses på siden'+(kind!=='news'?' og kalender.':'.'):'Opslaget bliver synligt, når TEB har godkendt det. Din forhåndsvisning står herunder.'),card(post,{preview:true}),el('p',{class:'fp-notice'},(siteMode==='local'?'Lokal afprøvning. Ingen e-mails er sendt. ':'')+({failed:'Beskeden til TEB kunne ikke sendes. Opslaget er gemt. Kontakt TEB.',pending:'Beskeden til TEB afventer afsendelse.',uncertain:'Opslaget er gemt. Vi kan ikke bekræfte, om beskeden til TEB blev sendt.'}[result.notificationState]||'')),el('div',{class:'fp-actions'},button('Del noget mere',()=>compose()),button('Tilbage til overblikket',()=>{root.hidden=true;$('#ds-create').focus();})));
+   if(!direct){
+    root.append(el('p',{},el('a',{href:'nyt.html?privat='+encodeURIComponent(result.id)+'#adgang='+attempt.authorToken},'Gem dit private link til status og senere rettelser')));
+    if(['failed','uncertain'].includes(result.receiptState))root.append(el('p',{class:'fp-notice'},'Kvitteringsmailen kunne ikke bekræftes. Gem det private link her på siden.'));
+   }else if(kind!=='news')root.append(el('p',{},el('a',{href:'kalender.html?ret='+encodeURIComponent(result.id)},'Ret eller aflys arrangementet')));
    await Promise.all([loadLocal(),loadEvents(),review()]);
   }catch(error){
    const uncertain=!error.status||error.status>=500;
@@ -202,10 +207,23 @@ async function compose(initialKind='both'){
  update();$('#ds-composer-heading').focus();
 }
 $('#ds-create').addEventListener('click',()=>compose());
+async function privateReceipt(){
+ const id=query.get('privat'),token=new URLSearchParams(location.hash.slice(1)).get('adgang');
+ if(!id)return;
+ const root=$('#ds-composer');root.hidden=false;root.replaceChildren(el('p',{},'Henter din indsendelse…'));
+ try{
+  const {post}=await api('/posts/private/'+encodeURIComponent(id),{token});
+  const text={pending:'TEB har modtaget din indsendelse. Den er ikke offentlig endnu.',approved:'TEB har godkendt din indsendelse.',rejected:'TEB har ikke godkendt indsendelsen. Kontakt TEB, hvis der skal rettes noget.',withdrawn:'TEB har fjernet opslaget fra nyhedsoversigten.'}[post.status];
+  root.replaceChildren(el('h2',{id:'ds-composer-heading'},'Din indsendelse'),el('p',{},text||'Kontakt TEB om indsendelsens status.'),card(post,{preview:true}),el('p',{class:'fp-note'},'Dette er dit private link. Del det kun med dem, der må følge og rette indsendelsen.'));
+  if(post.hasEvent)root.append(el('p',{},el('a',{href:'kalender.html?privat='+encodeURIComponent(id)+'#adgang='+token},'Ret eller aflys arrangementet')));
+  root.append(el('div',{class:'fp-actions'},button('Opdatér status',privateReceipt),el('a',{href:'kontakt.html'},'Kontakt TEB')));
+ }catch(error){root.replaceChildren(el('h2',{id:'ds-composer-heading'},'Din indsendelse'));showMessage(root,error.message,true);root.append(button('Prøv igen',privateReceipt));}
+}
 async function refresh(){if(loading)return;loading=true;$('#ds-refresh').disabled=true;try{await Promise.allSettled([loadSources(),loadLocal(),loadEvents(),loadEditions(),review()]);}finally{loading=false;$('#ds-refresh').disabled=false;}}
 $('#ds-refresh').addEventListener('click',refresh);
 siteMode=(await showMode()).mode;
 try{session=await getSession();if(session.authenticated){$('#ds-login').textContent=session.user.isAdmin?'TEB · administration →':'Mit foreningsområde →';}}catch{/* Reading public content remains available without login. */}
 await refresh();
+if(query.has('privat'))await privateReceipt();
 if(query.has('opret'))compose();
 setInterval(()=>{if(document.visibilityState==='visible'&&$('#ds-composer').hidden&&!$('#ds-detail').open&&!window.getSelection()?.toString())refresh();},60000);

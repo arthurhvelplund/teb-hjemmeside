@@ -67,6 +67,9 @@ try{
  await page.route('**/api/kalender/posts',async route=>{if(route.request().method()==='POST'&&!intercepted){intercepted=true;const response=await route.fetch();assert.equal(response.status(),201);await route.fulfill({status:201,contentType:'application/json',body:'{'});}else await route.continue();});
  await new Promise(done=>setTimeout(done,1600));await page.locator('.ds-form button[type=submit]').click();await page.getByRole('button',{name:'Prøv samme indsendelse igen'}).waitFor();await page.getByRole('button',{name:'Prøv samme indsendelse igen'}).click();
  await page.getByRole('heading',{name:'Tak. TEB har modtaget det.'}).waitFor();assert.equal((await call(guest,'/posts')).posts.length,0);
+ const privateLink=await page.getByRole('link',{name:'Gem dit private link til status og senere rettelser'}).getAttribute('href');
+ const privatePage=await guest.newPage();await privatePage.goto('/'+privateLink);await privatePage.getByText('TEB har modtaget din indsendelse. Den er ikke offentlig endnu.').waitFor();
+ assert.equal(await privatePage.getByRole('link',{name:'Ret eller aflys arrangementet'}).count(),0);
  check('guest preview, print/channel choices, lost-response retry and private pending submission');
  const admin=await context(),adminPage=await admin.newPage();
  await adminPage.goto('/forening.html?return=nyt.html#login');
@@ -79,6 +82,9 @@ try{
  await adminPage.waitForURL('**/nyt.html');
  const pending=adminPage.locator('#ds-review article');await pending.waitFor();assert.equal(await pending.count(),1);assert.ok((await pending.innerText()).includes('Analog kalender'));
  await pending.getByRole('button',{name:/Godkend og udgiv/}).click();await adminPage.getByText('Ingen opslag afventer godkendelse.').waitFor();
+ await privatePage.getByRole('button',{name:'Opdatér status'}).click();await privatePage.getByText('TEB har godkendt din indsendelse.').waitFor();
+ await privatePage.getByRole('link',{name:'Ret eller aflys arrangementet'}).click();await privatePage.getByRole('heading',{name:'Dit private arrangement',exact:true}).waitFor();await privatePage.close();
+ check('guest receipt opens private pending status and grants event editing only through the secret link after approval');
  await page.locator('#ds-refresh').click();await page.locator('#ds-feed article').filter({hasText:'Prøve: fællesspisning og historie'}).waitFor();
  assert.equal((await call(guest,'/posts')).posts.length,1);assert.equal((await call(guest,'/events')).events.length,1);
  await page.getByRole('button',{name:'Tilbage til overblikket'}).click();await page.locator('#ds-month').click();

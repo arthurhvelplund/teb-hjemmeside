@@ -38,6 +38,14 @@ export async function handlePosts(request,env,auth,route,data,{legacy=false}={})
  if(legacy)route=route.replace('/experiment/','/');
  if(legacy)ensure(local(env)&&loopback(request.url)&&loopback(env.PUBLIC_ORIGIN),404,'Forsøget er kun til lokal afprøvning.');
  const method=request.method;
+ const privateId=!legacy&&route.match(/^\/posts\/private\/([a-f0-9-]{36})$/);
+ if(privateId&&method==='GET'){
+  const token=request.headers.get('Authorization')?.match(/^Bearer ([a-f0-9]{64})$/)?.[1];
+  ensure(token,404,'Det private link er ugyldigt.');
+  const row=await stmt(env,`SELECT p.*,e.published_json AS event_json FROM posts p LEFT JOIN events e ON e.id=p.id WHERE p.id=? AND p.owner_hash=? AND p.association_id IS NULL`,privateId[1],await hash(token)).first();
+  ensure(row,404,'Det private link er ugyldigt.');
+  return json({post:{...publicPost(row),status:row.status,hasEvent:Boolean(row.event_json)}});
+ }
  if(route==='/posts'&&method==='GET')return json({posts:(await all(stmt(env,`SELECT p.*${legacy?'':',e.published_json AS event_json'} FROM ${table} p ${legacy?'':'LEFT JOIN events e ON e.id=p.id'} WHERE p.status='approved' ORDER BY p.created_at DESC LIMIT 200`))).map(publicPost)});
  const publicId=route.match(/^\/posts\/([a-f0-9-]{36})$/);
  if(publicId&&method==='GET'){
@@ -77,7 +85,7 @@ export async function handlePosts(request,env,auth,route,data,{legacy=false}={})
   const owner=await hash(member?'member:'+auth.user.id:data.authorToken);
   const signature=await hash(JSON.stringify([post,email,data.associationId||null]));
   const old=await stmt(env,`SELECT * FROM ${table} WHERE request_key=?`,data.requestKey).first();
-  const result=async(row,status=200)=>json({id:row.id,published:row.status==='approved',status:row.status,notificationState:member?'not_required':await mailState(env,'experiment:'+row.id+':editor')},status);
+  const result=async(row,status=200)=>json({id:row.id,published:row.status==='approved',status:row.status,notificationState:member?'not_required':await mailState(env,'experiment:'+row.id+':editor'),receiptState:member?'not_required':await mailState(env,'experiment:'+row.id+':receipt')},status);
   if(old){ensure(old.owner_hash===owner&&old.request_hash===signature,409,'Nøglen er allerede brugt til en anden indsendelse.');return result(old);}
   if(!member)ensure(typeof data.startedAt==='number'&&Date.now()-data.startedAt>=1500&&Date.now()-data.startedAt<86400000,400,'Vent et øjeblik, og prøv igen.');
   await rate(env,'experiment:'+await ipKey(request),30);
@@ -87,7 +95,7 @@ export async function handlePosts(request,env,auth,route,data,{legacy=false}={})
   if(!member){
    for(const [suffix,to,subject,text] of [
     ['editor',env.EDITOR_EMAIL,'Opslag til godkendelse: '+post.title,`Et opslag afventer TEB.\n${post.title}\nOplyst afsender: ${post.author}\nTilknytningen er ikke verificeret.\nLog ind og gennemgå: ${env.PUBLIC_ORIGIN}/${page}#godkendelse`],
-    ['receipt',email,'Modtaget: '+post.title,`Dit opslag afventer TEBs godkendelse. Ingen ekstern deling er bestilt.\n${post.title}\n${env.PUBLIC_ORIGIN}/${page}`]
+    ['receipt',email,'Modtaget: '+post.title,`Dit opslag afventer TEBs godkendelse. Ingen ekstern deling er bestilt.\n${post.title}\n${legacy?env.PUBLIC_ORIGIN+'/'+page:env.PUBLIC_ORIGIN+'/nyt.html?privat='+id+'#adgang='+data.authorToken}\n${legacy?'':'Gem dit private link, og del det kun med dem, der må følge og rette indsendelsen.'}`]
    ])messages.push({key:`experiment:${id}:${suffix}`,statement:await mailStatement(env,{dedupe:`experiment:${id}:${suffix}`,to,subject,text,condition,args:[id]})});
   }
   const operations=[stmt(env,`INSERT OR IGNORE INTO ${table}(id,request_key,request_hash,owner_hash,contact_email,association_id,data_json,status,created_at,updated_at) SELECT ?,?,?,?,?,?,?,?,?,? WHERE ${member?g.sql:'1'}`,id,data.requestKey,signature,owner,email,data.associationId||null,JSON.stringify(post),status,stamp,stamp,...(member?g.args:[])),...(!legacy&&member?projectEvent(env,table,{id,request_hash:signature,owner_hash:owner,contact_email:email,association_id:data.associationId||null,data_json:JSON.stringify(post),created_at:stamp,updated_at:stamp,revision:1},auth.user.id):[]),...messages.map(m=>m.statement)];

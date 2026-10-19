@@ -2,11 +2,19 @@ import { ensure, now, json, hash } from './shared.mjs';
 import { stmt, all, field, emailAddress, rate } from './db.mjs';
 import { guard, requireAccess, associationData } from './auth.mjs';
 import { mailStatement, deliverKeys, mailState } from './mail.mjs';
+import { storedImagePath } from './association-images.mjs';
 export function validateAssociation(input){
  const result={};
  for(const [key,max,required] of [['name',100,true],['category',100],['description',3000],['chair',150],['email',254],['phone',60],['website',500],['place',180]])result[key]=field(input,key,max,required);
  if(result.email)result.email=emailAddress(result.email);
  if(result.website){let url;try{url=new URL(result.website);}catch{}ensure(url&&['http:','https:'].includes(url.protocol)&&!url.username&&!url.password,400,'Skriv en gyldig hjemmesideadresse.');result.website=url.href;}
+ result.imageUrl=field(input,'imageUrl',1000);
+ if(result.imageUrl){
+  const local=(/^\/images\/[^\\\s?#]+$/.test(result.imageUrl)&&!result.imageUrl.includes('..'))||storedImagePath.test(result.imageUrl);
+  let url;try{url=new URL(result.imageUrl);}catch{}
+  ensure(local||(url?.protocol==='https:'&&!url.username&&!url.password&&!/[\\\u0000-\u0020]/.test(result.imageUrl)),400,'Brug et billedlink, der begynder med https://, eller et billede fra hjemmesiden.');
+  if(!local)result.imageUrl=url.href;
+ }
  return result;
 }
 export async function associations(env,id){
@@ -17,7 +25,8 @@ export async function saveAssociation(env,auth,id,data){
  const g=await requireAccess(env,auth,id);
  const a=validateAssociation(data.association);
  ensure(Number.isInteger(data.revision),400,'Genindlæs foreningens oplysninger.');
- const result=await stmt(env,`UPDATE associations SET name=?,category=?,description=?,chair=?,email=?,phone=?,website=?,place=?,revision=revision+1,updated_at=? WHERE id=? AND revision=? AND ${g.sql}`,...Object.values(a),now(),id,data.revision,...g.args).run();
+ const {imageUrl,...fields}=a;
+ const result=await stmt(env,`UPDATE associations SET name=?,category=?,description=?,chair=?,email=?,phone=?,website=?,place=?,image_url=COALESCE(?,image_url),revision=revision+1,updated_at=? WHERE id=? AND revision=? AND ${g.sql}`,...Object.values(fields),Object.hasOwn(data.association,'imageUrl')?imageUrl:null,now(),id,data.revision,...g.args).run();
  ensure(result.meta.changes===1,409,'Foreningen er ændret, eller din adgang er ophørt. Genindlæs siden.');
  return associations(env,id);
 }
@@ -26,9 +35,10 @@ export async function createAssociation(env,auth,data){
  ensure(/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(data.requestKey||''),400,'Genindlæs formularen og prøv igen.');
  // Validation fixes field order and normalizes contacts before hashing. Keep the
  // original hash even when the public profile is subsequently edited.
- const requestHash=await hash(JSON.stringify(a)),id=crypto.randomUUID(),stamp=now();
- await stmt(env,`INSERT OR IGNORE INTO associations(id,name,category,description,chair,email,phone,website,place,created_at,updated_at,creation_request_key,creation_actor,creation_hash)
- SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,? WHERE ${g.sql}`,id,...Object.values(a),stamp,stamp,data.requestKey,auth.user.id,requestHash,...g.args).run();
+ const {imageUrl,...legacyFields}=a;
+ const requestHash=await hash(JSON.stringify(imageUrl?a:legacyFields)),id=crypto.randomUUID(),stamp=now();
+ await stmt(env,`INSERT OR IGNORE INTO associations(id,name,category,description,chair,email,phone,website,place,image_url,created_at,updated_at,creation_request_key,creation_actor,creation_hash)
+ SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,?,? WHERE ${g.sql}`,id,...Object.values(a),stamp,stamp,data.requestKey,auth.user.id,requestHash,...g.args).run();
  const row=await stmt(env,`SELECT *,(${g.sql}) AS permitted FROM associations WHERE creation_request_key=?`,...g.args,data.requestKey).first();
  ensure(row?.permitted,403,'Din adgang er ophørt.');
  ensure(row.creation_actor===auth.user.id&&row.creation_hash===requestHash,409,'Nøglen er allerede brugt til en anden oprettelse. Genindlæs formularen.');

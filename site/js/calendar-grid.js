@@ -31,6 +31,7 @@ export function calendarGrid({events,bounds,mode,onOpen,eventHref}){
   cell.id='calendar-day-'+day;cell.setAttribute('aria-label',dateText(day));
   const heading=element('h3','calendar-day-heading'),time=element('time','',String(Number(day.slice(-2))));time.dateTime=day;
   heading.append(element('span','calendar-day-weekday',weekday),time);cell.append(heading);
+  const entries=element('div','calendar-day-entries');cell.append(entries);
   if(mode==='week'){
    const tab=element('button','calendar-day-tab'+(day===today()?' is-today':''));tab.type='button';tab.setAttribute('aria-controls',cell.id);tab.setAttribute('aria-pressed','false');tab.setAttribute('aria-label',dateText(day)+' · '+items.length+' arrangementer');
    tab.append(element('span','calendar-tab-weekday',weekday),element('strong','',String(Number(day.slice(-2)))),element('span','calendar-tab-count',items.length?String(items.length):'–'));
@@ -43,9 +44,11 @@ export function calendarGrid({events,bounds,mode,onOpen,eventHref}){
    if(mode==='week'){const img=picture(event.image);if(img)entry.append(img);}
    const caption=event.state==='cancelled'?'Aflyst':event.date!==day?'Fortsætter':event.time?'Kl. '+event.time.replace(':','.'):'Hele dagen';
    const copy=element('span','calendar-entry-copy');copy.append(element('span','calendar-entry-time',caption),element('strong','calendar-entry-title',event.title));
-   if(event.location)copy.append(element('span','calendar-entry-place',event.location));entry.append(copy);cell.append(entry);
+   if(event.location)copy.append(element('span','calendar-entry-place',event.location));
+   if(mode==='week'&&(event.association||event.sourceName))copy.append(element('span','calendar-entry-source',event.association||event.sourceName));
+   entry.append(copy);entries.append(entry);
   }
-  if(!items.length)cell.append(element('span','calendar-day-empty','Ingen arrangementer denne dag.'));
+  if(!items.length)entries.append(element('span','calendar-day-empty','Ingen arrangementer denne dag.'));
   cells.push({cell,date:day,count:items.length});grid.append(cell);
  }
  if(mode==='week'){select('');viewport.append(strip,reset);}
