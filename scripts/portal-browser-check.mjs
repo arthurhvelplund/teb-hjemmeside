@@ -99,11 +99,11 @@ try{
  assert.equal(await guest.locator('.fa-profile-photo img').getAttribute('src'),uploadedImageURL);assert.ok((await guestContext.request.get(uploadedImageURL)).ok());record('File picker uploads and publishes a real association photo');
  await guest.goto('/forening.html');await guest.locator('.fa-association').waitFor();
  assert.equal(await guest.locator('#association-results').getAttribute('data-view'),'cards');
- await guest.locator('#association-search').fill('Integrationens');await guest.locator('#association-category').selectOption('Fællesskab');
+ await guest.locator('#association-search').fill('Integrationens');await guest.locator('#association-filter-toggle').click();await guest.locator('#association-category').selectOption('Fællesskab');
  await guest.getByRole('button',{name:'Liste',exact:true}).click();assert.equal(await guest.locator('#association-results').getAttribute('data-view'),'list');
  assert.equal(await guest.locator('#association-search').inputValue(),'Integrationens');assert.equal(await guest.locator('#association-category').inputValue(),'Fællesskab');assert.equal(await guest.locator('.fa-association').count(),1);
  await guest.reload();await guest.locator('.fa-association').waitFor();assert.equal(await guest.locator('#association-results').getAttribute('data-view'),'list');
- await guest.getByRole('button',{name:'Billeder',exact:true}).click();await guest.locator('.fa-association-photo img').waitFor();
+ await guest.locator('#association-filter-toggle').click();await guest.getByRole('button',{name:'Billeder',exact:true}).click();await guest.locator('.fa-association-photo img').waitFor();
  assert.equal(await guest.locator('.fa-association-photo img').getAttribute('src'),uploadedImageURL);
  record('Card/list switching preserves search and filters; browser remembers the selected view');
  await guest.getByRole('link',{name:/^Kontakt TEB/}).click();await guest.locator('#form form[action="/api/formular"]').waitFor();assert.ok(guest.url().endsWith('/kontakt.html#form'));

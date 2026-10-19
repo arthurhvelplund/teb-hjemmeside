@@ -10,6 +10,7 @@ let loginEmail = '';
 let loginPending = false;
 let directory = [];
 let directoryView = 'cards';
+let directoryFiltersOpen = false;
 try { if (localStorage.getItem('teb-association-view') === 'list') directoryView = 'list'; } catch { /* Browsing without storage still supports both views. */ }
 const associationFallback = 'images/forening-faellesskab.webp';
 let renderNumber = 0;
@@ -78,10 +79,10 @@ function navigation(page) {
   document.querySelector('#forening-main').classList.toggle('fa-auth-page', loginScreen);
   document.querySelector('#forening-main').classList.toggle('fa-private-page', account && authenticated());
   document.querySelector('#forening-main').classList.toggle('fa-directory', page === 'oversigt');
-  document.querySelector('.fa-heading h1').textContent = page === 'oversigt' ? 'Find dit fællesskab.' : 'Foreninger';
-  nav.hidden = (page === 'oversigt' && !authenticated()) || loginScreen;
+  document.querySelector('.fa-heading h1').textContent = 'Foreninger';
+  nav.hidden = page === 'oversigt' || loginScreen;
   const workspaceLink = document.querySelector('#forening-workspace-link');
-  workspaceLink.textContent = authenticated() ? admin() ? 'Åbn TEBs arbejdsområde' : 'Åbn min forening' : 'Log ind for din forening';
+  workspaceLink.textContent = authenticated() ? admin() ? 'TEBs område' : 'Min forening' : 'Log ind';
   workspaceLink.href = authenticated() ? admin() ? '#teb' : '#arbejdsrum' : '#login';
   const links = [['oversigt', 'Alle foreninger', 'forening.html']];
   if (authenticated() && (memberships().length || !admin()) && page !== 'arbejdsrum') links.push(['arbejdsrum', 'Min forening', '#arbejdsrum']);
@@ -131,8 +132,18 @@ async function directoryPage() {
   // Keep the original fictional seed in the database and workspaces, outside the real directory draft.
   if (directory.some(draftMeta)) directory = directory.filter(a => a.name !== 'Eksempelforeningen Solsiden');
   const categories = [...new Set(directory.map(a => a.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'da'));
-  return (directory.some(draftMeta) ? '<p class="fp-notice">Udkast. Foreningerne har endnu ikke bekræftet oplysningerne.</p>' : '') + `<section aria-label="Find en forening"><div class="fa-directory-tools"><div class="fa-filter fp-filter"><label>Søg efter en forening<input id="association-search" type="search" placeholder="Navn, interesse eller mødested" autocomplete="off"></label><label>Interesse<select id="association-category"><option value="">Alle interesser</option>${categories.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></label></div><div class="fa-view-switch" role="group" aria-label="Vis foreninger som"><button type="button" data-directory-view="cards" aria-controls="association-results" aria-pressed="${directoryView === 'cards'}">Billeder</button><button type="button" data-directory-view="list" aria-controls="association-results" aria-pressed="${directoryView === 'list'}">Liste</button></div></div><p id="association-count" class="fp-note" aria-live="polite"></p><div id="association-results" class="fa-associations" data-view="${directoryView}"></div></section>` +
-    `<section class="fa-contact"><div><h2>Har du spørgsmål om foreningslivet?</h2><p>Skriv til TEB, hvis I vil have jeres forening med eller har brug for hjælp.</p></div><a class="btn" href="kontakt.html#form">Kontakt TEB</a></section>`;
+  return `<section aria-label="Find en forening">
+    <div class="fa-directory-tools">
+      <label class="fa-directory-search"><span class="fa-visually-hidden">Søg efter en forening eller interesse</span><span class="fa-search-icon" aria-hidden="true">⌕</span><input id="association-search" type="search" placeholder="Søg efter forening..." autocomplete="off"></label>
+      <button class="fa-filter-toggle" id="association-filter-toggle" type="button" aria-expanded="${directoryFiltersOpen}" aria-controls="association-filters"><span data-filter-label>Filtre</span><span aria-hidden="true">⌄</span></button>
+      <div class="fa-directory-filters" id="association-filters"${directoryFiltersOpen ? '' : ' hidden'}>
+        <label>Interesse<select id="association-category"><option value="">Alle interesser</option>${categories.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></label>
+        <fieldset class="fa-view-options"><legend>Visning</legend><div class="fa-view-switch" role="group" aria-label="Vis foreninger som"><button type="button" data-directory-view="cards" aria-controls="association-results" aria-pressed="${directoryView === 'cards'}">Billeder</button><button type="button" data-directory-view="list" aria-controls="association-results" aria-pressed="${directoryView === 'list'}">Liste</button></div></fieldset>
+      </div>
+    </div>
+    <div class="fa-directory-meta"><p id="association-count" aria-live="polite"></p>${directory.some(draftMeta) ? '<span class="fa-directory-draft" title="Foreningerne har endnu ikke bekræftet oplysningerne.">Foreløbig oversigt</span>' : ''}</div>
+    <div id="association-results" class="fa-associations" data-view="${directoryView}"></div>
+  </section><p class="fa-contact">Mangler din forening? <a href="kontakt.html#form">Kontakt TEB</a></p>`;
 }
 function associationImage(value) {
   if (!value || /[\\\u0000-\u0020]/.test(value)) return null;
@@ -140,10 +151,10 @@ function associationImage(value) {
   if (/^\/api\/kalender\/association-images\/[a-f0-9-]{36}\/[a-f0-9-]{36}\.(jpg|png|webp)$/.test(value)) return value;
   try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password ? url.href : null; } catch { return null; }
 }
-function associationPhoto(a, className = '') {
+function associationPhoto(a, className = '', compact = false) {
   const image = associationImage(a.imageUrl);
   const draft = draftMeta(a);
-  if (!image && draft) {
+  if (!image && (draft || compact)) {
     const initials = a.name.split(/[\s·-]+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('');
     return `<figure class="fa-association-photo fa-photo-missing ${className}" aria-label="Billede mangler for ${esc(a.name)}"><span aria-hidden="true">${esc(initials)}</span><figcaption>Billede mangler</figcaption></figure>`;
   }
@@ -158,7 +169,8 @@ function filterDirectory() {
   const filtered = directory.filter(a => (!category || a.category === category) && [a.name, a.description, a.category, a.place].join(' ').toLocaleLowerCase('da').includes(search));
   document.querySelector('#association-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'forening' : 'foreninger'}`;
   results.dataset.view = directoryView;
-  results.innerHTML = filtered.map(a => `<article class="fa-association">${directoryView === 'cards' ? associationPhoto(a) : ''}<div class="fa-association-copy">${a.category ? `<p class="fa-association-category">${esc(a.category)}</p>` : ''}<h2>${link(a.name, publicURL(a.id))}</h2><p class="fa-association-description">${esc(a.description || 'Kontakt foreningen for at høre mere om fællesskabet.')}</p>${a.place ? `<p class="fa-association-place">${esc(a.place)}</p>` : ''}<a class="fa-association-link" href="${esc(publicURL(a.id))}">Se forening <span aria-hidden="true">→</span><span class="fa-visually-hidden">: ${esc(a.name)}</span></a></div></article>`).join('') || empty(directory.length ? 'Ingen foreninger passer til søgningen.' : 'Der er ingen foreninger i oversigten endnu.');
+  document.querySelector('[data-filter-label]').textContent = category ? 'Filtre · 1' : 'Filtre';
+  results.innerHTML = filtered.map(a => `<article class="fa-association"><a class="fa-association-link" href="${esc(publicURL(a.id))}" aria-labelledby="association-name-${esc(a.id)}">${associationPhoto(a, '', true)}<div class="fa-association-copy"><h2 id="association-name-${esc(a.id)}">${esc(a.name)}</h2>${a.category ? `<p class="fa-association-category">${esc(a.category)}</p>` : ''}<span class="fa-association-action" aria-hidden="true"><span>Se forening</span><span>→</span></span></div></a></article>`).join('') || empty(directory.length ? 'Ingen foreninger passer til søgningen.' : 'Der er ingen foreninger i oversigten endnu.');
 }
 function safeWebsite(value) {
   try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.href : null; } catch { return null; }
@@ -560,6 +572,13 @@ document.addEventListener('click', event => {
     if (form.dataset.uploading === 'true' || form.dataset.pending === 'true') return;
     updateImagePreview(form, '');
     showMessage(form.querySelector('.fa-image-result'), 'Tryk Gem profil for at fjerne billedet fra den offentlige side.');
+    return;
+  }
+  const filterToggle = event.target.closest('#association-filter-toggle');
+  if (filterToggle) {
+    directoryFiltersOpen = !directoryFiltersOpen;
+    filterToggle.setAttribute('aria-expanded', String(directoryFiltersOpen));
+    document.querySelector('#association-filters').hidden = !directoryFiltersOpen;
     return;
   }
   const viewButton = event.target.closest('[data-directory-view]');
