@@ -23,7 +23,7 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Opret arrangement | Fælles pop-up, billedupload og kalender/print-preview er integreret med den nye kalender i `313eac2`. |
 | Foreninger | 24 importerede udkast, 18 med billede/logo. Kompakt oversigt gemt i `6ea99c2`. |
 | Login og adgang | Lokal mailkode, profil og adgangsstyring samlet i pilotens `4209e48`. Ingen rigtig mail. |
-| Foreningsprofil og ejerens side | Aktiv tråd bygger ny profil, egne nyheder og samlet redaktion. Afventer commit og slutkontrol. |
+| Foreningsprofil og ejerens side | Leveret lokalt i `53cc3c0`: kompakt offentlig profil, ejerens indhold, egne nyheder og fælles TEB-kø. 81 backendtests og 42 portalforløb består. |
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Ny portal er ikke lanceret. Database, fillager, afsender, administratorer og staging skal stadig opsættes og afprøves. |
 
@@ -37,7 +37,7 @@ T3-status fortæller, om en kørsel er afsluttet. Den betyder ikke i sig selv, a
 | Tråd | Kørsel ved aflæsning | Leverance |
 | --- | --- | --- |
 | [Samlet status over tråde og worktrees](t3-thread://v1/3846890d-c6d1-4a6b-884d-a742be850123) | running | Denne samling og status. |
-| [Foreningsside og ejerens startvisning](t3-thread://v1/103b95cc-5ffc-40b4-8120-27115e9ce1da) | running | Arbejder på offentlig profil, ejerens startside, nyhedsredigering og fælles TEB-redaktion i Projects-kopien. Slutleverance afventer. |
+| [Foreningsside og ejerens startvisning](t3-thread://v1/103b95cc-5ffc-40b4-8120-27115e9ce1da) | running | Leveret i `53cc3c0`: offentlig profil, ejerens startside, nyheder og fælles redaktion. 81 backendtests, 42 portalforløb og 8 kalenderforløb består. Ingen deploy. |
 | [Redesign kalender og fysisk kalender](t3-thread://v1/5e4e6bd7-5f88-44bd-875a-677f22ae3794) | completed | Kalender gemt i `ce5272b`, popup samlet i `313eac2`. Nyt designønske kl. 22.20. Tre stilforslag præsenteret. Afventer brugerens valg og stillingtagen til Halloween-temaet. |
 | [Tilføj arrangementer med kalenderpreview](t3-thread://v1/3516ed04-6e1a-4d3d-8976-a6941ace66e6) | completed | Færdig pop-up med formular, kalender/print-preview og billed-upload. Samlet med Projects i `313eac2`. 32 portalforløb består. |
 | [Kortlæg kalenderarbejde og status](t3-thread://v1/2e5d2bcf-9fee-4798-9496-6bf262a3eda3) | completed, settled | Samlet pilot i Projects, commit 4209e48. Seneste kompakte foreningsoversigt 6ea99c2. Ældre statusvisning i output/status er afløst af denne status. |
@@ -90,7 +90,7 @@ Printleverancen er samlet som indhold i `4209e48`, ikke som en blind merge af de
 
 ## Før offentlig lancering
 
-1. Afslut og gennemgå den aktive foreningsleverance, og vælg kalenderens visuelle retning.
+1. Gennemgå den leverede foreningsside med brugeren, og vælg kalenderens visuelle retning.
 2. Gennemgå foreningsoplysninger, billedbrug og indhold med TEB.
 3. Afprøv brugerforløbene med to eller tre foreninger.
 4. Opsæt og test særskilt staging, rigtig mail, backup og gendannelse efter `PORTAL_DRIFT.md`.
@@ -115,6 +115,7 @@ Gem på integrationsgrenen og push den efter kontrol, så den fælles kopi også
 | `6ea99c2` | Kompakt foreningsoversigt. |
 | `ce5272b` | Ny kalender, arrangementskort, billeder og kildesammenlægning. |
 | `313eac2` | Fælles arrangementspop-up, billedupload og integration med kalender/forening. |
+| `53cc3c0` | Kompakte profiler, ejerens indhold, udgiv/redigér/fjern nyheder, fælles TEB-kø og nye tests. |
 | `d4f2573` | Fælles status, afleveringsregler og reviewartefakter. |
 | `64a7710` | Historiske printudkast og PDF-eksempler på backendgrenen. |
 
@@ -122,7 +123,28 @@ Kontrolleret i denne samling: 74 backendtests, 32 portalforløb, 8 kalenderforl�
 fælles layout på 15 sider, gentagen pilotopsætning og Worker-build med `--dry-run`.
 Browserforløbene bruger isolerede testdatabaser og sender ingen rigtig mail.
 Resultaterne gælder den færdige kalender/popup ved `313eac2`.
-Foreningstrådens nye leverance kræver sin egen slutkontrol.
+Foreningsleverancen `53cc3c0` er derefter kontrolleret med:
+
+- `npm test`: 81 backendtests, heraf 7 nye tests for nyhedsadgang, revisioner,
+  billedrettigheder, fjernelse, privat feedback og filtrering før feedgrænsen.
+- `npm run test:browser`: 42 forløb mod rigtig lokal API, session, OTP og fillager.
+  Nyheder oprettes med billede, genforsøges efter tabt svar, rettes og fjernes.
+  Gæster godkendes/afvises i fælles kø, og private kvitteringer viser feedback.
+  Adgangsanmodninger kræver TEBs bekræftelse. Den fælles popup og faste PDF'er består.
+- `node scripts/det-sker-browser-check.mjs`: 8 kalenderforløb. Gamle gæste- og
+  godkendelseslinks bevares og fører til den fælles kø.
+- `node scripts/site-layout-check.mjs`: 15 sider, lokale assets og gentagelig generering.
+- `npm run test:pilot`: gentagen opsætning uden dubletter eller offentligt prøveindhold.
+- `npm run build`: Worker dry-run består; intet deploy.
+
+Desktop, 390 px og 320 px er kontrolleret. Efter den sidste mobile justering er
+320 px desuden målt i det fælles preview uden vandret overløb og med Opret
+arrangement over folden. Resultater gemmes i `output/portal-integreret/checks.json`
+og `output/kalender-flytning/checks.json`.
+
+Migration `0007_news_management.sql` er anvendt i den lokale pilot og skal med på
+kommende staging. Ingen rigtig mail er sendt. Koden er committet på
+`local/teb-pilot-ready`; koordineringstråden håndterer push af integrationsgrenen.
 
 ## Lokale data og previews
 
@@ -131,15 +153,15 @@ Foreningstrådens nye leverance kræver sin egen slutkontrol.
 | Projects, `.wrangler/local-pilot/calendar.sqlite` | 25 foreninger inklusive øveforeningen, 0 egne arrangementer, 0 opslag, 0 PDF-udgaver. Importerede kilder ligger i cache og er ikke med i arrangementstællingen. |
 | Desktop, `.wrangler/local-portal/calendar.sqlite` | 25 foreninger, 9 arrangementer, 0 opslag og 1 PDF-udgave. Bevares separat. |
 | Desktop, `.wrangler/event-composer-preview/calendar.sqlite` | 1 forening, 12 prøvearrangementer. |
-| Port 8787 | HTTP 200 på lokal config. Server fra Projects. |
+| Port 8787 | Opdateret foreningspilot fra Projects, startet med `npm run dev:pilot`. Nyhedsmigration anvendt. |
 | Port 8797 | HTTP 200 på lokal config. Separat kalendertest fra Projects. |
 | Port 8789 | HTTP 200 på lokal config. Popup-preview fra Desktop. |
 | Port 8792 | Statisk foreningsprototype fra Desktop. |
 
 En kørende Node-server indlæser backendmoduler ved opstart. Filer på disken og
 allerede startede previewservere kan derfor vise forskellige backendversioner.
-Servere og deres databaser er bevaret. Ved næste samlet preview bruges Projects
-og en kontrolleret genstart, efter de aktive ændringer er klar.
+Port 8787 er startet fra Projects efter nyhedsændringerne og bruger `.wrangler/local-pilot`.
+De øvrige previewservere og deres databaser er bevaret.
 
 Offentlige `/kalender`, `/nyt` og `/api/kalender/config` svarede HTTP 403 på
 HTTP-læsning i denne samling. Der udledes ingen ny produktionsstatus af det.
