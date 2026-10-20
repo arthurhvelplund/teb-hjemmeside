@@ -45,13 +45,16 @@ Det sker indeholder links til lokale medier og Facebook. Forsiden har også Face
 Opsætningen bruger én lokal loginanmodning. Som almindeligt login er den
 begrænset til tre anmodninger pr. mailadresse på ti minutter.
 
-Arrangementsformularens seks delingsmuligheder findes i `site/js/event-sharing.js`.
+Infosiden Del jeres arrangement findes i `site/del-arrangement.html` og linkes
+fra kalenderen under printsektionen. Den har seks illustrerede informationskort.
 Husstandsomdeling sker fire gange årligt via vejformænd med indlevering til
 Kirsten Thorhauge. Kommunens infoskærme har direkte links til regler og bestilling.
 Byportalernes bannerpris og Jens Ejnar Antonsens kontakt er hentet fra tilbuddet
 11. oktober 2026. Uafklarede datoer, ophængning og mulige opslagstavler er markeret.
-Ønsker gemmes med arrangementet og vises ved TEBs godkendelse. Ekstern deling
-kræver særskilt aftale. Se kilder og åbne spørgsmål i `STATUS.md`.
+Popup og retteformular har kun et ønske om at komme med i den trykte kalender.
+TEB gennemgår ønsket og vælger indholdet manuelt. Ønsket gemmes med arrangementet
+og vises ved godkendelsen. Øvrig deling aftales direkte med udbyderen fra infosiden.
+Se kilder og åbne spørgsmål i `STATUS.md`.
 
 Foreningens eget område viser arrangementer og profilredigering. Nyhedsoprettelse
 og foreningsnyheder er fjernet fra brugerflowet. Det sker har medielinks og Facebook.

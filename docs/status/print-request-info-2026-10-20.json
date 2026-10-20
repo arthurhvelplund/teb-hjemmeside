@@ -1,0 +1,86 @@
+{
+  "checkedAt": "2026-10-20T20:34:31.977250+00:00",
+  "branch": "local/teb-pilot-ready",
+  "portal": {
+    "date": "2026-10-20T20:33:41.980Z",
+    "checks": [
+      "Two-step login, email correction, resend and wrong-code recovery use the real API",
+      "Lost, truncated and incomplete creation responses retain one key and create one association",
+      "TEB creates a real association record",
+      "Invited manager gains only assigned association",
+      "Single-association login opens its own overview without TEB administration",
+      "Profile update visible to a separate visitor",
+      "File picker uploads and publishes a real association photo",
+      "Picture/list switching is directly available, preserves search and remembers the selected view",
+      "Contact TEB opens the real contact form without submitting a message",
+      "Single-step form stays visible while opening the invitation and changing previews",
+      "Popup retains the draft and photo after closing; website and print previews show the event",
+      "Popup and receipt only request manual print consideration without external sharing choices",
+      "Guest remains private before approval",
+      "TEB approval publishes guest event with the uploaded photo and print request",
+      "Actual receipt URL and on-page private status link open the approved event",
+      "Approval mail opens public event details",
+      "Pending guest revision preserves public version",
+      "Member publishes directly through the real API",
+      "Association creation stays in its own popup and refreshes the event list",
+      "Owner workspace contains calendar events and search without news creation or a content-type filter",
+      "Det sker has no association-news feed or creation links and retains the local media links",
+      "Previous news-creation bookmarks lead members and guests to event creation",
+      "Public contact, owner workspace, directory views, print-only popup and separate illustrated information page fit 390px and 320px phones",
+      "Invitation accepted by matching email without manager privileges",
+      "Revocation affects an existing session",
+      "Print starts with no preselected events and requires manual review",
+      "Print preview includes only selected events and supports separate print text",
+      "Editing print text invalidates the proof and finalization",
+      "Saving print-specific text preserves the public event",
+      "Newly saved print appears in the archive without a reload",
+      "Print editor fits desktop and small phones",
+      "Published PDF bytes remain unchanged after event edit",
+      "Login, overview, profile editor and access list fit 390px and 320px",
+      "Multiple-association users choose only among their own associations",
+      "Unassigned accounts request access through the UI and the shared queue requires explicit verification",
+      "Unassigned verified users get Contact TEB without editing access",
+      "Public pages fit 390px and 320px without horizontal overflow"
+    ],
+    "errors": [],
+    "externalMailSent": false
+  },
+  "calendar": {
+    "checks": [
+      "Det sker preserves media links and Facebook without association news; both pages end with Facebook",
+      "new calendar screen: one column per day, upcoming events with photos, details without empty fields and print calendar",
+      "calendar desktop/mobile layout and month switch",
+      "guest creation, visibility wishes, preview and uncertain-response retry preserve one private submission",
+      "TEB reviews visibility wishes; approval publishes once; existing private edit retains selected wishes",
+      "verified association publishes directly from its own calendar creation link",
+      "old guest, public and creation URLs survive the move; former submissions still approve and open private editing",
+      "source outage retains previously loaded calendar events and shows a useful status"
+    ],
+    "passed": 8
+  },
+  "sharedLayout": {
+    "pages": 16,
+    "passed": true
+  },
+  "informationPage": {
+    "path": "site/del-arrangement.html",
+    "cards": 6,
+    "worksWithoutJavaScript": true,
+    "viewports": [
+      1440,
+      390,
+      320
+    ],
+    "expandedDetailsOnPhones": true,
+    "horizontalOverflow": false
+  },
+  "printRequest": {
+    "onlyOptionalDistributionChoice": true,
+    "manuallySelectedByTEB": true,
+    "creationPayloadHasNoChannels": true
+  },
+  "backendTestsRerun": false,
+  "externalMailSent": false,
+  "deployed": false,
+  "codeCommit": "ffa147d"
+}

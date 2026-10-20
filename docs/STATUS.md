@@ -20,12 +20,48 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | --- | --- |
 | Det sker | Medielinks med billeder og Facebook. Gemte commits `ffc8e74` og `ec33f28`. |
 | Kalender | Nyt uge/månedsoverblik, kommende arrangementer, kildesammenlægning og billeder gemt i `ce5272b`. Teknisk samlet. Visuelt design afventer nyt valg. |
-| Opret arrangement | Fælles popup, billedupload og kalender/print-preview. Nu også seks delingsmuligheder med gemte ønsker og fælles vejledning ved oprettelse, rettelse og kvittering. Se leverancen nedenfor. |
+| Opret arrangement | Fælles popup med billedupload og kalender/print-preview. Kun ønske om den trykte kalender kan vælges. Øvrige delingsmuligheder findes på den selvstændige infoside. |
 | Foreninger | 24 importerede udkast, 18 med billede/logo. Direkte valg mellem Billede og Liste, søgning og intet interessefilter. |
 | Login og adgang | Lokal mailkode, profil og adgangsstyring samlet i pilotens `4209e48`. Ingen rigtig mail. |
 | Foreningsprofil og ejerens side | Kompakt offentlig profil og ejerens arrangementer. Nyhedsoprettelse og foreningsnyheder er taget ud af brugerflowet efter brugerens ønske 20. oktober. Den fælles TEB-kø og historiske data er bevaret. |
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Ny portal er ikke lanceret. Database, fillager, afsender, administratorer og staging skal stadig opsættes og afprøves. |
+
+## Deling flyttet til infoside den 20. oktober 2026
+
+Kodecommit: `ffa147d` på `local/teb-pilot-ready`. Status og kontrolrapport
+gemmes i det efterfølgende dokumentationscommit på samme gren.
+
+Brugeren har efter gennemgang ændret placeringen af delingsvejledningen.
+Denne leverance erstatter formularens seks delingsvalg fra `0a8acd0`.
+
+- Popup og retteformular har kun valget om at komme med i den trykte kalender.
+  Teksten forklarer, at TEB gennemgår ønsket og vælger indholdet manuelt til
+  hver udgave. Markeringen reserverer ikke en plads. Kalender/print-preview
+  og den eksisterende `printRequested`-lagring er bevaret.
+- Overblikket er flyttet til `site/del-arrangement.html`, Del jeres arrangement.
+  Seks kort med enkle SVG-illustrationer giver overblik. Kontakt, pris, materiale
+  og frister foldes ud under hvert kort. Siden fungerer uden JavaScript.
+- Infosiden findes fra Vil I dele flere steder? under kalenderens printsektion.
+  Kalender er aktivt menupunkt på infosiden. Den private status har et almindeligt
+  link til infosiden. Den fulde vejledning er fjernet fra popup, retteformular
+  og popup-kvittering.
+- Kirsten, kommunens links og bannertilbuddet med Jens Ejnar Antonsens kontakt
+  er flyttet med. Uafklarede frister og mulige opslagstavler er fortsat markeret.
+  Det aktuelle indhold vedligeholdes direkte i infosidens HTML; den tidligere
+  `site/js/event-sharing.js` er fjernet. `site/js/print-request.js` deler den
+  korte printforespørgsel mellem oprettelse og rettelse.
+- Nye indsendelser sender ingen øvrige delingsønsker. Gamle gemte `channels`
+  slettes ikke fra eksisterende arrangementer ved rettelse. Lokale databaser,
+  arkiver og worktrees er bevaret.
+
+Kontroller: 37 portalforløb og 8 kalenderforløb med rigtig lokal API og isolerede
+prøvedata. Printønsket følger kladde, TEB-godkendelse, rettelse og manuel PDF.
+Infosiden er kontrolleret ved 1440, 390 og 320 px, også med alle detaljer åbne
+på telefon. Ingen vandret overflow. Fælles layout består nu på 16 sider.
+Backendkode og kontrakt er uændrede; de 81 backendtests fra forrige leverance
+blev ikke kørt igen. Ingen rigtig mail, bestilling eller deploy.
+[Kontrolresultater](status/print-request-info-2026-10-20.json).
 
 ## Forenkling og deling den 20. oktober 2026
 
