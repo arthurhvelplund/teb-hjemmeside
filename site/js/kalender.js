@@ -1,3 +1,4 @@
+import {sharingGuideHTML} from './event-sharing.js';
 import {installEventComposer, openEventComposer} from './event-composer.js';
 installEventComposer();
 document.addEventListener('teb:event-saved', () => loadCalendar({quiet: true}));
@@ -57,14 +58,9 @@ function mailState(result) {
   return messages.join(' ');
 }
 function sharingChannels() {
-  return node('section', {class: 'cal-channels', 'aria-label': 'Del flere steder'},
-    node('h2', {}, 'Nå flere i byen'), node('p', {}, 'I kontakter selv udbyderen. Der bliver ikke bestilt eller delt noget automatisk.'),
-    node('div', {class: 'fp-grid'},
-      node('article', {class: 'fp-card'}, node('h3', {}, 'Flyers i postkasserne'), node('p', {}, 'Aftal flyer, pris og frist med en lokal omdeler.'), note('Kontakt til omdeling afventer TEBs aftaler.')),
-      node('article', {class: 'fp-card'}, node('h3', {}, 'Byportaler og skærme'), node('p', {}, 'Spørg om plads på de analoge byportaler og lokale infoskærme.'), note('Udbydere, kontakter og priser afventer TEBs aftaler.')),
-      node('article', {class: 'fp-card'}, node('h3', {}, 'Opslag i byen'), node('p', {}, 'Brug opslagstavler og aftalte pladser til plakater. Opslag på lygtepæle kræver ejerens tilladelse.'), note('Kontakter og godkendte pladser afventer TEBs aftaler.')),
-      node('article', {class: 'fp-card'}, node('h3', {}, 'Lokale medier'), node('p', {}, 'Tip de lokale medier, eller del et offentligt link på jeres Facebook-side.'),
-        node('a', {href: 'nyt.html'}, 'Find lokale medier'))));
+  const section=node('section',{class:'cal-channels'});
+  section.innerHTML=sharingGuideHTML();
+  return section;
 }
 // One detail layout for previews, published events and imported events. Empty fields are left out.
 function eventCard(event, {detail = false, preview = false, heading = 'h3'} = {}) {
@@ -299,13 +295,12 @@ function eventForm({data = {}, associations = [], selectedId = '', guest = false
     const trap = node('input', {type: 'text', name: 'website', id: 'event-website', tabIndex: -1, autoComplete: 'off'});
     form.append(node('div', {class: 'cal-honeypot', 'aria-hidden': 'true'}, node('label', {htmlFor: trap.id}, 'Lad dette felt være tomt'), trap));
   }
-  const printChoice=node('input',{type:'checkbox',id:'event-print',checked:data.printRequested===true});
-  const sharing=node('fieldset',{class:'cal-full-field cal-sharing'},node('legend',{},'Nå flere i byen'),node('label',{htmlFor:printChoice.id},printChoice,'Med på den analoge kalender'));
-  const channelChecks=[];
-  for(const [key,label] of [['flyers','Flyers i postkasser'],['portals','Analoge byportaler'],['screens','Infoskærme'],['posters','Plakater i byen']]){
-    const input=node('input',{type:'checkbox',id:'event-channel-'+key,value:key,checked:data.channels?.includes(key)});channelChecks.push(input);sharing.append(node('label',{htmlFor:input.id},input,label));
-  }
-  sharing.append(note('Ønskerne gemmes med arrangementet. Print kræver TEBs udvælgelse. Flyers, portaler, skærme og plakater aftaler I selv med udbyderen. Kontakter og link til Varde Kommunes byportal tilføjes, når TEB har dem.'));
+  const sharing=node('div',{class:'cal-full-field cal-sharing'});
+  sharing.innerHTML=sharingGuideHTML({choices:true});
+  const printChoice=sharing.querySelector('[name="printRequested"]');
+  printChoice.checked=data.printRequested===true;
+  const channelChecks=[...sharing.querySelectorAll('[name="channels"]')];
+  for(const input of channelChecks)input.checked=data.channels?.includes(input.value)===true;
   form.append(sharing);
   const label = creating ? guest ? 'Send til TEBs godkendelse' : 'Udgiv arrangement' : guest ? 'Send rettelsen til TEB' : 'Gem og udgiv rettelsen';
   const submit = node('button', {type: 'submit', class: 'btn'}, label);

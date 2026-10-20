@@ -36,18 +36,12 @@
 .fa-main:not(.fa-directory) .fa-directory-login,.fa-main:not(.fa-directory) .fa-heading>div>p{display:none}
 .fa-hero .halloween-decor{opacity:.4;pointer-events:none}
 .fa-directory #forening-content{padding-top:0}
-.fa-directory-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.65rem;align-items:start}
+.fa-directory-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.65rem;align-items:center}
 .fa-directory-search{position:relative;display:block;min-width:0}
 .fa-directory-search input{display:block;width:100%;height:52px;min-width:0;padding:.75rem 1rem .75rem 2.8rem;font:inherit;font-size:1rem;background:var(--paper-soft);color:var(--ink);border:1px solid var(--line);border-radius:7px}
 .fa-search-icon{position:absolute;left:1rem;top:13px;font-size:1.25rem;line-height:24px;color:var(--forest);pointer-events:none}
-.fa-filter-toggle{display:flex;gap:.65rem;align-items:center;justify-content:center;height:52px;padding:0 1.15rem;background:var(--paper-soft);border:1px solid var(--line);border-radius:7px;color:var(--forest);font:inherit;font-size:.82rem;cursor:pointer}
-.fa-filter-toggle[aria-expanded=true]{border-color:var(--forest)}
-.fa-directory-filters{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:end;padding-top:.5rem}
-.fa-directory-filters>label{display:grid;gap:.4rem;font-size:.82rem;min-width:0}
-.fa-directory-filters select{font:inherit;font-size:1rem;min-height:46px;background:var(--paper-soft);color:var(--ink);padding:.6rem .8rem;border:1px solid var(--line);border-radius:5px;max-width:100%}
-.fa-view-options{margin:0;padding:0;border:0}.fa-view-options legend{font-size:.82rem;margin-bottom:.4rem}
 .fa-view-switch{display:flex;flex-shrink:0;border:1px solid var(--forest);border-radius:5px;overflow:hidden}
-.fa-view-switch button{border:0;background:var(--paper-soft);color:var(--forest);font:inherit;font-size:.82rem;min-height:44px;padding:.6rem 1rem;cursor:pointer}
+.fa-view-switch button{border:0;background:var(--paper-soft);color:var(--forest);font:inherit;font-size:.82rem;min-height:50px;padding:.6rem 1rem;cursor:pointer}
 .fa-view-switch button+button{border-left:1px solid var(--forest)}
 .fa-view-switch button[aria-pressed=true]{background:var(--forest);color:var(--paper-soft)}
 .fa-view-switch button:focus-visible{outline-offset:-4px}
@@ -84,8 +78,11 @@
 .fa-visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 .fa-associations>.fp-empty{grid-column:1/-1}
 @media(max-width:1000px){.fa-associations[data-view=cards]{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:700px){.fa-main .fa-hero>.fa-heading{align-items:flex-start;gap:.75rem;padding-block:1.4rem 1.2rem}.fa-heading h1{font-size:1.875rem}.fa-heading>div>p{font-size:.82rem;margin-top:.45rem}.fa-directory-login{font-size:.75rem;padding:.5rem .8rem}.fa-directory-meta{font-size:.7rem}.fa-filter-toggle{font-size:.75rem;padding:0 .8rem;gap:.4rem}.fa-directory-search input{padding-left:2.4rem}.fa-search-icon{left:.75rem}.fa-directory-filters{gap:.75rem}.fa-directory-filters>label{width:100%}.fa-directory-filters select{width:100%}.fa-profile-photo{aspect-ratio:1.85}}
+@media(max-width:700px){.fa-main .fa-hero>.fa-heading{align-items:flex-start;gap:.75rem;padding-block:1.4rem 1.2rem}.fa-heading h1{font-size:1.875rem}.fa-heading>div>p{font-size:.82rem;margin-top:.45rem}.fa-directory-login{font-size:.75rem;padding:.5rem .8rem}.fa-directory-meta{font-size:.7rem}.fa-directory-search input{padding-left:2.4rem}.fa-search-icon{left:.75rem}.fa-profile-photo{aspect-ratio:1.85}}
 @media(max-width:520px){
+ .fa-directory-tools{grid-template-columns:minmax(0,1fr)}
+ .fa-view-switch{justify-self:end}
+ .fa-view-switch button{min-height:44px}
  .fa-associations,.fa-associations[data-view=cards]{grid-template-columns:minmax(0,1fr);gap:.65rem}
  .fa-association-link,[data-view=list] .fa-association-link{flex-direction:row;align-items:center;gap:.8rem;padding:.8rem .75rem;min-height:86px}
  .fa-directory .fa-association-photo,.fa-directory [data-view=list] .fa-association-photo{width:58px;height:58px;flex-shrink:0;border-radius:6px}
@@ -178,3 +175,9 @@ html[data-seasonal-theme] .site-main.fa-auth-page,html[data-seasonal-theme] .sit
 [data-print-proof] { padding: 18px; margin-top: 18px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: 6px; }
 [data-print-proof] a { display: inline-block; font-weight: 700; padding-block: 8px; }
 @media (max-width: 600px) { .fa-print-heading { grid-template-columns: 1fr; gap: 14px; } }
+
+@media(max-width:520px){
+ .fa-directory [data-view=cards] .fa-association-link{display:block;padding:0}
+ .fa-directory [data-view=cards] .fa-association-photo{width:100%;height:150px;border-radius:0}
+ .fa-directory [data-view=cards] .fa-association-copy{padding:1rem}
+}

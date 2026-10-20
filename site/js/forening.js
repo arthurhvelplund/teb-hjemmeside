@@ -2,7 +2,7 @@ import {installEventComposer} from './event-composer.js';
 installEventComposer();
 document.addEventListener('teb:event-saved', () => { if (currentRoute?.page === 'arbejdsrum') render(); });
 import {printEditorHtml,mountPrintEditor} from './kalender-print.js';
-import {newsCards, newsURL, newsImage, mountNewsEditor} from './association-news.js';
+import {newsImage} from './association-news.js';
 import { api, getSession, escapeHTML as esc, requestKey, today, dateText, showMessage, showMode, busy } from './portal-api.js';
 
 const content = document.querySelector('#forening-content');
@@ -14,7 +14,6 @@ let loginEmail = '';
 let loginPending = false;
 let directory = [];
 let directoryView = 'cards';
-let directoryFiltersOpen = false;
 try { if (localStorage.getItem('teb-association-view') === 'list') directoryView = 'list'; } catch { /* Browsing without storage still supports both views. */ }
 const associationFallback = 'images/forening-faellesskab.webp';
 let renderNumber = 0;
@@ -116,7 +115,7 @@ async function render() {
       case 'login': html = loginPage(); break;
       case 'adgang': html = authenticated() ? await accessPage() : loginNeeded(); break;
       case 'arbejdsrum': html = authenticated() ? await workspace(r) : loginNeeded(); break;
-      case 'skriv': html = '<div data-news-editor></div>'; break;
+      case 'skriv': location.replace('kalender.html?opret=1'); return;
       case 'opslag': html = await publicNews(r.params.get('id') || r.query.get('opslag')); break;
       case 'teb': html = admin() ? await adminPage(r) : authenticated() ? heading('Kun for TEB', 'Dit login giver ikke adgang til TEBs administration.') : loginNeeded(); break;
       default: html = heading('Siden findes ikke') + link('Se alle foreninger', 'forening.html');
@@ -127,8 +126,6 @@ async function render() {
     const printRoot = content.querySelector('[data-print-editor]');
     if (printRoot) disposePrintEditor = mountPrintEditor(printRoot);
     if (r.page === 'oversigt') filterDirectory();
-    const newsRoot=content.querySelector('[data-news-editor]');
-    if(newsRoot)await mountNewsEditor(newsRoot,r.params);
     if (flash) { showMessage(notice, flash); flash = ''; }
   } catch (error) {
     if (sequence !== renderNumber) return;
@@ -142,15 +139,10 @@ async function directoryPage() {
   directory = (await api('/associations')).associations.sort((a, b) => a.name.localeCompare(b.name, 'da'));
   // Keep the original fictional seed in the database and workspaces, outside the real directory draft.
   if (directory.some(draftMeta)) directory = directory.filter(a => a.name !== 'Eksempelforeningen Solsiden');
-  const categories = [...new Set(directory.map(a => a.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'da'));
   return `<section aria-label="Find en forening">
     <div class="fa-directory-tools">
-      <label class="fa-directory-search"><span class="fa-visually-hidden">Søg efter en forening eller interesse</span><span class="fa-search-icon" aria-hidden="true">⌕</span><input id="association-search" type="search" placeholder="Søg efter forening..." autocomplete="off"></label>
-      <button class="fa-filter-toggle" id="association-filter-toggle" type="button" aria-expanded="${directoryFiltersOpen}" aria-controls="association-filters"><span data-filter-label>Filtre</span><span aria-hidden="true">⌄</span></button>
-      <div class="fa-directory-filters" id="association-filters"${directoryFiltersOpen ? '' : ' hidden'}>
-        <label>Interesse<select id="association-category"><option value="">Alle interesser</option>${categories.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></label>
-        <fieldset class="fa-view-options"><legend>Visning</legend><div class="fa-view-switch" role="group" aria-label="Vis foreninger som"><button type="button" data-directory-view="cards" aria-controls="association-results" aria-pressed="${directoryView === 'cards'}">Billeder</button><button type="button" data-directory-view="list" aria-controls="association-results" aria-pressed="${directoryView === 'list'}">Liste</button></div></fieldset>
-      </div>
+      <label class="fa-directory-search"><span class="fa-visually-hidden">Søg efter en forening</span><span class="fa-search-icon" aria-hidden="true">⌕</span><input id="association-search" type="search" placeholder="Søg efter forening..." autocomplete="off"></label>
+      <div class="fa-view-switch" role="group" aria-label="Vis foreninger som"><button type="button" data-directory-view="cards" aria-controls="association-results" aria-pressed="${directoryView === 'cards'}">Billede</button><button type="button" data-directory-view="list" aria-controls="association-results" aria-pressed="${directoryView === 'list'}">Liste</button></div>
     </div>
     <div class="fa-directory-meta"><p id="association-count" aria-live="polite"></p>${directory.some(draftMeta) ? '<span class="fa-directory-draft" title="Foreningerne har endnu ikke bekræftet oplysningerne.">Foreløbig oversigt</span>' : ''}</div>
     <div id="association-results" class="fa-associations" data-view="${directoryView}"></div>
@@ -176,11 +168,9 @@ function filterDirectory() {
   const results = document.querySelector('#association-results');
   if (!results) return;
   const search = document.querySelector('#association-search').value.trim().toLocaleLowerCase('da');
-  const category = document.querySelector('#association-category').value;
-  const filtered = directory.filter(a => (!category || a.category === category) && [a.name, a.description, a.category, a.place].join(' ').toLocaleLowerCase('da').includes(search));
+  const filtered = directory.filter(a => [a.name, a.description, a.category, a.place].join(' ').toLocaleLowerCase('da').includes(search));
   document.querySelector('#association-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'forening' : 'foreninger'}`;
   results.dataset.view = directoryView;
-  document.querySelector('[data-filter-label]').textContent = category ? 'Filtre · 1' : 'Filtre';
   results.innerHTML = filtered.map(a => `<article class="fa-association"><a class="fa-association-link" href="${esc(publicURL(a.id))}" aria-labelledby="association-name-${esc(a.id)}">${associationPhoto(a, '', true)}<div class="fa-association-copy"><h2 id="association-name-${esc(a.id)}">${esc(a.name)}</h2>${a.category ? `<p class="fa-association-category">${esc(a.category)}</p>` : ''}<span class="fa-association-action" aria-hidden="true"><span>Se forening</span><span>→</span></span></div></a></article>`).join('') || empty(directory.length ? 'Ingen foreninger passer til søgningen.' : 'Der er ingen foreninger i oversigten endnu.');
 }
 function safeWebsite(value) {
@@ -188,7 +178,7 @@ function safeWebsite(value) {
 }
 async function publicProfile(id) {
   if (!id) return heading('Vælg en forening') + link('Se alle foreninger', 'forening.html');
-  const [{association:a},{events},{posts}]=await Promise.all([api('/associations/'+idPath(id)),api('/events'),api('/posts?kind=news&association='+idPath(id))]);
+  const [{association:a},{events}]=await Promise.all([api('/associations/'+idPath(id)),api('/events')]);
   const website=safeWebsite(a.website),draft=draftMeta(a),own=admin()||memberships().some(m=>m.associationId===id);
   const email=a.email?'mailto:'+encodeURIComponent(a.email):'',phone=a.phone?'tel:'+a.phone.replace(/[^+\d]/g,''):'';
   const contact=email||phone||website,ownEvents=events.filter(e=>e.associationId===id&&(e.endDate||e.date)>=today()).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
@@ -200,15 +190,13 @@ async function publicProfile(id) {
     '<div class="fp-actions fa-public-actions">'+(contact?'<a class="btn" href="'+esc(contact)+'"'+(!email&&!phone?' target="_blank" rel="noopener noreferrer"':'')+'>'+(email||phone?'Kontakt foreningen':'Besøg hjemmesiden')+'</a>':link('Spørg TEB om kontakt','kontakt.html#form',true))+
     (website&&(email||phone)?'<a class="btn btn-secondary" href="'+esc(website)+'" target="_blank" rel="noopener noreferrer">Besøg hjemmeside ↗</a>':'')+'</div>'+
     '<div class="fa-public-columns"><div><section><h2>'+(ownEvents.length?'Næste arrangement':'Arrangementer')+'</h2>'+publicEvents(ownEvents.slice(0,3))+(ownEvents.length>3?link('Se flere arrangementer','kalender.html'):'')+'</section>'+
-    '<section class="fa-public-news"><h2>Nyt fra foreningen</h2>'+newsCards(posts.slice(0,6),{small:true})+'</section>'+
     (draft?'<p class="fp-note fa-source">Profiludkast · Oplysningerne afventer foreningens bekræftelse. Kilde: <a href="'+esc(draft.sourceUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(new URL(draft.sourceUrl).hostname.replace(/^www\./,''))+'</a>.'+(draft.imageCredit&&a.imageUrl===draft.imageUrl?' Billede/logo: '+esc(draft.imageCredit)+'.':'')+'</p>':'')+'</div>'+
     '<aside class="fa-public-contact"><h2>Tag kontakt</h2><dl class="fa-details">'+(details.filter(([,v])=>v).map(([k,v])=>'<dt>'+k+'</dt><dd>'+v+'</dd>').join('')||'<dd>Kontaktoplysninger er ikke tilføjet endnu.</dd>')+'</dl></aside></div>';
 }
 async function publicNews(id) {
   const {post:p}=await api('/posts/'+idPath(id));
   if(p.kind!=='news')return heading(p.title)+link('Se arrangementet',calendarURL('arrangement',id),true);
-  const own=admin()||memberships().some(m=>m.associationId===p.associationId);
-  return '<article class="fa-public-story"><p class="fp-breadcrumb">'+link('← '+(p.associationId?p.author:'Alle foreninger'),p.associationId?publicURL(p.associationId):'forening.html')+'</p><p class="fp-note">'+esc(p.author)+' · '+esc(dateLabel(p.createdAt.slice(0,10)))+'</p><h1>'+esc(p.title)+'</h1><p class="fa-public-intro">'+esc(p.description)+'</p>'+(newsImage(p.image)?'<img class="fa-story-photo" src="'+esc(newsImage(p.image))+'" alt="" referrerpolicy="no-referrer">':'')+(p.body?'<p class="fa-preline">'+esc(p.body)+'</p>':'')+(safeWebsite(p.link)?'<p><a class="btn btn-secondary" href="'+esc(p.link)+'" target="_blank" rel="noopener noreferrer">Læs mere ↗</a></p>':'')+(own?'<p>'+link('Ret nyheden','#skriv?'+new URLSearchParams({id:p.id}),true)+'</p>':'')+'</article>';
+  return '<article class="fa-public-story"><p class="fp-breadcrumb">'+link('← '+(p.associationId?p.author:'Alle foreninger'),p.associationId?publicURL(p.associationId):'forening.html')+'</p><p class="fp-note">'+esc(p.author)+' · '+esc(dateLabel(p.createdAt.slice(0,10)))+'</p><h1>'+esc(p.title)+'</h1><p class="fa-public-intro">'+esc(p.description)+'</p>'+(newsImage(p.image)?'<img class="fa-story-photo" src="'+esc(newsImage(p.image))+'" alt="" referrerpolicy="no-referrer">':'')+(p.body?'<p class="fa-preline">'+esc(p.body)+'</p>':'')+(safeWebsite(p.link)?'<p><a class="btn btn-secondary" href="'+esc(p.link)+'" target="_blank" rel="noopener noreferrer">Læs mere ↗</a></p>':'')+'</article>';
 }
 function publicEvents(events) {
   return events.map(e => `<article class="fp-list-row"><h3>${link(e.title, calendarURL('arrangement', e.id))}</h3><p>${esc(dateLabel(e.date))} kl. ${esc(e.time)} · ${esc(e.location)}</p>${e.state === 'cancelled' ? status('cancelled') : ''}</article>`).join('') || empty('Ingen kommende arrangementer.');
@@ -250,23 +238,19 @@ async function workspace(r) {
   const top='<header class="fa-workspace-header fa-owner-header">'+associationPhoto(a,'fa-profile-mark',true)+'<div><span class="eyebrow">Min forening</span><h1>'+esc(a.name)+'</h1><p class="fa-login-email">Du har adgang som '+(membership.role==='manager'?'foreningsansvarlig':'redaktør')+'</p></div>'+more+'</header>';
   if(tab==='profil')return top+'<p>'+link('← Tilbage til overblikket',workURL(id))+'</p><section class="fa-profile-editor"><h2>Foreningens oplysninger</h2>'+profileForm(a)+'</section>';
   if(tab==='personer')return top+'<p>'+link('← Tilbage til overblikket',workURL(id))+'</p>'+await memberPage(a,membership.role==='manager'||admin());
-  const [{events},{posts}]=await Promise.all([api('/me/events'),api('/me/posts')]);
-  const ownEvents=events.filter(e=>(e.associationId||e.data?.associationId)===id),ownNews=posts.filter(p=>p.associationId===id);
+  const {events}=await api('/me/events');
+  const ownEvents=events.filter(e=>(e.associationId||e.data?.associationId)===id);
   const date=e=>(e.data||e.published||{}).date||'';
   const upcoming=ownEvents.filter(e=>date(e)>=today()).sort((a,b)=>date(a).localeCompare(date(b))),past=ownEvents.filter(e=>date(e)<today()).sort((a,b)=>date(b).localeCompare(date(a)));
-  const news=ownNews.filter(p=>p.status!=='withdrawn'),removed=ownNews.filter(p=>p.status==='withdrawn');
-  return top+'<div class="fa-owner-actions"><div class="fp-actions"><a class="btn" href="'+esc('kalender.html?'+new URLSearchParams({opret:'1',forening:id}))+'">Opret arrangement</a>'+link('Skriv nyhed','#skriv?'+new URLSearchParams({forening:id}),true)+link('Redigér side',workURL(id,'profil'),true)+'</div>'+link('Vis som besøgende ↗',publicURL(id))+'</div>'+
-    '<section class="fa-workspace-events"><h2>Jeres indhold</h2><div class="fa-owner-filter"><label><span class="fa-visually-hidden">Indholdstype</span><select id="own-kind"><option value="">Alt indhold</option><option value="event">Arrangementer</option><option value="news">Nyheder</option></select></label><label><span class="fa-visually-hidden">Søg i jeres indhold</span><input id="own-search" type="search" placeholder="Søg i jeres indhold"></label></div><div id="own-items">'+upcoming.map(e=>'<div class="fa-owned-row" data-kind="event"><span class="fa-content-kind">Arrangement</span>'+privateEvents([e])+'</div>').join('')+news.map(privateNews).join('')+'</div>'+
-    (!upcoming.length&&!news.length?'<p class="fa-quiet-empty">Der er endnu ikke noget indhold. Opret jeres næste arrangement eller skriv en nyhed.</p>':'')+'<p id="own-no-match" class="fa-quiet-empty" hidden>Intet indhold passer til søgningen.</p>'+
-    (past.length?'<details class="fa-past-events"><summary>Tidligere arrangementer ('+past.length+')</summary>'+privateEvents(past)+'</details>':'')+(removed.length?'<details class="fa-past-events"><summary>Fjernede nyheder ('+removed.length+')</summary>'+removed.map(privateNews).join('')+'</details>':'')+'</section>';
-}
-function privateNews(p) {
-  return '<div class="fa-owned-row" data-kind="news"><span class="fa-content-kind">Nyhed</span><article class="fp-list-row fa-private-news"><div><h3>'+esc(p.data.title)+'</h3><p class="fp-note">'+esc(dateLabel(p.createdAt.slice(0,10)))+' · '+esc(p.data.author)+'</p>'+status(p.status==='approved'?'published':p.status)+(p.note?'<p>'+esc(p.note)+'</p>':'')+'</div>'+(p.status!=='withdrawn'?'<div class="fp-actions">'+link('Ret','#skriv?'+new URLSearchParams({id:p.id}))+formStart('withdraw-news','data-id="'+esc(p.id)+'" data-revision="'+esc(p.revision)+'"')+button('Fjern')+resultBox()+'</form>'+(p.status==='approved'?link('Se',newsURL(p.id)):'')+'</div>':'')+'</article></div>';
+  return top+'<div class="fa-owner-actions"><div class="fp-actions"><a class="btn" href="'+esc('kalender.html?'+new URLSearchParams({opret:'1',forening:id}))+'">Opret arrangement</a>'+link('Redigér side',workURL(id,'profil'),true)+'</div>'+link('Vis som besøgende ↗',publicURL(id))+'</div>'+
+    '<section class="fa-workspace-events"><h2>Jeres arrangementer</h2><div class="fa-owner-filter"><label><span class="fa-visually-hidden">Søg i jeres arrangementer</span><input id="own-search" type="search" placeholder="Søg i jeres arrangementer"></label></div><div id="own-items">'+upcoming.map(e=>'<div class="fa-owned-row" data-kind="event"><span class="fa-content-kind">Arrangement</span>'+privateEvents([e])+'</div>').join('')+'</div>'+
+    (!upcoming.length?'<p class="fa-quiet-empty">Der er endnu ingen arrangementer. Opret jeres næste arrangement.</p>':'')+'<p id="own-no-match" class="fa-quiet-empty" hidden>Intet indhold passer til søgningen.</p>'+
+    (past.length?'<details class="fa-past-events"><summary>Tidligere arrangementer ('+past.length+')</summary>'+privateEvents(past)+'</details>':'')+'</section>';
 }
 function filterOwnContent() {
- const kind=document.querySelector('#own-kind')?.value||'',search=(document.querySelector('#own-search')?.value||'').toLocaleLowerCase('da');
+ const search=(document.querySelector('#own-search')?.value||'').toLocaleLowerCase('da');
  const rows=[...document.querySelectorAll('#own-items .fa-owned-row')];
- rows.forEach(row=>row.hidden=Boolean(kind&&row.dataset.kind!==kind)||!row.textContent.toLocaleLowerCase('da').includes(search));
+ rows.forEach(row=>row.hidden=!row.textContent.toLocaleLowerCase('da').includes(search));
  const empty=document.querySelector('#own-no-match');if(empty)empty.hidden=!rows.length||rows.some(row=>!row.hidden);
 }
 function privateEvents(events) {
@@ -291,7 +275,7 @@ async function adminPage(r) {
   if(tab==='foreninger')return top+await adminAssociations(r.params.get('forening'));
   if(tab==='print')return top+await printPage();
   const [{events},{posts},{requests}]=await Promise.all([api('/admin/events'),api('/admin/posts'),api('/admin/access-requests')]);
-  if(tab==='arrangementer'){const {posts:news}=await api('/me/posts');return top+heading('Alt indhold')+privateEvents(events)+news.map(privateNews).join('');}
+  if(tab==='arrangementer')return top+heading('Arrangementer')+privateEvents(events);
   const pending=events.filter(e=>Boolean(e.pendingKind)),access=requests.filter(r=>r.status==='pending');
   const count=pending.length+posts.length+access.length;
   return top+heading(count?count+' opgaver venter':'Du er med.','Gennemgå indsendelser og adgang ét sted.')+pending.map(reviewForm).join('')+posts.map(postReviewForm).join('')+
@@ -304,7 +288,7 @@ function eventSummary(e) {
   return `<p><strong>${esc(e.title)}</strong><br>${esc(e.association)}<br>${esc(dateLabel(e.date))} kl. ${esc(e.time)}${e.endDate || e.endTime ? ` til ${esc(e.endDate ? dateLabel(e.endDate) : dateLabel(e.date))} kl. ${esc(e.endTime || '')}` : ''}<br>${esc(e.location)}</p><p class="fa-preline">${esc(e.description)}</p><p>${esc(e.price)}${e.link ? `<br>${esc(e.link)}` : ''}</p>${e.state === 'cancelled' ? status('cancelled') : ''}`;
 }
 function sharingWishes(e) {
- const names={flyers:'Flyers i postkasser',portals:'Analoge byportaler',screens:'Infoskærme',posters:'Plakater i byen'};
+ const names={flyers:'Husstandsomdeling',portals:'Byportaler',screens:'Infoskærme',posters:'Opslagstavler'};
  const wishes=[e.printRequested?'Analog kalender':null,...(e.channels||[]).map(key=>names[key])].filter(Boolean);
  return wishes.length?`<p class="fp-notice">Ønsker til synlighed: ${esc(wishes.join(', '))}. Der er ikke bestilt ekstern deling.</p>`:'';
 }
@@ -493,11 +477,6 @@ async function onSubmit(event) {
           await refresh(decision === 'approve' ? 'Anmodningen er godkendt.' : 'Anmodningen er afvist.');
           break;
         }
-        case 'withdraw-news': {
-          if(!window.confirm('Fjern nyheden fra de offentlige sider?'))return;
-          await api('/member/posts/'+idPath(form.dataset.id),{body:{action:'withdraw',revision:Number(form.dataset.revision)}});
-          await refresh('Nyheden er fjernet fra de offentlige sider.');break;
-        }
         case 'review-post': {
           const decision=submitter?.value,note=form.elements.note.value.trim();
           if(!['approve','reject'].includes(decision))throw new Error('Vælg godkend eller afvis.');
@@ -598,8 +577,6 @@ document.addEventListener('input', event => {
 });
 document.addEventListener('change', event => {
   if (event.target.matches('[data-profile-image]')) { uploadProfileImage(event.target); return; }
-  if (event.target.id === 'association-category') filterDirectory();
-  if (event.target.id === 'own-kind') filterOwnContent();
   if (event.target.matches('[data-access-choice]')) {
     const group = event.target.form.querySelector('[data-new-association]');
     const existing = Boolean(event.target.value);
@@ -621,13 +598,6 @@ document.addEventListener('click', event => {
     if (form.dataset.uploading === 'true' || form.dataset.pending === 'true') return;
     updateImagePreview(form, '');
     showMessage(form.querySelector('.fa-image-result'), 'Tryk Gem profil for at fjerne billedet fra den offentlige side.');
-    return;
-  }
-  const filterToggle = event.target.closest('#association-filter-toggle');
-  if (filterToggle) {
-    directoryFiltersOpen = !directoryFiltersOpen;
-    filterToggle.setAttribute('aria-expanded', String(directoryFiltersOpen));
-    document.querySelector('#association-filters').hidden = !directoryFiltersOpen;
     return;
   }
   const viewButton = event.target.closest('[data-directory-view]');

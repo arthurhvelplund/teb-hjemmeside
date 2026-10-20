@@ -43,11 +43,11 @@ try{
  const sourceRequests=[];page.on('request',r=>{if(r.url().includes('/kilder/'))sourceRequests.push(r.url());});
  await page.goto('/nyt.html');await page.locator('.ds-source-card').first().waitFor();assert.equal(await page.locator('main h1').textContent(),'Det sker her.');assert.equal(await page.locator('main h1').count(),1);
  assert.equal(await page.locator('.ds-group .ds-source-card').count(),7);assert.equal(await page.locator('.ds-source-card img').count(),7);assert.equal(await page.locator('#calendar-events,#ds-events,#ds-feed').count(),0);
- assert.equal(await page.locator('#facebook').count(),1);assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');assert.equal(sourceRequests.length,0);
+ assert.equal(await page.locator('#association-news-feed, a[href*="#skriv"]').count(),0);assert.equal(await page.locator('#facebook').count(),1);assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');assert.equal(sourceRequests.length,0);
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:resolve(output,'nyt-'+width+'.png'),fullPage:true});}
  await page.goto('/index.html');
  assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');
- check('Det sker preserves media links and Facebook alongside association news; both pages end with Facebook');
+ check('Det sker preserves media links and Facebook without association news; both pages end with Facebook');
  await page.setViewportSize({width:1440,height:1000});await page.goto('/kalender.html');await page.locator('#calendar-events[aria-busy="false"]').waitFor();await page.locator('.cal-card').filter({hasText:'Arrangement om seks dage'}).waitFor();
  assert.equal(await page.locator('#calendar-week').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('#calendar-search').count(),0);
  assert.equal(await page.locator('.cal-board--week .cal-day').count(),7);assert.equal(await page.locator('.cal-board--week .cal-day.is-today').count(),1);
@@ -82,7 +82,7 @@ try{
  const pending=adminPage.locator('details.fa-review').filter({hasText:'Gæstens prøvearrangement'});await pending.locator('summary').click();assert.ok((await pending.innerText()).includes('Analog kalender'));
  await pending.getByRole('button',{name:'Godkend og offentliggør'}).click();await adminPage.getByText('Arrangementet er godkendt.',{exact:true}).waitFor();
  const approved=(await call(guest,'/events')).events;assert.equal(approved.length,1);assert.equal(approved[0].printRequested,true);
- await privatePage.reload();await privatePage.getByText('Godkendt og offentliggjort',{exact:true}).waitFor();await privatePage.getByRole('button',{name:'Ret oplysningerne'}).click();assert.equal(await privatePage.locator('#event-print').isChecked(),true);await privatePage.close();
+ await privatePage.reload();await privatePage.getByText('Godkendt og offentliggjort',{exact:true}).waitFor();await privatePage.getByRole('button',{name:'Ret oplysningerne'}).click();assert.equal(await privatePage.locator('[name=printRequested]').isChecked(),true);await privatePage.close();
  check('TEB reviews visibility wishes; approval publishes once; existing private edit retains selected wishes');
  const association=(await call(admin,'/admin/associations',{requestKey:crypto.randomUUID(),association:{name:'Den verificerede forening'}})).association;
  await call(admin,'/admin/associations/'+association.id+'/members',{email:'member@example.test',role:'manager',name:'Prøvemedlem'});

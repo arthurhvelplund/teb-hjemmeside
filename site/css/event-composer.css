@@ -120,14 +120,6 @@ body.ec-modal-open{overflow:hidden}
 .ec-private-link p{font-size:12px;margin:8px 0 14px}
 .ec-private-link input{width:100%;padding:10px;background:var(--paper-soft);border:1px solid var(--line);border-radius:5px;font-size:10px;margin-bottom:12px;color:var(--ink)}
 .ec-private-link .ec-text{display:block;margin-top:14px;width:fit-content}
-.ec-channels{border-top:1px solid var(--line);margin-top:32px;padding-top:28px}
-.ec-channels h3{font-size:30px;margin-top:8px}
-.ec-channels>p{font-size:12px;color:var(--muted);margin:10px 0 20px}
-.ec-channel{border-top:1px solid var(--line)}
-.ec-channel summary{padding:16px 2px;font-size:13px;font-weight:600;color:var(--forest)}
-.ec-channel p{font-size:12px;margin:0 0 14px;padding-left:17px}
-.ec-contact-pending{color:var(--muted);font-size:11px!important}
-.ec-channels .ec-local-note{font-size:10px}
 .ec-dialog .ec-done{margin-top:16px;min-width:120px}
 .ec-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);max-width:calc(100% - 30px);width:max-content;background:var(--forest);color:var(--paper-soft);padding:14px 18px;border-radius:9px;box-shadow:0 8px 30px #0003;z-index:500;display:flex;align-items:center;gap:16px;font:12px 'Manrope',sans-serif}
 .ec-toast button{background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit;padding:4px}
@@ -166,3 +158,26 @@ body.ec-modal-open{overflow:hidden}
  .ec-live .ec-web-preview .ec-event-copy h3{font-size:25px}
  .ec-live .ec-preview-tabs button{font-size:11px}
 }
+
+/* Shared guide in the composer, event editor and receipts. */
+.ec-sharing{border-top:1px solid var(--line);padding-top:22px;scroll-margin-top:20px;min-width:0}
+.ec-sharing>h3{font:500 23px/1.3 'Fraunces',Georgia,serif;color:var(--forest);margin:0 0 10px}
+.ec-sharing>p{font-size:13px;line-height:1.65;color:var(--muted);margin:0 0 16px}
+.ec-sharing-options{display:grid;gap:10px;margin:18px 0}
+.ec-sharing-option{min-width:0;border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:var(--paper-soft)}
+.ec-sharing-option h4{font:600 14px/1.5 'Manrope',sans-serif;color:var(--forest);margin:0;text-transform:none;letter-spacing:0}
+.ec-sharing .ec-sharing-choice{display:flex;align-items:center;gap:10px;margin:0;color:var(--forest);font-size:14px;line-height:1.5;cursor:pointer;min-height:30px}
+.ec-sharing-choice input[type=checkbox]{width:19px;height:19px;min-width:19px;margin:0;accent-color:var(--forest)}
+.ec-sharing .ec-sharing-choice>span{font:inherit;color:inherit;margin:0}
+.ec-sharing-option summary{font-size:13px;line-height:1.6;color:var(--forest);padding:8px 0;cursor:pointer;min-height:38px}
+.ec-sharing-option p,.ec-sharing-option dl{font-size:13px;line-height:1.65;margin:8px 0}
+.ec-sharing-option .ec-sharing-included{color:var(--forest);margin:3px 0 0;font-size:12px}
+.ec-sharing-option dl>div{padding:8px 0;border-top:1px solid var(--line)}
+.ec-sharing-option dt{font-weight:600;color:var(--forest)}
+.ec-sharing-option dd{margin:2px 0 0;color:var(--muted);overflow-wrap:anywhere}
+.ec-sharing-option .ec-show-print{margin-top:6px;text-align:left;font-size:12px;min-height:40px}
+.ec-header .ec-sharing-shortcut{font-size:12px;text-align:left;min-height:44px;margin:-15px 0 12px}
+.ec-channels{margin-top:30px}
+@media(max-width:600px){.ec-sharing-option{padding:12px}.ec-header .ec-sharing-shortcut{margin:-12px 0 10px}}
+
+.ec-sharing-links{display:grid;gap:6px;margin:10px 0 2px}.ec-sharing-links a{font-size:13px;line-height:1.6;min-height:38px;display:flex;align-items:center;overflow-wrap:anywhere}
