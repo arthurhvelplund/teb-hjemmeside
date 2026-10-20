@@ -1,0 +1,146 @@
+{
+  "auditedAt": "2026-10-20T09:45:18.695678+00:00",
+  "sourceCommit": "c92d15338f80e3c6ac67aa9da25b66b278d448d4",
+  "scope": "Local integration and flow consistency audit. No external mail or production submissions.",
+  "results": {
+    "backend": {
+      "passed": 81
+    },
+    "portalBrowser": {
+      "passed": 42,
+      "checks": [
+        "Two-step login, email correction, resend and wrong-code recovery use the real API",
+        "Lost, truncated and incomplete creation responses retain one key and create one association",
+        "TEB creates a real association record",
+        "Invited manager gains only assigned association",
+        "Single-association login opens its own overview without TEB administration",
+        "Profile update visible to a separate visitor",
+        "File picker uploads and publishes a real association photo",
+        "Card/list switching preserves search and filters; browser remembers the selected view",
+        "Contact TEB opens the real contact form without submitting a message",
+        "Single-step form stays visible while opening the invitation and changing previews",
+        "Popup retains the draft and photo after closing; website and print previews show the event",
+        "Receipt offers optional local sharing with honest contact placeholders",
+        "Guest remains private before approval",
+        "TEB approval publishes guest event with the uploaded photo and print request",
+        "Actual receipt URL and on-page private status link open the approved event",
+        "Approval mail opens public event details",
+        "Pending guest revision preserves public version",
+        "Member publishes directly through the real API",
+        "Association creation stays in its own popup and refreshes the event list",
+        "Member publishes news with a real photo and one stable key after a lost successful response",
+        "Public profile puts its own name and contact before the fold and displays published news",
+        "News detail and Det sker use the same public record without visitor editing controls",
+        "Owner filters and searches own content, then edits published news with revisions",
+        "Public contact and news editor fit both 390px and 320px phones",
+        "Owner withdraws news from public views and retains private history",
+        "Guest news stays private until approved in the shared TEB queue beside calendar revisions",
+        "TEB rejection requires a reason and the real private receipt shows feedback",
+        "Old approval links lead to the single TEB queue",
+        "Invitation accepted by matching email without manager privileges",
+        "Revocation affects an existing session",
+        "Print starts with no preselected events and requires manual review",
+        "Print preview includes only selected events and supports separate print text",
+        "Editing print text invalidates the proof and finalization",
+        "Saving print-specific text preserves the public event",
+        "Newly saved print appears in the archive without a reload",
+        "Print editor fits desktop and small phones",
+        "Published PDF bytes remain unchanged after event edit",
+        "Login, overview, profile editor and access list fit 390px and 320px",
+        "Multiple-association users choose only among their own associations",
+        "Unassigned accounts request access through the UI and the shared queue requires explicit verification",
+        "Unassigned verified users get Contact TEB without editing access",
+        "Public pages fit 390px and 320px without horizontal overflow"
+      ]
+    },
+    "calendarBrowser": {
+      "passed": 8,
+      "checks": [
+        "Det sker preserves media links and Facebook alongside association news; both pages end with Facebook",
+        "new calendar screen: one column per day, upcoming events with photos, details without empty fields and print calendar",
+        "calendar desktop/mobile layout and month switch",
+        "guest creation, visibility wishes, preview and uncertain-response retry preserve one private submission",
+        "TEB reviews visibility wishes; approval publishes once; existing private edit retains selected wishes",
+        "verified association publishes directly from its own calendar creation link",
+        "old guest, public and creation URLs survive the move; former submissions still approve and open private editing",
+        "source outage retains previously loaded calendar events and shows a useful status"
+      ]
+    },
+    "sharedLayout": {
+      "pages": 15,
+      "passed": true
+    },
+    "pilotSeeding": {
+      "passed": true,
+      "repeatable": true
+    },
+    "contactWorkerUnit": {
+      "passed": 7,
+      "mailAdapter": "mock"
+    }
+  },
+  "findings": [
+    {
+      "area": "Event creation and editing",
+      "state": "partially unified",
+      "detail": "Creation uses event-composer.js popup. Member and guest editing still use eventForm in kalender.js. Editing preserves the existing image but has no photo replacement/removal control.",
+      "sources": [
+        "site/js/kalender.js:273",
+        "site/js/kalender.js:355",
+        "site/js/kalender.js:388",
+        "site/js/kalender.js:439"
+      ]
+    },
+    {
+      "area": "Association styling",
+      "state": "layered",
+      "detail": "forening-v2.css loads after portal.css and forening.css; the newer profile/workspace design overrides the earlier styling.",
+      "sources": [
+        "site/forening.html:10",
+        "site/forening.html:15"
+      ]
+    },
+    {
+      "area": "Old links and receipts",
+      "state": "intentional compatibility",
+      "detail": "Redirect pages and kalender-opslag.js retain earlier links/posts. These paths are covered by the calendar browser suite.",
+      "sources": [
+        "site/js/portal-redirect.js",
+        "site/js/kalender-opslag.js",
+        "site/js/nyt-links.js"
+      ]
+    },
+    {
+      "area": "Contact and membership submissions",
+      "state": "separate service",
+      "detail": "Pages post to /api/formular. Calendar pilot server serves the pages but not the form Worker. GET /api/formular/config returned 404 on a fresh isolated pilot server; both form pages returned 200. Unit tests pass with mocked email, without proving actual delivery.",
+      "sources": [
+        "site/kontakt.html:92",
+        "site/bliv-medlem.html:166",
+        "calendar-worker/scripts/dev.mjs:44",
+        "cloudflare-form-worker/src/index.js"
+      ]
+    },
+    {
+      "area": "Production",
+      "state": "not verified end to end",
+      "detail": "Calendar Worker configuration retains placeholder D1 ID and no production route. Real mail, staging and backup/recovery remain launch work.",
+      "sources": [
+        "calendar-worker/wrangler.jsonc",
+        "docs/PORTAL_DRIFT.md"
+      ]
+    }
+  ],
+  "architecture": {
+    "activeBranch": "local/teb-pilot-ready",
+    "frontend": "site/",
+    "calendarBackend": "calendar-worker/",
+    "websiteFormsBackend": "cloudflare-form-worker/",
+    "archives": "Seven archive/* branches, not active runtime code"
+  },
+  "limitations": [
+    "External calendar sources are fixture-backed in browser checks.",
+    "Mail adapters are local or mocked.",
+    "No live contact/membership submission, staging deployment or production delivery test was performed."
+  ]
+}

@@ -201,3 +201,40 @@ De lokale previewservere og eksisterende worktrees er bevaret.
 [Desktop-snapshottets optælling](status/desktop-snapshot.json) og
 [oversigten over Git-grene og worktrees](status/repositories.json) indeholder
 de konkrete stier og commit-ID'er.
+
+## Flowgennemgang den 20 oktober 2026
+
+Den aktive kode er samlet og pushet på én pilotgren, men løsningen er udviklet
+ved at integrere nye dele med den eksisterende hjemmeside. Den er ikke en helt
+ensartet ny implementering. Arkivgrenene er historik og indlæses ikke af piloten.
+
+Den pushede version `c92d153` er kontrolleret igen i en midlertidig kopi med
+isolerede databaser. 81 backendtests, 42 portalforløb, 8 kalenderforløb, fælles
+layout på 15 sider og gentagen pilotopsætning består. Formular-Workerens 7
+unittests består også med en simuleret mailadapter. Pilotens egne data er bevaret.
+
+Der er fortsat konkrete forskelle mellem ældre og nyere brugerforløb:
+
+- Nye arrangementer oprettes i den fælles popup. Rettelser fra medlemmer og
+  gæster bruger stadig den ældre formular i `site/js/kalender.js`. Den bevarer
+  eksisterende billeder, men har ingen kontrol til at erstatte eller fjerne dem.
+- Foreningssiden indlæser det nyere `forening-v2.css` oven på de tidligere
+  `portal.css` og `forening.css`. Det er en viderebygning af den eksisterende stil.
+- Gamle links og kvitteringer understøttes af redirects og
+  `kalender-opslag.js`. De er kontrolleret og bevarer tidligere indsendelser.
+- Kontakt og indmeldelse bruger deres egen `cloudflare-form-worker` under
+  `/api/formular`. De er ikke koblet ind i kalenderpilotens lokale server.
+  På en frisk lokal server svarer begge formularsider HTTP 200, mens
+  `/api/formular/config` svarer HTTP 404. Rigtig afsendelse er ikke afprøvet.
+
+Portalens login, foreningsdata, arrangementer, nyheder, TEB-kø og manuelle
+printforløb deler backend og lokal lagring. Nyheder har deres egen editor.
+Browserkontrollen bruger testkilder til eksterne arrangementer og lokal mail,
+så de grønne tests er ikke en gennemført produktionslancering.
+
+Næste arbejde for et ensartet forløb er at samle oprettelse og rettelse af
+arrangementer i samme komponent, konsolidere foreningssidens styling og gøre
+kontakt/indmeldelse afprøvelig i det samlede lokale preview. Dette audit ændrer
+ikke produktkoden eller designvalget.
+
+[Kontrolresultater og kodehenvisninger](status/flow-audit-2026-10-20.json).
