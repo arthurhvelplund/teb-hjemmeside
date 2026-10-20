@@ -45,9 +45,16 @@ Det sker indeholder links til lokale medier og Facebook. Forsiden har også Face
 Opsætningen bruger én lokal loginanmodning. Som almindeligt login er den
 begrænset til tre anmodninger pr. mailadresse på ti minutter.
 
-De præcise kontakter til flyers, plakater, skærme og Varde Kommunes byportal
-afventer TEB. Der er ikke indsat gættede partnerlinks. Ønsker til synlighed
-gemmes med arrangementet og vises ved TEBs godkendelse.
+Arrangementsformularens seks delingsmuligheder findes i `site/js/event-sharing.js`.
+Husstandsomdeling sker fire gange årligt via vejformænd med indlevering til
+Kirsten Thorhauge. Kommunens infoskærme har direkte links til regler og bestilling.
+Byportalernes bannerpris og Jens Ejnar Antonsens kontakt er hentet fra tilbuddet
+11. oktober 2026. Uafklarede datoer, ophængning og mulige opslagstavler er markeret.
+Ønsker gemmes med arrangementet og vises ved TEBs godkendelse. Ekstern deling
+kræver særskilt aftale. Se kilder og åbne spørgsmål i `STATUS.md`.
+
+Foreningens eget område viser arrangementer og profilredigering. Nyhedsoprettelse
+og foreningsnyheder er fjernet fra brugerflowet. Det sker har medielinks og Facebook.
 
 ## Gennemgang med TEB
 

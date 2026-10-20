@@ -1,6 +1,6 @@
 # Samlet status for TEB hjemmesiden
 
-Opdateret 19. oktober 2026. Dette er projektets fælles status og afleveringssted.
+Opdateret 20. oktober 2026. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
 
 ## Det fælles arbejdssted
@@ -20,12 +20,68 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | --- | --- |
 | Det sker | Medielinks med billeder og Facebook. Gemte commits `ffc8e74` og `ec33f28`. |
 | Kalender | Nyt uge/månedsoverblik, kommende arrangementer, kildesammenlægning og billeder gemt i `ce5272b`. Teknisk samlet. Visuelt design afventer nyt valg. |
-| Opret arrangement | Fælles pop-up, billedupload og kalender/print-preview er integreret med den nye kalender i `313eac2`. |
-| Foreninger | 24 importerede udkast, 18 med billede/logo. Kompakt oversigt gemt i `6ea99c2`. |
+| Opret arrangement | Fælles popup, billedupload og kalender/print-preview. Nu også seks delingsmuligheder med gemte ønsker og fælles vejledning ved oprettelse, rettelse og kvittering. Se leverancen nedenfor. |
+| Foreninger | 24 importerede udkast, 18 med billede/logo. Direkte valg mellem Billede og Liste, søgning og intet interessefilter. |
 | Login og adgang | Lokal mailkode, profil og adgangsstyring samlet i pilotens `4209e48`. Ingen rigtig mail. |
-| Foreningsprofil og ejerens side | Leveret lokalt i `53cc3c0`: kompakt offentlig profil, ejerens indhold, egne nyheder og fælles TEB-kø. 81 backendtests og 42 portalforløb består. |
+| Foreningsprofil og ejerens side | Kompakt offentlig profil og ejerens arrangementer. Nyhedsoprettelse og foreningsnyheder er taget ud af brugerflowet efter brugerens ønske 20. oktober. Den fælles TEB-kø og historiske data er bevaret. |
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Ny portal er ikke lanceret. Database, fillager, afsender, administratorer og staging skal stadig opsættes og afprøves. |
+
+## Forenkling og deling den 20. oktober 2026
+
+Kodecommit: `0a8acd0` på `local/teb-pilot-ready`. Status og kontrolrapport
+gemmes i det efterfølgende dokumentationscommit på samme gren.
+
+- Foreningsoversigten har kun de to visningsvalg Billede og Liste ved siden af
+  søgningen. Filtre-knappen og interessefilteret er fjernet. Valget huskes, og
+  billedvisning og liste er forskellige også på telefoner.
+- Nyt fra foreningerne og Skriv en nyhed er fjernet fra Det sker. Min forening
+  viser arrangementer og profilredigering. Foreningsprofiler viser arrangementer
+  uden nyhedssektionen. Gamle links til nyhedsoprettelse fører til Opret arrangement.
+  Lokale medielinks og Facebook er bevaret. Eksisterende opslag, deres backend
+  og tidligere kvitteringer er bevaret som historik; API'et til ældre opslag
+  er ikke fjernet i denne leverance.
+- Tilføj arrangement har et direkte link til seks delingsmuligheder. Ønsker om
+  husstandsomdeling, infoskærme, bannere og opslagstavler gemmes som `channels`,
+  og ønsket om den trykte kalender som `printRequested`. Ønskerne følger
+  kladden, TEB-godkendelsen og rettelser. De bestiller ikke ekstern deling.
+- Oprettelse, den eksisterende retteformular og kvitteringer bruger den samme
+  vejledning fra `site/js/event-sharing.js`. Oprette- og retteformularen er
+  stadig to komponenter, som beskrevet i flowgennemgangen længere nede.
+
+Bekræftet indhold og kilder:
+
+- Online fælleskalender: foreningsadgang udgiver direkte; gæster afventer TEB.
+- Husstandsomdeling: fire gange om året via vejformænd. Indlevering til Kirsten
+  Thorhauge, oplyst af brugeren. Indleveringsfrister og omdelingsdatoer har hver
+  sin plads. Datoer, Kirstens kontaktoplysninger, afleveringssted, pris og antal
+  mangler endnu.
+- Infoskærme: [Varde Kommunes regler og priser](https://vardekommune.dk/kommunen/byportal/)
+  læst 20. oktober 2026. To skærme i Billum og Varde syd, fem hverdages frist,
+  JPG/PNG og offentlig adgang/almen interesse. Siden angiver 750 kr. ekskl.
+  moms pr. påbegyndt uge for begge skærme. Prisangivelsen er fra 2018, hvilket
+  fremgår af vejledningen sammen med besked om at bekræfte prisen. Direkte
+  link til kommunens bestillingsformular er indsat. Ingen bestilling er sendt.
+- Tre byportaler med bannere: brugerens videresendte tilbud fra Jens Ejnar
+  Antonsen, dateret 11. oktober 2026. Tre bannere på 2000 × 1445 mm koster
+  1.200 kr. ekskl. moms i alt, leveret hos Jens. Filer skal være klar til print;
+  filtilretning koster 400 kr. pr. time ekskl. moms. Første bestillinger kan gå
+  gennem Jens, tlf. 28 94 98 42 og jemantonsen@bbsyd.dk. Ophængning, bestillingsfrist
+  og ophængningsperiode er ikke oplyst i tilbuddet og står som uafklarede.
+  Hele mailtråden og de øvrige afsenderes oplysninger er ikke gemt i Git.
+- Opslagstavler: hallen, Trim og Brugsen er mulige steder fra brugeren,
+  udtrykkeligt markeret som ubekræftede. Ansvarlige, regler og frister mangler.
+- Trykt kalender til lygtepæle og opslagstavler: kræver TEBs manuelle udvælgelse.
+  Frist for næste udgave, ophængningsdato og ansvarlige mangler endnu.
+
+Kontroller: 81 backendtests, 37 portalforløb med rigtig lokal API, 8 kalenderforløb
+og fælles layout på 15 sider. Mobilkontrol ved 390 og 320 px omfatter begge
+foreningsvisninger, offentlig kontakt, ejerområdet og alle udvidede delingsfelter.
+Browserforløbene bruger isolerede databaser, testkilder til eksterne arrangementer
+og lokal mail. Ingen rigtig mail, deling eller produktion er afprøvet eller udgivet.
+Tidligere 42 portalforløb omfattede ni nyhedsforløb; disse er erstattet af fire
+kontroller af det forenklede foreningsflow. Testgenererede billeder/PDF'er indgår
+ikke i leverancen. [Kontrolresultater](status/association-sharing-2026-10-20.json).
 
 ## Tråde
 
