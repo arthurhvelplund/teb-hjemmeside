@@ -1,4 +1,4 @@
-import {sharingGuideHTML} from './event-sharing.js';
+import {printRequestHTML} from './print-request.js';
 import {installEventComposer, openEventComposer} from './event-composer.js';
 installEventComposer();
 document.addEventListener('teb:event-saved', () => loadCalendar({quiet: true}));
@@ -56,11 +56,6 @@ function mailState(result) {
   if (result.receiptState === 'uncertain') messages.push('Vi kan ikke bekræfte, om kvitteringsmailen blev sendt. Gem dit private link her på siden.');
   if (result.receiptState === 'sent') messages.push('Kvitteringen er sendt til din e-mail.');
   return messages.join(' ');
-}
-function sharingChannels() {
-  const section=node('section',{class:'cal-channels'});
-  section.innerHTML=sharingGuideHTML();
-  return section;
 }
 // One detail layout for previews, published events and imported events. Empty fields are left out.
 function eventCard(event, {detail = false, preview = false, heading = 'h3'} = {}) {
@@ -296,11 +291,9 @@ function eventForm({data = {}, associations = [], selectedId = '', guest = false
     form.append(node('div', {class: 'cal-honeypot', 'aria-hidden': 'true'}, node('label', {htmlFor: trap.id}, 'Lad dette felt være tomt'), trap));
   }
   const sharing=node('div',{class:'cal-full-field cal-sharing'});
-  sharing.innerHTML=sharingGuideHTML({choices:true});
+  sharing.innerHTML=printRequestHTML();
   const printChoice=sharing.querySelector('[name="printRequested"]');
   printChoice.checked=data.printRequested===true;
-  const channelChecks=[...sharing.querySelectorAll('[name="channels"]')];
-  for(const input of channelChecks)input.checked=data.channels?.includes(input.value)===true;
   form.append(sharing);
   const label = creating ? guest ? 'Send til TEBs godkendelse' : 'Udgiv arrangement' : guest ? 'Send rettelsen til TEB' : 'Gem og udgiv rettelsen';
   const submit = node('button', {type: 'submit', class: 'btn'}, label);
@@ -308,7 +301,7 @@ function eventForm({data = {}, associations = [], selectedId = '', guest = false
   form.append(node('div', {class: 'cal-full-field'}, note(guest ? 'TEB skal godkende indsendelsen. En eksisterende offentlig version bliver stående, indtil TEB godkender ændringen.' : 'Arrangementet offentliggøres med det samme for den valgte forening.'), message, node('div', {class: 'fp-actions'}, submit, abort)));
   function formData() {
     const event = {...data, ...Object.fromEntries(fields.map(([key]) => [key, inputs[key].value.trim()]))};
-    event.printRequested=printChoice.checked; event.channels=channelChecks.filter(input=>input.checked).map(input=>input.value);
+    event.printRequested=printChoice.checked;
     if (associationId) event.associationId = associationId;
     return event;
   }
@@ -441,7 +434,7 @@ async function privateEvent(id) {
     workspace.append(node('div', {class: 'fp-actions cal-private-actions'}, edit), editor);
     if (wrapper.published && wrapper.published.state !== 'cancelled' && wrapper.pendingKind !== 'cancel') workspace.append(cancellation({id, wrapper, token, refresh}));
     else if (!wrapper.published) workspace.append(note('Vil du trække en indsendelse tilbage, før den er offentliggjort? Kontakt TEB og oplys arrangementets navn.'), node('a', {href: 'kontakt.html'}, 'Kontakt TEB'));
-    workspace.append(privateAccessLink(id, token), sharingChannels());
+    workspace.append(privateAccessLink(id, token), node('p',{},node('a',{href:'del-arrangement.html'},'Se muligheder for at dele arrangementet →')));
   }
   workspaceRefresh = async () => {
     if (editing) return;

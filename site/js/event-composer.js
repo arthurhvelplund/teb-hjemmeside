@@ -1,4 +1,4 @@
-import {sharingGuideHTML} from './event-sharing.js';
+import {printRequestHTML} from './print-request.js';
 import {api, getSession, requestKey, randomToken, today, dateText, escapeHTML as esc} from './portal-api.js';
 
 const drafts = new Map();
@@ -108,7 +108,7 @@ function makeComposer({key, associationId, associations, session, config, onSave
       <header class="ec-header">
         <div class="ec-header-top"><span class="ec-eyebrow">${icon} Tistrup og Hodde</span><button type="button" class="ec-close" aria-label="Luk og gem kladde">×</button></div>
         <h2 id="ec-title" tabindex="-1">Tilføj et arrangement.</h2>
-        <p class="ec-intro">Udfyld oplysningerne. Invitationen opdateres undervejs.</p><button type="button" class="ec-text ec-sharing-shortcut">Se muligheder for tryk, omdeling og skærme ↓</button>
+        <p class="ec-intro">Udfyld oplysningerne. Invitationen opdateres undervejs.</p>
       </header>
       <div class="ec-body">
         <div class="ec-compose">
@@ -127,7 +127,7 @@ function makeComposer({key, associationId, associations, session, config, onSave
                 <div class="ec-image-choice"><div class="ec-image-mini" hidden><img alt="Dit valgte arrangementsbillede"></div><div class="ec-image-copy"><label class="ec-upload">${icon}<span>Vælg et billede<input name="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="ec-image-help"></span></label><p id="ec-image-help">Et foto, I må bruge. JPG, PNG eller WebP, op til 20 MB.</p><button class="ec-text ec-remove-image" type="button" hidden>Fjern billedet</button></div></div>
                 <p class="ec-image-message" aria-live="polite"></p>
               </section>
-              ${sharingGuideHTML({choices: true, composer: true})}
+              ${printRequestHTML({preview: true})}
               ${guest ? '<section class="ec-section ec-contact"><label>Din e-mail<input name="email" required type="email" maxlength="254" autocomplete="email" placeholder="din@email.dk"></label><p>Her får du kvittering og et privat link til at rette arrangementet. Mailadressen vises ikke offentligt.</p><p>Har du foreningsadgang? <a href="forening.html?return=kalender.html%3Fopret%3D1#login">Log ind her</a>.</p></section>' : '<p class="ec-access-note">Du opretter med din foreningsadgang. Arrangementet udgives, når du bekræfter.</p>'}
               <div class="ec-trap" aria-hidden="true"><label>Lad feltet stå tomt<input name="website" tabindex="-1" autocomplete="off"></label></div>
             </form>
@@ -152,12 +152,10 @@ function makeComposer({key, associationId, associations, session, config, onSave
   for (const name of [...fields, 'email']) if (form.elements[name] && typeof saved[name] === 'string') form.elements[name].value = saved[name];
   if (form.elements.email && !form.elements.email.value) form.elements.email.value = session.user?.email || '';
   form.elements.printRequested.checked = saved.printRequested === true;
-  const channelChecks = [...form.querySelectorAll('[name="channels"]')];
-  for (const input of channelChecks) input.checked = saved.channels?.includes(input.value) === true;
   if (!guest) { form.elements.associationId.value = selectedId; form.elements.association.value = associations.find(a => a.id === selectedId)?.name || ''; }
 
   function values() {
-    return {...Object.fromEntries(fields.map(name => [name, form.elements[name].value.trim()])), printRequested: form.elements.printRequested.checked, channels: channelChecks.filter(input => input.checked).map(input => input.value), imageUrl};
+    return {...Object.fromEntries(fields.map(name => [name, form.elements[name].value.trim()])), printRequested: form.elements.printRequested.checked, imageUrl};
   }
   function persist() {
     if (complete) return;
@@ -227,7 +225,6 @@ function makeComposer({key, associationId, associations, session, config, onSave
     $('.ec-live').scrollTop = 0;
     if (matchMedia('(max-width: 600px)').matches) $('.ec-live').scrollIntoView({behavior: 'smooth', block: 'start'});
   }
-  $('.ec-sharing-shortcut').onclick = () => { $('.ec-sharing').scrollIntoView({behavior: 'smooth', block: 'start'}); $('.ec-sharing input').focus({preventScroll: true}); };
   $('.ec-show-print').onclick = () => { setPreview('print'); focusPreview(); };
   $('.ec-preview-shortcut').onclick = focusPreview;
   $('.ec-invitation').addEventListener('toggle', () => { $('.ec-open-label').textContent = $('.ec-invitation').open ? '← Luk invitationen' : 'Åbn invitationen ↗'; });
@@ -289,13 +286,11 @@ function makeComposer({key, associationId, associations, session, config, onSave
   };
   function renderReceipt(result, payload) {
     $('.ec-compose').hidden = true;
-    $('.ec-sharing-shortcut').hidden = true;
     $('.ec-footer').hidden = true; $('.ec-receipt').hidden = false;
     $('#ec-title').textContent = result.published ? 'Så er invitationen ude.' : 'Tak. TEB har modtaget det.';
     $('.ec-intro').textContent = result.published ? 'Arrangementet er nu synligt i byens kalender.' : 'Arrangementet afventer godkendelse og er endnu ikke offentligt.';
     const receipt = $('.ec-receipt'); receipt.replaceChildren();
     receipt.append(card(payload.event));
-    if (payload.event.channels.length) receipt.append(el('p', 'ec-receipt-print', 'Jeres øvrige ønsker til deling er gemt. Aftal det praktiske særskilt med den ansvarlige.'));
     if (payload.event.printRequested) receipt.append(el('p', 'ec-receipt-print', 'Dit ønske om at komme med i den trykte kalender er også gemt.'));
     if (config.mode === 'local') receipt.append(el('p', 'ec-local-note', 'Lokal afprøvning. Ingen e-mails er sendt.'));
     if (result.receiptState === 'sent') receipt.append(el('p', '', 'Kvitteringen er sendt til din e-mail.'));
@@ -311,9 +306,6 @@ function makeComposer({key, associationId, associations, session, config, onSave
     } else {
       const link = el('a', 'ec-primary', 'Se arrangementet i kalenderen →'); link.href = 'kalender.html?arrangement=' + encodeURIComponent(result.id); receipt.append(link);
     }
-    const channels = el('section', 'ec-channels');
-    channels.innerHTML = sharingGuideHTML();
-    receipt.append(channels);
     const done = el('button', 'ec-primary ec-done', 'Færdig'); done.type = 'button'; done.onclick = close; receipt.append(done);
     scrollTop(); $('#ec-title').focus({preventScroll: true});
   }

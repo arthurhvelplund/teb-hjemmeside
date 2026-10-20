@@ -37,11 +37,21 @@ export async function checkAssociationFlows({member,guest,association,record}) {
    assert.ok(mode==='cards'?photoHeight>=140:photoHeight<=65,'picture and list views remain distinct on phones');
   }
   await guest.goto('/kalender.html?opret=1');await guest.locator('#ec-form').waitFor();
-  await guest.locator('.ec-sharing-shortcut').click();
-  for(const summary of await guest.locator('#ec-form .ec-sharing summary').all())await summary.click();
-  assert.equal(await guest.locator('#ec-form .ec-sharing [data-sharing]').count(),6);
-  assert.equal(await guest.evaluate(()=>document.querySelector('.ec-dialog').scrollWidth>innerWidth),false,'sharing guide at '+width);
+  assert.equal(await guest.locator('#ec-form [name=channels], #ec-form [data-sharing]').count(),0);
+  assert.equal(await guest.locator('#ec-form [name=printRequested]').count(),1);
+  assert.equal(await guest.evaluate(()=>document.querySelector('.ec-dialog').scrollWidth>innerWidth),false,'print request at '+width);
+  await guest.keyboard.press('Escape');
+  await guest.locator('.cal-sharing-link a').click();await guest.waitForURL('**/del-arrangement.html');
+  assert.equal(await guest.locator('[data-sharing]').count(),6);
+  assert.equal(await guest.locator('input, select, textarea').count(),0);
+  for(const summary of await guest.locator('.sharing-card summary').all())await summary.click();
+  assert.ok((await guest.locator('[data-sharing=flyers]').innerText()).includes('Kirsten Thorhauge'));
+  assert.ok((await guest.locator('[data-sharing=flyers]').innerText()).includes('Omdelingsdato'));
+  assert.equal(await guest.locator('a[href="mailto:jemantonsen@bbsyd.dk"]').count(),1);
+  assert.equal(await guest.locator('a[href="https://vardekommune.dk/kommunen/byportal/"]').count(),1);
+  assert.equal(await guest.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'expanded information page at '+width);
+
  }
  await member.setViewportSize({width:1440,height:1000});await guest.setViewportSize({width:1440,height:1000});
- record('Public contact, owner workspace, distinct directory views and expanded sharing guide fit 390px and 320px phones');
+ record('Public contact, owner workspace, directory views, print-only popup and separate illustrated information page fit 390px and 320px phones');
 }
