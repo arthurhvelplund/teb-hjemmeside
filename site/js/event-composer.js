@@ -319,7 +319,7 @@ function makeComposer({key, associationId, associations, session, config, onSave
   render(); return instance;
 }
 
-async function prepareImage(file) {
+export async function prepareImage(file) {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Vælg et JPG-, PNG- eller WebP-billede.');
   if (file.size > 20 * 1024 * 1024) throw new Error('Vælg et billede under 20 MB.');
   const url = URL.createObjectURL(file), image = new Image();

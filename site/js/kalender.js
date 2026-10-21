@@ -1,5 +1,5 @@
 import {printRequestHTML} from './print-request.js';
-import {installEventComposer, openEventComposer} from './event-composer.js';
+import {installEventComposer, openEventComposer, prepareImage} from './event-composer.js';
 installEventComposer();
 document.addEventListener('teb:event-saved', () => loadCalendar({quiet: true}));
 import {api, getSession, randomToken, requestKey, today, dateText, showMessage, showMode, busy} from './portal-api.js';
@@ -267,6 +267,7 @@ function eventForm({data = {}, associations = [], selectedId = '', guest = false
   const form = node('form', {class: 'fp-form fp-panel'}), inputs = {};
   const message = node('div', {'aria-live': 'polite'}), preview = node('aside', {class: 'cal-preview fp-panel', 'aria-label': 'Privat forhåndsvisning'});
   let associationId = selectedId, attempt = null, submitting = false;
+  let imageUrl = data.imageUrl || '', imageBlob = null, imagePreview = '', imagePending = false;
   const startedAt = Date.now();
   if (associations.length) {
     const select = node('select', {id: 'event-membership', name: 'associationId', required: true}, node('option', {value: ''}, 'Vælg forening'), associations.map(association => node('option', {value: association.id}, association.name)));
@@ -292,6 +293,30 @@ function eventForm({data = {}, associations = [], selectedId = '', guest = false
     const trap = node('input', {type: 'text', name: 'website', id: 'event-website', tabIndex: -1, autoComplete: 'off'});
     form.append(node('div', {class: 'cal-honeypot', 'aria-hidden': 'true'}, node('label', {htmlFor: trap.id}, 'Lad dette felt være tomt'), trap));
   }
+  const imageInput = node('input', {id: 'event-photo', name: 'photo', type: 'file', accept: 'image/jpeg,image/png,image/webp', 'aria-describedby': 'event-photo-help'});
+  const imageMini = node('img', {class: 'cal-edit-image-preview', alt: 'Dit valgte arrangementsbillede', hidden: true});
+  const imageMessage = node('p', {class: 'fp-note', 'aria-live': 'polite'});
+  const removeImage = node('button', {type: 'button', class: 'btn btn-secondary', 'data-remove-event-image': ''}, 'Fjern billedet');
+  form.append(node('div', {class: 'cal-full-field'}, node('label', {htmlFor: imageInput.id}, 'Billede · valgfrit'),
+    node('p', {id: 'event-photo-help', class: 'fp-note'}, 'Vælg eller udskift et foto, I må bruge. JPG, PNG eller WebP, op til 20 MB. Billedet gemmes sammen med rettelsen.'), imageInput, imageMini, removeImage, imageMessage));
+  removeImage.addEventListener('click', () => {
+    if (submitting || imagePending) return;
+    imageUrl = ''; imageBlob = null; imagePreview = ''; imageInput.value = ''; attempt = null;
+    showMessage(imageMessage, 'Billedet fjernes, når du gemmer rettelsen.'); updatePreview();
+  });
+  imageInput.addEventListener('change', async () => {
+    const file = imageInput.files?.[0];
+    if (!file || submitting || imagePending) return;
+    imagePending = true; imageInput.disabled = true; removeImage.disabled = true; submit.disabled = true;
+    showMessage(imageMessage, 'Klargør billedet…');
+    try {
+      const blob = await prepareImage(file);
+      const source = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob); });
+      imageBlob = blob; imagePreview = source; imageUrl = ''; attempt = null;
+      showMessage(imageMessage, 'Billedet er klar. Gem rettelsen for at tilføje det.'); updatePreview();
+    } catch (error) { showMessage(imageMessage, error.message || 'Billedet kunne ikke åbnes. Prøv et andet.', true); }
+    finally { imagePending = false; imageInput.disabled = false; removeImage.disabled = false; submit.disabled = false; imageInput.value = ''; }
+  });
   const sharing=node('div',{class:'cal-full-field cal-sharing'});
   sharing.innerHTML=printRequestHTML();
   const printChoice=sharing.querySelector('[name="printRequested"]');
@@ -304,13 +329,19 @@ function eventForm({data = {}, associations = [], selectedId = '', guest = false
   function formData() {
     const event = {...data, ...Object.fromEntries(fields.map(([key]) => [key, inputs[key].value.trim()]))};
     event.printRequested=printChoice.checked;
+    event.imageUrl = imageUrl;
     if (associationId) event.associationId = associationId;
     return event;
   }
   function updatePreview() {
     inputs.endDate.min = inputs.date.value;
     const event = formData();
-    preview.replaceChildren(node('p', {class: 'eyebrow'}, 'Privat forhåndsvisning'), note('Sådan ser oplysningerne ud. De er ikke gemt endnu.'), eventCard(event, {preview: true}));
+    const source = imagePreview || imageUrl;
+    imageMini.hidden = !source; removeImage.hidden = !source;
+    if (source) imageMini.src = source;
+    const card = eventCard(event, {preview: true});
+    if (imagePreview) { card.prepend(node('img', {class: 'cal-detail-image', src: imagePreview, alt: ''})); card.classList.add('has-image'); }
+    preview.replaceChildren(node('p', {class: 'eyebrow'}, 'Privat forhåndsvisning'), note('Sådan ser oplysningerne ud. De er ikke gemt endnu.'), card);
   }
   form.addEventListener('input', event => {
     if (event.target === inputs.association && !associations.length && event.target.value !== data.association) associationId = '';
@@ -321,13 +352,21 @@ function eventForm({data = {}, associations = [], selectedId = '', guest = false
   }
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    if (submitting || !form.reportValidity()) return;
+    if (submitting || imagePending || !form.reportValidity()) return;
     const value = formData(), endDate = value.endDate || value.date;
     if (endDate < value.date || value.endTime && endDate === value.date && value.endTime <= value.time) { showMessage(message, 'Slutningen skal ligge efter starten.', true); return; }
     if (value.link && !safeURL(value.link)) { showMessage(message, 'Brug et almindeligt http- eller https-link.', true); return; }
     if (!attempt) attempt = {event: value, associationId: associationId || undefined, ...(creating ? {requestKey: requestKey(), startedAt, website: form.elements.website?.value || ''} : {}), ...(guest && creating ? {email: form.elements.email.value.trim(), authorToken: randomToken()} : {})};
     submitting = true; lock(true); submit.textContent = 'Gemmer…';
-    try { await onSave(attempt); }
+    try {
+      if (imageBlob && !attempt.event.imageUrl) {
+        const response = await fetch('/api/kalender/event-images', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': imageBlob.type}, body: imageBlob, signal: AbortSignal.timeout(30000)});
+        const result = await response.json();
+        if (!response.ok || !/^\/api\/kalender\/event-images\/[a-f0-9-]{36}\.(?:jpg|png|webp)$/.test(result.imageUrl || '')) throw Object.assign(new Error(result.error || 'Billedet kunne ikke gemmes. Prøv igen.'), {status: response.ok ? 502 : response.status});
+        imageUrl = result.imageUrl; imageBlob = null; attempt.event.imageUrl = imageUrl;
+      }
+      await onSave(attempt);
+    }
     catch (error) {
       const uncertain = !error.status || error.status >= 500;
       if (!uncertain) { attempt = null; lock(false); }
