@@ -25,7 +25,30 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Login og adgang | Lokal mailkode. Én foreningsrolle og én side, Min forening, fra `8b028f7`. Ingen rigtig mail. |
 | Foreningsprofil og ejerens side | Kompakt offentlig profil og ejerens arrangementer. Nyhedsoprettelse og foreningsnyheder er taget ud af brugerflowet efter brugerens ønske 20. oktober. Den fælles TEB-kø og historiske data er bevaret. |
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
-| Staging og produktion | Ny portal er ikke lanceret. Database, fillager, afsender, administratorer og staging skal stadig opsættes og afprøves. |
+| Staging og produktion | Testversion kører på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). Produktion er ikke lanceret. |
+
+## Testversion på test.teb-tistrup.dk den 21. oktober 2026
+
+Commits: `4e9a32e`, `b08f8b4` og `6ea6d21` på `local/teb-pilot-ready`.
+
+- Cloudflare-kontoen er afhvelplund@gmail.com's Account (`53e63615…`). Zonen teb-tistrup.dk og
+  Pages-projektet `teb-tistrup` ligger der. Mailafsendelse er slået til for domænet.
+- Worker `teb-kalender-staging-api` er udgivet som custom domain på test.teb-tistrup.dk. Den
+  besvarer `/api/kalender/*` og henter hjemmesiden fra Pages-grenen `staging`
+  (`SITE_ORIGIN`). Produktionens Worker-opsætning har ikke `SITE_ORIGIN`.
+- D1 `teb-kalender-staging` har migreringerne 0001–0007. R2 er `teb-kalender-staging-pdfs`.
+  `MAIL_ENCRYPTION_KEY` er sat som secret og gemmes ikke i Git.
+- Afsenderen er kalender@teb-tistrup.dk, og svar går til tistrup.kalender@gmail.com. TEB får besked
+  på tistrup.kalender@gmail.com og afhvelplund@gmail.com, da `EDITOR_EMAIL` nu kan
+  indeholde flere adresser. TEB-administratorer er afhvelplund@gmail.com og <admin-2>.
+  Testversionen må kun sende mail til de aftalte modtagere, herunder <bødkerhuset-kontakt>.
+- 25 foreninger er indlæst i testdatabasen. Det er de 24 udkast og Bødkerhuset · Café Magnus Bødker.
+  Øveforening og øvepersoner er ikke indlæst.
+- Testversionen sender `X-Robots-Tag: noindex`. Det gør også `*.teb-tistrup.pages.dev`.
+- Kontrol: 82 backendtests er bestået. Live-config svarer `submissionsEnabled:true`. Den første loginkode til
+  afhvelplund@gmail.com fik `deliveryState: sent`. Levering i indbakken skal bekræftes af brugeren.
+- Udestår: TEB inviterer <bødkerhuset-kontakt> til Bødkerhuset på testversionen. Derefter følger
+  produktionsdatabase, -lager og -Worker på teb-tistrup.dk/api/kalender/*, og merge til `main`.
 
 ## Min forening og én rolle den 21. oktober 2026
 
