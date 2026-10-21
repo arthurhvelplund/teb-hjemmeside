@@ -17,3 +17,10 @@
 # Billeder ændres sjældent og må gerne ligge kortvarigt i browserens cache.
 /images/*
   Cache-Control: public, max-age=3600
+
+# Testversionen og forhåndsvisninger må ikke findes af søgemaskiner.
+https://test.teb-tistrup.dk/*
+  X-Robots-Tag: noindex, nofollow
+
+https://:version.teb-tistrup.pages.dev/*
+  X-Robots-Tag: noindex, nofollow

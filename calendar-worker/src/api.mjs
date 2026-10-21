@@ -21,7 +21,7 @@ async function body(request,env){
 async function api(request,env){
  const url=new URL(request.url),route=url.pathname.slice(base.length),method=request.method;
  ensure(url.pathname===base||url.pathname.startsWith(base+'/'),404,'Siden findes ikke.');
- if(route==='/config'&&method==='GET')return json({mode:local(env)?'local':'live',submissionsEnabled:Boolean(env.DB&&env.MAIL_ENCRYPTION_KEY&&(local(env)||env.TEB_EMAIL)&&env.PUBLIC_ORIGIN&&env.EDITOR_EMAIL&&env.EMAIL_FROM),editorEmail:env.EDITOR_EMAIL||''});
+ if(route==='/config'&&method==='GET')return json({mode:local(env)?'local':'live',submissionsEnabled:Boolean(env.DB&&env.MAIL_ENCRYPTION_KEY&&(local(env)||env.TEB_EMAIL)&&env.PUBLIC_ORIGIN&&env.EDITOR_EMAIL&&env.EMAIL_FROM),editorEmail:local(env)?(env.EDITOR_EMAIL||'').split(',')[0].trim():''});
  ensure(env.DB&&env.PUBLIC_ORIGIN,503,'Databasen er ikke tilsluttet.');
  ensure(['GET','POST'].includes(method),405,'Denne handling er ikke tilladt.');
  const image=route.match(/^\/associations\/([^/]+)\/image$/);

@@ -1,7 +1,7 @@
 import { ensure, json, hash, now, validateEvent } from './shared.mjs';
 import { stmt, all, field, emailAddress, rate, ipKey, local, loopback } from './db.mjs';
 import { requireAccess } from './auth.mjs';
-import { mailStatement, deliverKeys, mailState } from './mail.mjs';
+import { mailStatement, deliverKeys, mailState, editorRecipients } from './mail.mjs';
 import { manageNews } from './news-management.mjs';
 import { storedImagePath } from './association-images.mjs';
 
@@ -107,7 +107,7 @@ export async function handlePosts(request,env,auth,route,data,{legacy=false}={})
   const condition=`EXISTS(SELECT 1 FROM ${table} WHERE id=?)`;
   if(!member){
    for(const [suffix,to,subject,text] of [
-    ['editor',env.EDITOR_EMAIL,'Opslag til godkendelse: '+post.title,`Et opslag afventer TEB.\n${post.title}\nOplyst afsender: ${post.author}\nTilknytningen er ikke verificeret.\nLog ind og gennemgå: ${env.PUBLIC_ORIGIN}/${page}#godkendelse`],
+    ['editor',editorRecipients(env),'Opslag til godkendelse: '+post.title,`Et opslag afventer TEB.\n${post.title}\nOplyst afsender: ${post.author}\nTilknytningen er ikke verificeret.\nLog ind og gennemgå: ${env.PUBLIC_ORIGIN}/${page}#godkendelse`],
     ['receipt',email,'Modtaget: '+post.title,`Dit opslag afventer TEBs godkendelse. Ingen ekstern deling er bestilt.\n${post.title}\n${legacy?env.PUBLIC_ORIGIN+'/'+page:env.PUBLIC_ORIGIN+'/kalender.html?indsendelse='+id+'#adgang='+data.authorToken}\n${legacy?'':'Gem dit private link, og del det kun med dem, der må følge og rette indsendelsen.'}`]
    ])messages.push({key:`experiment:${id}:${suffix}`,statement:await mailStatement(env,{dedupe:`experiment:${id}:${suffix}`,to,subject,text,condition,args:[id]})});
   }

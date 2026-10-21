@@ -19,6 +19,11 @@ async function decrypt(env,value){
  const bytes=Uint8Array.from(value.match(/../g),v=>parseInt(v,16));
  return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes.slice(0,12)},await key(env),bytes.slice(12))));
 }
+// EDITOR_EMAIL kan være flere adresser adskilt af komma. De får samme besked.
+export function editorRecipients(env){
+ const list=(env.EDITOR_EMAIL||'').split(',').map(value=>value.trim()).filter(Boolean);
+ return list.length>1?list:list[0]||'';
+}
 export async function mailStatement(env,{dedupe,to,subject,text,eventId=null,eventRevision=null,column=null,expiresAt=null,condition='1',args=[]}){
  const payload=await encrypt(env,{to,subject,text});
  return stmt(env,`INSERT OR IGNORE INTO mail_jobs(id,dedupe_key,payload,event_id,event_revision,state_column,created_at,updated_at,expires_at)
@@ -40,7 +45,7 @@ export async function deliverMail(env,id){
   if(local(env)){state='local';}
   else if(!env.TEB_EMAIL||!env.EMAIL_FROM){state='failed';}
   else {
-   const result=await env.TEB_EMAIL.send({from:{email:env.EMAIL_FROM,name:'Tistrup Kalenderen'},to:message.to,subject:message.subject,text:message.text,
+   const result=await env.TEB_EMAIL.send({from:{email:env.EMAIL_FROM,name:'Tistrup Kalenderen'},to:message.to,...(env.REPLY_TO?{replyTo:env.REPLY_TO}:{}),subject:message.subject,text:message.text,
     html:`<html lang="da"><body><div style="font:18px/1.6 system-ui,sans-serif;max-width:620px">${escapeHtml(message.text).replace(/\n/g,'<br>')}</div></body></html>`});
    state=result?.messageId?'sent':'uncertain';providerId=result?.messageId||null;
   }

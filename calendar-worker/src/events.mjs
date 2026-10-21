@@ -1,7 +1,7 @@
 import { ensure, now, hash, validateEvent, copenhagenDate, validDate, json } from './shared.mjs';
 import { stmt, all, emailAddress, rate, ipKey, field } from './db.mjs';
 import { requireAccess } from './auth.mjs';
-import { mailStatement, deliverKeys } from './mail.mjs';
+import { mailStatement, deliverKeys, editorRecipients } from './mail.mjs';
 const bearer=request=>request.headers.get('Authorization')?.match(/^Bearer ([a-f0-9]{64})$/)?.[1]||'';
 export function privateData(row){
  return {id:row.id,data:JSON.parse(row.pending_json||row.published_json||'{}'),published:row.published_json?JSON.parse(row.published_json):null,
@@ -28,7 +28,7 @@ async function eventMail(env,{id,revision,event,email,kind,authorToken,condition
   statements.push(await mailStatement(env,{dedupe,to,subject,text,eventId:id,eventRevision:revision,column,condition,args}));
  };
  if(!review){
-  await make('editor',env.EDITOR_EMAIL||'',`${kind==='cancel'?'Aflysning':kind==='edit'?'Rettelse':'Nyt arrangement'} til godkendelse: ${event.title}`,
+  await make('editor',editorRecipients(env),`${kind==='cancel'?'Aflysning':kind==='edit'?'Rettelse':'Nyt arrangement'} til godkendelse: ${event.title}`,
    `Et arrangement afventer TEBs godkendelse.\n\n${event.title}\n${event.date} kl. ${event.time}\n${event.location}\nOplyst forening: ${event.association}\nKontakt: ${email}\n\nTilknytningen er ikke verificeret. Log ind på ${env.PUBLIC_ORIGIN}/forening.html for at gennemgå indsendelsen.`, 'notification_state');
   if(authorToken)await make('receipt',email,`Modtaget til godkendelse: ${event.title}`,
    `Dit arrangement er gemt og afventer TEBs godkendelse.\n\nDit private link til status, rettelser og aflysning:\n${env.PUBLIC_ORIGIN}/kalender.html?privat=${id}#adgang=${authorToken}\n\nGem linket, og del det kun med dem, der må rette arrangementet. Din kontaktmail offentliggøres ikke.`, 'receipt_state');

@@ -451,3 +451,9 @@ test('event images reject unsupported bodies, unsafe paths and oversized uploads
  payload.event=event({printRequested:'yes'});
  assert.equal((await f.guest.call('/events',{data:payload})).status,400);
 });
+test('TEB notifications go to every configured address',async()=>{
+ const {editorRecipients}=await import('../src/mail.mjs');
+ assert.equal(editorRecipients({EDITOR_EMAIL:'a@example.test'}),'a@example.test');
+ assert.deepEqual(editorRecipients({EDITOR_EMAIL:'a@example.test, b@example.test'}),['a@example.test','b@example.test']);
+ assert.equal(editorRecipients({}),'');
+});
