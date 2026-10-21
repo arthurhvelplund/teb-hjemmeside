@@ -9,6 +9,11 @@ export default {
   if(path==='/api/kalender'||path.startsWith('/api/kalender/'))return handleApi(request,env);
   // Production routes only the API. ASSETS holds print fonts, not the website.
   // The local server separately serves site/index.html and the rest of site/.
+  // Testversionen har sit eget domæne og henter hjemmesiden fra Pages-grenen.
+  if(env.SITE_ORIGIN&&['GET','HEAD'].includes(request.method)){
+   const url=new URL(request.url),site=new URL(url.pathname+url.search,env.SITE_ORIGIN);
+   return fetch(new Request(site,{method:request.method,headers:{Accept:request.headers.get('Accept')||'*/*'}}));
+  }
   return new Response('Siden findes ikke.',{status:404});
  },
  async scheduled(controller,env,ctx){ctx.waitUntil(flushMail(env));}
