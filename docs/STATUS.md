@@ -29,11 +29,13 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 
 ## Tydelig adgang til delingsmuligheder den 21. oktober 2026
 
-Kodecommit: `3f908cafe712cea870e9803fe89ee8aad4cc8134` på `main`.
+Designcommit: `3f908cafe712cea870e9803fe89ee8aad4cc8134`. Endelig placering:
+`5dbbf57a4fcf5a2313556d0667ec2a514c6661a8` på `main`.
 
-- Flyttet Vil I dele flere steder? fra bunden til over kalenderen, lige under
-  sidens titel. Mørkegrøn boks, megafonikon, større overskrift og lys knap
-  Se alle delingsmuligheder gør indgangen tydelig.
+- Vil I dele flere steder? ligger efter brugerens rettelse igen direkte under
+  Kalenderen på papir/Hent PDF. Det godkendte design er bevaret: mørkegrøn
+  boks, megafonikon, større overskrift og lys knap Se alle delingsmuligheder.
+  Kun rækkefølgen og 32 px luft mellem de to bokse er justeret.
 - Linker fortsat til den eksisterende infoside med alle seks muligheder.
   Ved mindre skærme flyttes knappen til næste række og fylder boksens bredde
   under 600 px. Tastaturfokus har en tydelig markering.
@@ -41,7 +43,10 @@ Kodecommit: `3f908cafe712cea870e9803fe89ee8aad4cc8134` på `main`.
   `git diff --check` består. Liveknappen åbner `/del-arrangement`; tilbage-linket
   åbner kalenderen, hvor arrangementerne fortsat indlæses. Ingen vandret
   overflow ved browserens kontrollerede bredde på 1363 px.
-- Udgivet gennem GitHub Actions `39670990685`, job `119468497672`, med succes.
+- Designet blev udgivet i GitHub Actions `39670990685`. Den endelige placering
+  er udgivet i `39671734282`, job `119471075183`, med succes. Livekontrol
+  bekræfter, at delingsboksen kommer lige efter printafsnittet, og at dens
+  farver, indhold og link er bevaret. Layoutkontrol på 16 sider består igen.
   Kun hjemmesiden blev udgivet; backend- og formulartrinnene blev sprunget over.
 - Afleveringssted: GitHub `main` og denne tråds isolerede arbejdskopi
   `/workspace/scratch/45b6135496c5/teb-calendar-local-filter`. Projects-piloten
