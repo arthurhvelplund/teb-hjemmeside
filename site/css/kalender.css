@@ -208,6 +208,7 @@ button.cal-day-number{cursor:pointer}button.cal-day-number:hover{background:var(
 @media(prefers-reduced-motion:reduce){.cal-card{transition:none}}
 
 .cal-sharing-link{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:1.4rem;margin:0 0 2rem;padding:1.75rem;border:1px solid var(--forest);border-radius:14px;background:var(--forest);color:var(--paper-soft);box-shadow:0 8px 24px rgba(36,59,43,.12)}
+.cal-print + .cal-sharing-link{margin-top:2rem}
 .cal-sharing-icon{display:grid;place-items:center;width:64px;height:64px;border:1px solid rgba(246,241,228,.3);border-radius:50%;color:#f0d39a;background:rgba(246,241,228,.08)}
 .cal-sharing-icon svg{width:42px;height:42px}
 .cal-sharing-kicker{display:block;margin:0 0 .35rem;color:#f0d39a;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
