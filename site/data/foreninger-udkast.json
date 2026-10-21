@@ -363,6 +363,21 @@
       "imageCredit": "TEB",
       "imageSourceUrl": "https://teb-tistrup.dk/",
       "note": ""
+    },
+    {
+      "key": "boedkerhuset",
+      "requestKey": "cb311056-1ca5-499f-810c-c95a5ece937e",
+      "name": "Bødkerhuset · Café Magnus Bødker",
+      "category": "Café og kultur",
+      "description": "Det gamle bødkerhus over for Tistrup Station er i dag den lille café Magnus Bødker, opkaldt efter husets oprindelige ejer. Her er musik, sportsaftener, J-dag og andre kulturelle og kulinariske arrangementer. Huset kan også lejes af private og firmaer.",
+      "website": "",
+      "place": "Jernbanegade 3, 6862 Tistrup",
+      "imageUrl": "",
+      "imageKind": "",
+      "sourceUrl": "https://www.kultunaut.dk/perl/sted/type-nynaut/nr-2119666",
+      "imageCredit": "",
+      "imageSourceUrl": "",
+      "note": "Telefon 20 11 90 12 ifølge KultuNaut, ikke bekræftet. www.bødkerhuset.dk svarer ikke. Kontakt: <bødkerhuset-kontakt>, inviteres ved lancering. Billeder uploades af Bødkerhuset selv."
     }
   ]
 }
