@@ -27,6 +27,33 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Filter for Hodde og Tistrup den 21. oktober 2026
+
+Kodecommit: `afb22584f5e2fd34463d93533a6097ce91d24954` på `main`.
+
+- Importerede arrangementer fra både Tistrup Nyt og Pulsen i Vest beholdes kun,
+  hvis Hodde eller Tistrup står i overskrift, beskrivelse, sted eller selve
+  arrangementets fulde tekst. Match er uafhængige af store/små bogstaver.
+- Selve opslagets indhold læses; menuer, billedtekster, bytags og andre
+  arrangementer på kildesiden giver ikke træffere. Fuld artikeltekst lagres
+  ikke i API-svaret. Eksisterende foreningsarrangementer berøres ikke.
+- Tidligere kildecacher kontrolleres på ny. Reglen gælder også en gemt kopi,
+  hvis kilden midlertidigt er utilgængelig.
+- Kontrol: 85 backendtests, Cloudflare dry-run og fælles layout på 16 sider
+  består. De tre nye regressionstests dækker brødtekst efter metadataudsnittet,
+  cacheopgradering/driftsfejl og de to kilders forskellige artikelstrukturer.
+- Udgivelse er forsøgt i GitHub Actions-kørsel `39658461758`. Alle 85 tests
+  består også dér, men Cloudflare afviser adgang til `teb-kalender-api` med
+  `No access to the specified service`. Filteret er derfor endnu ikke aktivt
+  i produktion. Den eksisterende kalender fortsætter på den tidligere Worker.
+- Udestår: Ret GitHubs `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`, så
+  forbindelsen har adgang til den TEB-konto, der ejer kalender-Workeren.
+  Genkør derefter den fejlede kørsel og kontrollér begge kilde-endpoints samt
+  Byens kalender. Workflowet tester og udgiver nu kalender-ændringer særskilt.
+- Afleveringssted for denne tråd: GitHub `main`; isoleret arbejdskopi
+  `/workspace/scratch/45b6135496c5/teb-calendar-local-filter`. Den lokale
+  Projects-pilot på brugerens computer er ikke opdateret af denne tråd.
+
 ## Lancering på teb-tistrup.dk den 21. oktober 2026
 
 Commit: `576b34f`. Udgivet ved at fast-forwarde `main` til `local/teb-pilot-ready`.
