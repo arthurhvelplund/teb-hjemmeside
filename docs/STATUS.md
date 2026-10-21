@@ -27,6 +27,19 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Centrerede billeder i retteformularen den 21. oktober 2026
+
+- Kodecommit: `199c147b261c91bbd3c3d6648f3777439e61d758` på `main`.
+- Brugeren bekræfter, at billedvalg ved rettelse fungerer. Det valgte billede
+  er nu centreret både under billedfeltet og i den private forhåndsvisning.
+  Billedets proportioner bevares, med højst 220 pixels højde og formularens bredde.
+- Kontrol: assetversioner synkroniseret, fælles layout på 16 sider og
+  `git diff --check` består. Den indloggede retteformular er ikke manuelt
+  afprøvet i produktion, og brugerens arrangement er ikke ændret.
+- Udgivet med succes i GitHub Actions `39676312109`, job `119486979043`.
+  Afleveret på GitHub main og i trådens isolerede arbejdskopi;
+  brugerens Projects-pilot er ikke opdateret.
+
 ## Billeder ved rettelse af eksisterende arrangementer den 21. oktober 2026
 
 Kodecommit: `1afaafb03938856a2a91022eba702f97415b9bc9` på `main`.
