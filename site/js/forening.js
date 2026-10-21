@@ -1,6 +1,6 @@
 import {installEventComposer} from './event-composer.js';
 installEventComposer();
-document.addEventListener('teb:event-saved', () => { if (currentRoute?.page === 'arbejdsrum') render(); });
+document.addEventListener('teb:event-saved', () => { if (currentRoute?.page === 'min-forening') render(); });
 import {printEditorHtml,mountPrintEditor} from './kalender-print.js';
 import {newsImage} from './association-news.js';
 import { api, getSession, escapeHTML as esc, requestKey, today, dateText, showMessage, showMode, busy } from './portal-api.js';
@@ -31,7 +31,7 @@ const idPath = id => encodeURIComponent(id);
 const authenticated = () => session?.authenticated === true;
 const admin = () => authenticated() && session.user?.isAdmin === true;
 const memberships = () => session?.memberships || [];
-const workURL = (id, tab = 'overblik') => '#arbejdsrum?' + new URLSearchParams({ forening: id, fane: tab });
+const workURL = (id, tab = '') => '#min-forening?' + new URLSearchParams({ forening: id, ...(tab ? { fane: tab } : {}) });
 const adminURL = (tab = 'afventer', id = '') => '#teb?' + new URLSearchParams({ fane: tab, ...(id ? { forening: id } : {}) });
 const publicURL = id => 'forening.html?' + new URLSearchParams({ id });
 const calendarURL = (key, id) => 'kalender.html?' + new URLSearchParams({ [key]: id });
@@ -48,14 +48,16 @@ const check = (name, text, required = false) => `<label class="fa-check"><input 
 function dateLabel(value) { try { return dateText(value); } catch { return 'Dato mangler'; } }
 function errorText(error) {
   if (error.status === 401) return 'Dit login er udløbet. Log ind igen, og prøv derefter igen.';
-  if (error.status === 403) return 'Du har ikke adgang til denne handling. Kontakt den foreningsansvarlige eller TEB.';
+  if (error.status === 403) return 'Du har ikke adgang til denne handling. Kontakt TEB.';
   if (error.status === 409) return 'Oplysningerne er ændret siden sidst. Hent siden igen, før du gemmer.';
   if (error.name === 'TimeoutError' || error.name === 'AbortError' || error instanceof TypeError) return 'Der er ikke forbindelse til serveren. Prøv igen. Ved afsendelse kan oplysningerne allerede være gemt.';
   return error.message || 'Oplysningerne kunne ikke hentes. Prøv igen.';
 }
 function route() {
   const query = new URLSearchParams(location.search);
-  const [name, params = ''] = location.hash.slice(1).split('?');
+  const [hash, params = ''] = location.hash.slice(1).split('?');
+  // Gamle bogmærker til arbejdsrum og adgang åbner nu Min forening.
+  const name = ['arbejdsrum', 'adgang'].includes(hash) ? 'min-forening' : hash;
   return { page: name || query.get('side') || (query.has('id') || query.has('forening') ? 'profil' : 'oversigt'), params: new URLSearchParams(params), query };
 }
 // Only explicitly allowed local portal pages can receive a user after login.
@@ -72,11 +74,8 @@ function heading(title, text = '') { return `<h2>${esc(title)}</h2>${text ? `<p>
 function loginNeeded() {
   return loginPage();
 }
-function noAccess() {
-  return `<section class="fa-welcome-panel"><span class="eyebrow">Min forening</span><h1>Din e-mail er bekræftet.</h1><p>TEB skal knytte dig til en forening, før du kan rette oplysninger og oprette arrangementer.</p><a class="btn" href="#adgang">Bed om adgang til en forening</a><p><a href="kontakt.html#form">Kontakt TEB for hjælp</a></p><p class="fp-note">Du er logget ind med ${esc(session.user.email)}.</p></section>`;
-}
 function navigation(page) {
-  const account = ['login', 'arbejdsrum', 'teb', 'adgang', 'skriv'].includes(page);
+  const account = ['login', 'min-forening', 'teb'].includes(page);
   const loginScreen = account && !authenticated();
   document.body.classList.toggle('fa-account-screen', account);
   document.querySelector('#forening-main').classList.toggle('fa-auth-page', loginScreen);
@@ -84,14 +83,16 @@ function navigation(page) {
   document.querySelector('#forening-main').classList.toggle('fa-directory', page === 'oversigt');
   document.querySelector('.fa-heading h1').textContent = 'Foreninger';
   document.querySelector('#forening-main').classList.toggle('fa-compact-page', page !== 'oversigt');
-  document.querySelector('#forening-main').classList.toggle('fa-profile-page', page === 'profil' || page === 'opslag');
-  nav.hidden = ['oversigt','profil','arbejdsrum','skriv','opslag'].includes(page) || loginScreen;
+  document.querySelector('#forening-main').classList.toggle('fa-profile-page', page === 'profil');
+  // Kun TEB har en fanebjælke. En forening har alt samlet på Min forening.
+  nav.hidden = page !== 'teb' || !admin();
+  const tebOnly = admin() && !memberships().length;
   const workspaceLink = document.querySelector('#forening-workspace-link');
-  workspaceLink.textContent = authenticated() ? admin() ? 'TEBs område' : 'Min forening' : 'Log ind';
-  workspaceLink.href = authenticated() ? admin() ? '#teb' : '#arbejdsrum' : '#login';
+  workspaceLink.textContent = authenticated() ? tebOnly ? 'TEB' : 'Min forening' : 'Log ind';
+  workspaceLink.href = authenticated() ? tebOnly ? '#teb' : '#min-forening' : '#login';
   const links = [['oversigt', 'Alle foreninger', 'forening.html']];
-  if (authenticated() && (memberships().length || !admin()) && page !== 'arbejdsrum') links.push(['arbejdsrum', 'Min forening', '#arbejdsrum']);
-  if (admin() && page !== 'teb') links.push(['teb', 'TEBs arbejdsområde', '#teb']);
+  if (memberships().length) links.push(['min-forening', 'Min forening', '#min-forening']);
+  links.push(['teb', 'TEB', '#teb']);
   nav.innerHTML = links.map(([key, label, href]) => `<a href="${href}"${page === key ? ' aria-current="page"' : ''}>${label}</a>`).join('') +
     (authenticated() ? `<form data-action="logout"><button type="submit" class="btn btn-secondary">Log ud</button></form>` : '<a href="#login"' + (page === 'login' ? ' aria-current="page"' : '') + '>Log ind</a>');
 }
@@ -113,16 +114,14 @@ async function render() {
       case 'oversigt': html = await directoryPage(); break;
       case 'profil': html = await publicProfile(r.query.get('id') || r.params.get('id') || r.query.get('forening')); break;
       case 'login': html = loginPage(); break;
-      case 'adgang': html = authenticated() ? await accessPage() : loginNeeded(); break;
-      case 'arbejdsrum': html = authenticated() ? await workspace(r) : loginNeeded(); break;
-      case 'skriv': location.replace('kalender.html?opret=1'); return;
-      case 'opslag': html = await publicNews(r.params.get('id') || r.query.get('opslag')); break;
+      case 'min-forening':
+        if (admin() && !memberships().length) { location.replace('#teb'); return; }
+        html = authenticated() ? await workspace(r) : loginNeeded(); break;
       case 'teb': html = admin() ? await adminPage(r) : authenticated() ? heading('Kun for TEB', 'Dit login giver ikke adgang til TEBs administration.') : loginNeeded(); break;
       default: html = heading('Siden findes ikke') + link('Se alle foreninger', 'forening.html');
     }
     if (sequence !== renderNumber) return;
     content.innerHTML = html;
-    if(r.page==='arbejdsrum')nav.hidden=Boolean(content.querySelector('.fa-more'));
     const printRoot = content.querySelector('[data-print-editor]');
     if (printRoot) disposePrintEditor = mountPrintEditor(printRoot);
     if (r.page === 'oversigt') filterDirectory();
@@ -183,7 +182,7 @@ async function publicProfile(id) {
   const email=a.email?'mailto:'+encodeURIComponent(a.email):'',phone=a.phone?'tel:'+a.phone.replace(/[^+\d]/g,''):'';
   const contact=email||phone||website,ownEvents=events.filter(e=>e.associationId===id&&(e.endDate||e.date)>=today()).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
   const details=[['Kontaktperson',esc(a.chair)],['E-mail',email?'<a href="'+esc(email)+'">'+esc(a.email)+'</a>':''],['Telefon',phone?'<a href="'+esc(phone)+'">'+esc(a.phone)+'</a>':''],['Mødested',esc(a.place)]];
-  const controls=own?link('Administrér foreningen',admin()?adminURL('foreninger',id):workURL(id),true):link('Log ind','#login',true);
+  const controls=own?link('Ret jeres side',memberships().some(m=>m.associationId===id)?workURL(id,'profil'):adminURL('foreninger',id),true):'';
   return '<div class="fa-profile-back">'+link('← Alle foreninger','forening.html')+controls+'</div>'+
     '<header class="fa-public-identity">'+associationPhoto(a,'fa-profile-mark',true)+'<div><h1>'+esc(a.name)+'</h1><p class="fp-note">'+esc([a.category,a.place].filter(Boolean).join(' · '))+'</p></div></header>'+
     '<p class="fa-public-intro">'+esc(a.description||'Kontakt foreningen for at høre mere om fællesskabet.')+'</p>'+
@@ -193,26 +192,29 @@ async function publicProfile(id) {
     (draft?'<p class="fp-note fa-source">Profiludkast · Oplysningerne afventer foreningens bekræftelse. Kilde: <a href="'+esc(draft.sourceUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(new URL(draft.sourceUrl).hostname.replace(/^www\./,''))+'</a>.'+(draft.imageCredit&&a.imageUrl===draft.imageUrl?' Billede/logo: '+esc(draft.imageCredit)+'.':'')+'</p>':'')+'</div>'+
     '<aside class="fa-public-contact"><h2>Tag kontakt</h2><dl class="fa-details">'+(details.filter(([,v])=>v).map(([k,v])=>'<dt>'+k+'</dt><dd>'+v+'</dd>').join('')||'<dd>Kontaktoplysninger er ikke tilføjet endnu.</dd>')+'</dl></aside></div>';
 }
-async function publicNews(id) {
-  const {post:p}=await api('/posts/'+idPath(id));
-  if(p.kind!=='news')return heading(p.title)+link('Se arrangementet',calendarURL('arrangement',id),true);
-  return '<article class="fa-public-story"><p class="fp-breadcrumb">'+link('← '+(p.associationId?p.author:'Alle foreninger'),p.associationId?publicURL(p.associationId):'forening.html')+'</p><p class="fp-note">'+esc(p.author)+' · '+esc(dateLabel(p.createdAt.slice(0,10)))+'</p><h1>'+esc(p.title)+'</h1><p class="fa-public-intro">'+esc(p.description)+'</p>'+(newsImage(p.image)?'<img class="fa-story-photo" src="'+esc(newsImage(p.image))+'" alt="" referrerpolicy="no-referrer">':'')+(p.body?'<p class="fa-preline">'+esc(p.body)+'</p>':'')+(safeWebsite(p.link)?'<p><a class="btn btn-secondary" href="'+esc(p.link)+'" target="_blank" rel="noopener noreferrer">Læs mere ↗</a></p>':'')+'</article>';
-}
 function publicEvents(events) {
   return events.map(e => `<article class="fp-list-row"><h3>${link(e.title, calendarURL('arrangement', e.id))}</h3><p>${esc(dateLabel(e.date))} kl. ${esc(e.time)} · ${esc(e.location)}</p>${e.state === 'cancelled' ? status('cancelled') : ''}</article>`).join('') || empty('Ingen kommende arrangementer.');
 }
 function loginPage() {
-  if (authenticated()) return `<section class="fa-welcome-panel"><h1>Du er logget ind.</h1><p>${esc(session.user.email)}</p>${link(admin() ? 'Åbn TEBs arbejdsområde' : 'Åbn min forening', admin() ? '#teb' : '#arbejdsrum', true)}</section>`;
+  if (authenticated()) return `<section class="fa-welcome-panel"><h1>Du er logget ind.</h1><p>${esc(session.user.email)}</p>${link('Åbn Min forening', '#min-forening', true)}</section>`;
   const form = challenge
     ? `<h1>Tjek din e-mail.</h1><p>Vi har sendt en kode til <strong>${esc(challenge.email)}</strong>.</p>${formStart('verify-code', `data-challenge="${esc(challenge.id)}"`)}${input('code', 'Koden fra din mail', '', 'text', 'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" aria-describedby="login-code-help"')}<p id="login-code-help" class="fp-note">Skriv de seks cifre. Koden gælder i 10 minutter.</p>${button('Log ind')}${resultBox()}</form><div class="fa-login-options"><button class="fa-text-button" type="button" data-change-email>Ret e-mailadressen</button>${formStart('resend-code')}${button('Send en ny kode')}${resultBox()}</form></div>`
     : `<h1>Log ind til din forening.</h1><p>Brug din e-mailadresse. Vi sender en engangskode, så du slipper for at huske en adgangskode.</p>${formStart('request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="email" maxlength="254"')}${button('Send kode')}${resultBox()}</form>`;
   return `<div class="fa-login-layout"><a class="fa-back-link" href="forening.html">← Tilbage til foreningerne</a><section class="fa-login-card" aria-label="Login til din forening"><span class="eyebrow">For foreninger</span>${form}${localMode ? '<p class="fa-local-help">Lokal afprøvning. Find din kode i <a href="kalender-postkasse.html" target="_blank" rel="noopener">testpostkassen</a>.</p>' : ''}</section><p class="fa-login-help">Har du brug for hjælp? <a href="kontakt.html#form">Kontakt TEB</a>.</p></div>`;
 }
+// Logget ind uden forening: Bed om adgang på samme side, ingen blindgyde.
 async function accessPage() {
   const [{ associations }, { requests }] = await Promise.all([api('/associations'), api('/me/access-requests')]);
-  return heading('Få adgang til en forening', 'TEB bekræfter din tilknytning, før du får adgang som foreningsansvarlig.') +
-    `<section class="fp-panel fa-form-narrow"><p>Du søger med ${esc(session.user.email)}.</p>${formStart('access-request')}${input('name', 'Dit navn', '', 'text', 'required maxlength="100" autocomplete="name"')}<label>Forening<select name="associationId" data-access-choice><option value="">Min forening er ikke i oversigten</option>${associations.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('')}</select></label><div data-new-association>${input('newAssociationName', 'Foreningens navn', '', 'text', 'required maxlength="100"')}</div>${textarea('roleNote', 'Din tilknytning til foreningen', '', 'required maxlength="1500"')}${button('Send anmodning')}${resultBox()}</form></section>` +
-    `<section class="fa-section"><h2>Dine anmodninger</h2>${requests.map(r => `<article class="fp-list-row"><h3>${esc(associations.find(a => a.id === r.associationId)?.name || r.newAssociationName || 'Foreningsadgang')}</h3>${status(r.status)}${r.note ? `<p>${esc(r.note)}</p>` : ''}</article>`).join('') || empty('Du har ikke sendt nogen anmodninger.')}</section>`;
+  const pending = requests.filter(r => r.status === 'pending');
+  const name = r => associations.find(a => a.id === r.associationId)?.name || r.newAssociationName || 'Foreningsadgang';
+  return `<p class="mf-back">${link('← Alle foreninger', 'forening.html')}</p><section class="mf-start"><span class="eyebrow">Min forening</span><h1>${pending.length ? 'TEB kigger på din anmodning.' : 'Hvilken forening hører du til?'}</h1>` +
+    (pending.length ? `<p>Du får en mail, når TEB har givet dig adgang. Log derefter ind igen med ${esc(session.user.email)}.</p>` : '<p>TEB bekræfter din tilknytning, før du får adgang. Bagefter kan du oprette arrangementer, rette foreningens side og invitere andre.</p>') +
+    (requests.length ? `<ul class="mf-requests">${requests.map(r => `<li><strong>${esc(name(r))}</strong>${status(r.status)}${r.note ? `<p>${esc(r.note)}</p>` : ''}</li>`).join('')}</ul>` : '') +
+    `<details class="mf-request-form"${pending.length ? '' : ' open'}><summary>${pending.length ? 'Bed om adgang til en anden forening' : 'Bed om adgang'}</summary>${formStart('access-request')}<label>Forening<select name="associationId" data-access-choice><option value="">Min forening er ikke i oversigten</option>${associations.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('')}</select></label><div data-new-association>${input('newAssociationName', 'Foreningens navn', '', 'text', 'required maxlength="100"')}</div>${input('name', 'Dit navn', '', 'text', 'required maxlength="100" autocomplete="name"')}${textarea('roleNote', 'Hvad laver du i foreningen?', '', 'required maxlength="1500" placeholder="Fx formand, kasserer eller træner"')}${button('Send til TEB')}${resultBox()}</form></details>` +
+    accountLine() + '</section>';
+}
+function accountLine(extra = '') {
+  return `<p class="mf-small mf-account">Logget ind som ${esc(session.user.email)}${extra} · <button type="submit" form="mf-logout" class="fa-text-button">Log ud</button> · <a href="kontakt.html#form">Kontakt TEB</a></p><form id="mf-logout" data-action="logout"></form>`;
 }
 function profileForm(a, creating = false) {
   return formStart(creating ? 'create-association' : 'save-profile', `data-id="${esc(a.id || '')}" data-revision="${esc(a.revision ?? '')}"`) +
@@ -228,30 +230,31 @@ function profileForm(a, creating = false) {
     `</fieldset><fieldset class="fa-profile-group"><legend>Billede</legend><input type="hidden" name="imageUrl" value="${esc(a.imageUrl || '')}">${creating ? '<p>Gem foreningen, før du tilføjer et billede.</p>' : `<div class="fa-image-editor">${associationPhoto(a)}<div><label class="fa-file-choice">Vælg billede<input type="file" data-profile-image accept="image/jpeg,image/png,image/webp" aria-describedby="association-image-help"></label><p id="association-image-help" class="fp-note">Vælg et foto fra telefonen eller computeren, som I må bruge.</p><button type="button" class="fa-text-button" data-remove-image${a.imageUrl ? '' : ' hidden'}>Fjern billedet</button><div class="fa-image-result" aria-live="polite"></div></div></div>`}</fieldset><div class="fa-profile-save">${button(creating ? 'Opret forening' : 'Gem profil')}<p class="fp-note">Ændringerne bliver synlige på jeres offentlige side, når du gemmer.</p></div>` + resultBox() + '</form>';
 }
 async function workspace(r) {
-  if (!memberships().length) return noAccess();
-  if (!r.params.get('forening') && memberships().length > 1) return '<section class="fa-welcome-panel"><h1>Hvilken forening vil du åbne?</h1><div class="fa-membership-choices">'+memberships().map(m=>'<a href="'+esc(workURL(m.associationId))+'"><strong>'+esc(m.association?.name||m.associationId)+'</strong><span>Åbn foreningen →</span></a>').join('')+'</div></section>';
-  const id=r.params.get('forening')||memberships()[0].associationId,membership=memberships().find(m=>m.associationId===id);
-  if(!membership)return noAccess();
+  if (!memberships().length) return accessPage();
+  if (!r.params.get('forening') && memberships().length > 1) return '<section class="mf-start"><span class="eyebrow">Min forening</span><h1>Hvilken forening vil du åbne?</h1><div class="fa-membership-choices">'+memberships().map(m=>'<a href="'+esc(workURL(m.associationId))+'"><strong>'+esc(m.association?.name||m.associationId)+'</strong><span>Åbn →</span></a>').join('')+'</div>'+accountLine()+'</section>';
+  const id=r.params.get('forening')||memberships()[0].associationId;
+  if(!memberships().some(m=>m.associationId===id))return accessPage();
   const {association:a}=await api('/associations/'+idPath(id));
-  const tab=r.params.get('fane')||'overblik';
-  const more='<details class="fa-more"><summary>Mere ⌄</summary><div>'+link('Foreningens oplysninger',workURL(id,'profil'))+link('Personer med adgang',workURL(id,'personer'))+(memberships().length>1?link('Skift forening','#arbejdsrum'):'')+link('Kontakt TEB','kontakt.html#form')+'<form data-action="logout"><button type="submit">Log ud</button></form></div></details>';
-  const top='<header class="fa-workspace-header fa-owner-header">'+associationPhoto(a,'fa-profile-mark',true)+'<div><span class="eyebrow">Min forening</span><h1>'+esc(a.name)+'</h1><p class="fa-login-email">Du har adgang som '+(membership.role==='manager'?'foreningsansvarlig':'redaktør')+'</p></div>'+more+'</header>';
-  if(tab==='profil')return top+'<p>'+link('← Tilbage til overblikket',workURL(id))+'</p><section class="fa-profile-editor"><h2>Foreningens oplysninger</h2>'+profileForm(a)+'</section>';
-  if(tab==='personer')return top+'<p>'+link('← Tilbage til overblikket',workURL(id))+'</p>'+await memberPage(a,membership.role==='manager'||admin());
+  const account=accountLine(memberships().length>1?' · <a href="#min-forening">Skift forening</a>':'');
+  const top='<p class="mf-back">'+link('← Alle foreninger','forening.html')+'</p><header class="mf-header">'+associationPhoto(a,'fa-profile-mark',true)+'<div><span class="eyebrow">Min forening</span><h1>'+esc(a.name)+'</h1></div><a class="btn mf-create" href="'+esc('kalender.html?'+new URLSearchParams({opret:'1',forening:id}))+'">Opret arrangement</a></header>';
+  if(r.params.get('fane')==='profil')return top+'<p>'+link('← Tilbage til Min forening',workURL(id))+'</p><section class="fa-profile-editor"><h2>Ret jeres side</h2>'+profileForm(a)+'</section>'+account;
   const {events}=await api('/me/events');
   const ownEvents=events.filter(e=>(e.associationId||e.data?.associationId)===id);
   const date=e=>(e.data||e.published||{}).date||'';
   const upcoming=ownEvents.filter(e=>date(e)>=today()).sort((a,b)=>date(a).localeCompare(date(b))),past=ownEvents.filter(e=>date(e)<today()).sort((a,b)=>date(b).localeCompare(date(a)));
-  return top+'<div class="fa-owner-actions"><div class="fp-actions"><a class="btn" href="'+esc('kalender.html?'+new URLSearchParams({opret:'1',forening:id}))+'">Opret arrangement</a>'+link('Redigér side',workURL(id,'profil'),true)+'</div>'+link('Vis som besøgende ↗',publicURL(id))+'</div>'+
-    '<section class="fa-workspace-events"><h2>Jeres arrangementer</h2><div class="fa-owner-filter"><label><span class="fa-visually-hidden">Søg i jeres arrangementer</span><input id="own-search" type="search" placeholder="Søg i jeres arrangementer"></label></div><div id="own-items">'+upcoming.map(e=>'<div class="fa-owned-row" data-kind="event"><span class="fa-content-kind">Arrangement</span>'+privateEvents([e])+'</div>').join('')+'</div>'+
-    (!upcoming.length?'<p class="fa-quiet-empty">Der er endnu ingen arrangementer. Opret jeres næste arrangement.</p>':'')+'<p id="own-no-match" class="fa-quiet-empty" hidden>Intet indhold passer til søgningen.</p>'+
-    (past.length?'<details class="fa-past-events"><summary>Tidligere arrangementer ('+past.length+')</summary>'+privateEvents(past)+'</details>':'')+'</section>';
+  const summary=a.description?esc(a.description.length>180?a.description.slice(0,180).trim()+'…':a.description):'<span class="mf-missing">Der står ikke noget om jer endnu.</span>';
+  return top+
+    '<section class="mf-card"><h2>Jeres arrangementer</h2>'+(upcoming.length?ownRows(upcoming):'<p class="mf-missing">Ingen kommende arrangementer. Tryk på Opret arrangement for at tilføje det næste.</p>')+
+    (past.length?'<details class="mf-past"><summary>Tidligere arrangementer ('+past.length+')</summary>'+ownRows(past)+'</details>':'')+'</section>'+
+    '<div class="mf-columns"><section class="mf-card"><div class="mf-card-head"><h2>Jeres side</h2>'+link('Ret',workURL(id,'profil'),true)+'</div><p>'+summary+'</p>'+(a.chair?'<p class="mf-small">Kontakt: '+esc(a.chair)+'</p>':'')+'<p>'+link('Se siden som besøgende ↗',publicURL(id))+'</p></section>'+
+    '<section class="mf-card">'+await memberPage(a)+'</section></div>'+account;
 }
-function filterOwnContent() {
- const search=(document.querySelector('#own-search')?.value||'').toLocaleLowerCase('da');
- const rows=[...document.querySelectorAll('#own-items .fa-owned-row')];
- rows.forEach(row=>row.hidden=!row.textContent.toLocaleLowerCase('da').includes(search));
- const empty=document.querySelector('#own-no-match');if(empty)empty.hidden=!rows.length||rows.some(row=>!row.hidden);
+function ownRows(events) {
+  return '<ul class="mf-events">'+events.map(e=>{
+    const data=e.data||e.published||{},cancelled=data.state==='cancelled'||e.published?.state==='cancelled';
+    const [label,tone]=cancelled?['Aflyst','off']:e.pendingKind||e.status==='pending'?['Venter på TEB','wait']:e.status==='rejected'?['Ikke godkendt','off']:e.published?['I kalenderen','']:[statusNames[e.status]||'Gemt','wait'];
+    return '<li><div><h3>'+esc(data.title)+'</h3><span>'+esc(dateLabel(data.date))+' kl. '+esc(data.time)+' · '+esc(data.location)+'</span>'+(e.note?'<p class="mf-small">Besked fra TEB: '+esc(e.note)+'</p>':'')+mailWarnings(e)+'</div><span class="mf-tag'+(tone?' mf-tag-'+tone:'')+'">'+label+'</span>'+link('Ret',calendarURL('ret',e.id))+'</li>';
+  }).join('')+'</ul>';
 }
 function privateEvents(events) {
   return events.map(e => {
@@ -259,18 +262,20 @@ function privateEvents(events) {
       return `<article class="fp-list-row"><h3>${esc(data.title)}</h3><p>${esc(dateLabel(data.date))} kl. ${esc(data.time)} · ${esc(data.location)}</p><div class="fa-status-row">${status(e.pendingKind ? 'pending' : e.status === 'approved' ? 'published' : e.status)}${data.state === 'cancelled' || e.published?.state === 'cancelled' ? status('cancelled') : ''}${e.pendingKind ? status(e.pendingKind) : ''}</div>${e.note ? `<p>${esc(e.note)}</p>` : ''}${mailWarnings(e)}<div class="fp-actions">${link('Ret eller aflys', calendarURL('ret', e.id))}${e.published ? link('Se i kalenderen', calendarURL('arrangement', e.id)) : ''}</div></article>`;
   }).join('') || empty('Der er ingen arrangementer endnu.');
 }
-async function memberPage(a, canManage, isAdmin = false) {
+// Alle med adgang til en forening har de samme rettigheder.
+async function memberPage(a, isAdmin = false) {
   const { members } = await api('/associations/' + idPath(a.id) + '/members');
-  return `<h3>Personer med adgang</h3><p>Disse personer kan rette profilen og udgive arrangementer. Offentlig kontaktperson står på profilen.</p>` +
-    members.map(m => `<article class="fp-list-row fa-member"><div><strong>${esc(m.name || m.email)}</strong><p>${esc(m.email)} · ${m.role === 'manager' ? 'Foreningsansvarlig' : 'Redaktør'}</p>${status(m.status)}</div>` +
-      (canManage && (isAdmin || m.role === 'editor') && m.email.toLowerCase() !== session.user.email.toLowerCase() ? `${formStart('revoke-member', `data-association="${esc(a.id)}" data-member="${esc(m.id)}" data-email="${esc(m.email)}"`)}${button('Fjern adgang')}${resultBox()}</form>` : '') + '</article>').join('') +
-    (!members.length ? empty('Ingen personer har adgang endnu.') : '') +
-    (canManage ? `<section class="fp-panel fa-section fa-form-narrow"><h3>${isAdmin ? 'Tilknyt en person' : 'Invitér en redaktør'}</h3>${formStart(isAdmin ? 'admin-member' : 'invite-member', `data-id="${esc(a.id)}"`)}${input('name', 'Navn', '', 'text', 'required maxlength="100"')}${input('email', 'E-mail', '', 'email', 'required maxlength="254"')}${isAdmin ? '<label>Adgang<select name="role"><option value="manager">Foreningsansvarlig</option><option value="editor">Redaktør</option></select></label>' + check('verified', 'Jeg har kontrolleret personens tilknytning til foreningen', true) : '<p class="fp-note">Redaktøren kan rette profilen og udgive arrangementer. Personen skal logge ind med denne e-mail.</p>'}${button(isAdmin ? 'Tilknyt person' : 'Send invitation')}${resultBox()}</form></section>` : '<p class="fp-notice">Den foreningsansvarlige kan invitere og fjerne redaktører.</p>');
+  const me = session.user.email.toLowerCase();
+  return `<div class="mf-card-head"><h2>Personer med adgang</h2></div><p class="mf-small">Alle her kan oprette arrangementer, rette jeres side og invitere andre.</p><ul class="mf-people">` +
+    members.map(m => `<li><div><strong>${esc(m.name || m.email)}</strong><span>${esc(m.email)}${m.email.toLowerCase() === me ? ' · dig' : ''}${m.status === 'invited' ? ' · inviteret' : ''}</span></div>` +
+      (m.email.toLowerCase() !== me ? `${formStart('revoke-member', `data-association="${esc(a.id)}" data-member="${esc(m.id)}" data-email="${esc(m.email)}"`)}<button type="submit" class="fa-text-button">Fjern</button>${resultBox()}</form>` : '') + '</li>').join('') +
+    `</ul>${!members.length ? empty('Ingen personer har adgang endnu.') : ''}` +
+    `<details class="mf-invite"${isAdmin && !members.length ? ' open' : ''}><summary>+ Invitér en person</summary>${formStart(isAdmin ? 'admin-member' : 'invite-member', `data-id="${esc(a.id)}"`)}${input('name', 'Navn', '', 'text', 'required maxlength="100"')}${input('email', 'E-mail', '', 'email', 'required maxlength="254"')}${isAdmin ? check('verified', 'Jeg har kontrolleret personens tilknytning til foreningen', true) : '<p class="fp-note">Personen får en mail og logger ind med denne adresse.</p>'}${button('Send invitation')}${resultBox()}</form></details>`;
 }
 async function adminPage(r) {
   const tab=r.params.get('fane')||'afventer';
   const tabs=[['afventer','Til godkendelse'],['arrangementer','Indhold'],['foreninger','Foreninger'],['print','Print']];
-  const top='<div class="fp-row fa-admin-heading"><h1>TEBs redaktion</h1><button class="btn btn-secondary" type="button" data-reload>Opdatér kø</button></div><nav class="fp-tabs" aria-label="TEB administration">'+tabs.map(([key,label])=>'<a href="'+esc(adminURL(key))+'"'+(tab===key?' aria-current="page"':'')+'>'+label+'</a>').join('')+'</nav>';
+  const top='<div class="fp-row fa-admin-heading"><h1>TEB</h1><button class="btn btn-secondary" type="button" data-reload>Opdatér kø</button></div><nav class="fp-tabs" aria-label="TEB administration">'+tabs.map(([key,label])=>'<a href="'+esc(adminURL(key))+'"'+(tab===key?' aria-current="page"':'')+'>'+label+'</a>').join('')+'</nav>';
   if(tab==='adgang')return top+await adminAccess();
   if(tab==='foreninger')return top+await adminAssociations(r.params.get('forening'));
   if(tab==='print')return top+await printPage();
@@ -316,8 +321,8 @@ async function adminAccess() {
   const [{ requests }, { associations }] = await Promise.all([api('/admin/access-requests'), api('/associations')]);
   const pending = requests.filter(r => r.status === 'pending');
   const history = requests.filter(r => r.status !== 'pending');
-  return heading('Adgangsanmodninger', 'Kontrollér personens tilknytning, før du godkender som foreningsansvarlig.') +
-    (pending.map(r => `<article class="fp-panel fa-section"><h3>${esc(associations.find(a => a.id === r.associationId)?.name || r.newAssociationName || 'Forening')}</h3><p><strong>${esc(r.name)}</strong><br>${esc(r.email)}</p><p class="fa-preline">${esc(r.roleNote)}</p>${formStart('review-access', `data-id="${esc(r.id)}"`)}${check('verified', 'Jeg har kontrolleret personens tilknytning til foreningen')}${textarea('note', 'Besked til personen', '', 'maxlength="1500"')}<div class="fp-actions">${button('Godkend som ansvarlig', 'approve')}${button('Afvis', 'reject')}</div>${resultBox()}</form></article>`).join('') || empty('Der er ingen adgangsanmodninger, der afventer svar.')) +
+  return heading('Adgangsanmodninger', 'Kontrollér personens tilknytning, før du godkender.') +
+    (pending.map(r => `<article class="fp-panel fa-section"><h3>${esc(associations.find(a => a.id === r.associationId)?.name || r.newAssociationName || 'Forening')}</h3><p><strong>${esc(r.name)}</strong><br>${esc(r.email)}</p><p class="fa-preline">${esc(r.roleNote)}</p>${formStart('review-access', `data-id="${esc(r.id)}"`)}${check('verified', 'Jeg har kontrolleret personens tilknytning til foreningen')}${textarea('note', 'Besked til personen', '', 'maxlength="1500"')}<div class="fp-actions">${button('Godkend', 'approve')}${button('Afvis', 'reject')}</div>${resultBox()}</form></article>`).join('') || empty('Der er ingen adgangsanmodninger, der afventer svar.')) +
     (history.length ? `<section class="fa-section"><h3>Tidligere svar</h3>${history.map(r => `<article class="fp-list-row"><strong>${esc(r.name)}</strong><p>${esc(r.email)} · ${esc(associations.find(a => a.id === r.associationId)?.name || r.newAssociationName)}</p>${status(r.status)}</article>`).join('')}</section>` : '');
 }
 async function adminAssociations(id) {
@@ -326,9 +331,9 @@ async function adminAssociations(id) {
   if (id === 'ny') return heading('Opret forening') + `<p>${link('Alle foreninger', adminURL('foreninger'))}</p><section class="fp-panel fa-form-narrow">${profileForm({}, true)}</section>`;
   if (id) {
     const { association: a } = await api('/associations/' + idPath(id));
-    return heading(a.name) + `<p>${link('Alle foreninger', adminURL('foreninger'))} · ${link('Offentlig profil', publicURL(id))}</p><section class="fp-panel fa-form-narrow">${profileForm(a)}</section><section class="fa-section">${await memberPage(a, true, true)}</section>`;
+    return heading(a.name) + `<p>${link('Alle foreninger', adminURL('foreninger'))} · ${link('Offentlig profil', publicURL(id))}</p><section class="fp-panel fa-form-narrow">${profileForm(a)}</section><section class="fa-section">${await memberPage(a, true)}</section>`;
   }
-  return heading('Foreninger og ansvarlige') + `<p>${link('Opret forening', adminURL('foreninger', 'ny'), true)}</p>` + listing;
+  return heading('Foreninger') + `<p>${link('Opret forening', adminURL('foreninger', 'ny'), true)}</p>` + listing;
 }
 function editionLabel(e) {
   if (e.start && e.end) return `${dateLabel(e.start)} til ${dateLabel(e.end)}`;
@@ -409,7 +414,7 @@ async function onSubmit(event) {
           const target = returnTarget();
           if (target) { location.assign(target); return; }
           flash = 'Du er logget ind.';
-          location.hash = admin() ? '#teb' : '#arbejdsrum';
+          location.hash = admin() && !memberships().length ? '#teb' : '#min-forening';
           break;
         }
         case 'logout': {
@@ -448,13 +453,13 @@ async function onSubmit(event) {
           const { association } = await api('/admin/associations', { body: { association: data, requestKey: associationRequests.get(fingerprint) } });
           if (typeof association?.id !== 'string' || !association.id.trim()) throw new Error('Oprettelsen kunne ikke bekræftes. Prøv igen. Foreningen kan allerede være gemt.');
           associationRequests.delete(fingerprint);
-          flash = 'Foreningen er oprettet. Tilknyt en ansvarlig nedenfor.';
+          flash = 'Foreningen er oprettet. Invitér en person nedenfor.';
           location.hash = adminURL('foreninger', association.id);
           break;
         }
         case 'invite-member':
         case 'admin-member': {
-          const data = values(form, action === 'admin-member' ? ['email', 'name', 'role'] : ['email', 'name']);
+          const data = values(form, ['email', 'name']);
           if (!window.confirm(`${action === 'admin-member' ? 'Tilknyt' : 'Invitér'} ${data.email} til denne forening?`)) return;
           const path = action === 'admin-member' ? '/admin/associations/' + idPath(form.dataset.id) + '/members' : '/associations/' + idPath(form.dataset.id) + '/invitations';
           const response = await api(path, { body: data });
@@ -573,7 +578,6 @@ async function uploadProfileImage(input) {
 document.addEventListener('submit', onSubmit);
 document.addEventListener('input', event => {
   if (event.target.id === 'association-search') filterDirectory();
-  if (event.target.id === 'own-search') filterOwnContent();
 });
 document.addEventListener('change', event => {
   if (event.target.matches('[data-profile-image]')) { uploadProfileImage(event.target); return; }

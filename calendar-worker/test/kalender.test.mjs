@@ -177,13 +177,13 @@ test('invitation requires the same email and a fresh OTP, with no rights from an
  const oldChallenge=await c.request('member@example.test');await f.invite(a,'member@example.test','editor');
  await ok(await c.verify(oldChallenge));assert.deepEqual((await ok(await c.call('/session'))).memberships,[]);
  const wrong=f.client();await wrong.login('wrong@example.test');assert.deepEqual((await ok(await wrong.call('/session'))).memberships,[]);
- await c.login('member@example.test');assert.equal((await ok(await c.call('/session'))).memberships[0].role,'editor');
+ await c.login('member@example.test');assert.equal((await ok(await c.call('/session'))).memberships[0].role,'manager');
  const invitation=await f.DB.prepare('SELECT * FROM invitations').first();assert.ok(invitation.accepted_at);assert.equal((await c.verify(oldChallenge)).status,401);
 });
-test('manager invitations only grant editor, editors cannot invite, expired invitations do not activate',async t=>{
+test('every member can invite with the same rights, only TEB uses admin routes, expired invitations do not activate',async t=>{
  const f=fixture(t),{a,user}=await f.member();await ok(await user.call('/associations/'+a.id+'/invitations',{data:{email:'editor@example.test',name:'Eksempel',role:'manager'}}));
- const editor=f.client();await editor.login('editor@example.test');assert.equal((await ok(await editor.call('/session'))).memberships[0].role,'editor');
- assert.equal((await editor.call('/associations/'+a.id+'/invitations',{data:{email:'escalate@example.test'}})).status,403);
+ const editor=f.client();await editor.login('editor@example.test');assert.equal((await ok(await editor.call('/session'))).memberships[0].role,'manager');
+ await ok(await editor.call('/associations/'+a.id+'/invitations',{data:{email:'third@example.test'}}));
  assert.equal((await user.call('/admin/associations/'+a.id+'/members',{data:{email:'escalate@example.test',role:'manager'}})).status,403);
  await f.invite(a,'expired@example.test','editor');await f.DB.prepare("UPDATE invitations SET expires_at=? WHERE email='expired@example.test'").bind(new Date(Date.now()-1000).toISOString()).run();const expired=f.client();await expired.login('expired@example.test');assert.deepEqual((await ok(await expired.call('/session'))).memberships,[]);
 });
@@ -193,7 +193,7 @@ test('revocation blocks existing sessions and cannot be undone by stale OTP',asy
  await ok(await user.call('/associations/'+a.id+'/members/'+target.id+'/revoke',{data:{}}));await editor.verify(ch);assert.deepEqual((await ok(await editor.call('/session'))).memberships,[]);
  await f.invite(a,'editor@example.test','editor');assert.deepEqual((await ok(await editor.call('/session'))).memberships,[]);await editor.login('editor@example.test');
  await ok(await user.call('/associations/'+a.id+'/members/'+target.id+'/revoke',{data:{}}));assert.equal((await editor.call('/associations/'+a.id,{data:{association:a,revision:a.revision}})).status,403);
- const own=members.find(m=>m.role==='manager');assert.equal((await user.call('/associations/'+a.id+'/members/'+own.id+'/revoke',{data:{}})).status,403);
+ const own=members.find(m=>m.email==='manager@example.test');assert.equal((await user.call('/associations/'+a.id+'/members/'+own.id+'/revoke',{data:{}})).status,400);
 });
 test('concurrent invitations create one live invitation and one mail',async t=>{
  const f=fixture(t),{a,user}=await f.member(),before=f.messages.length;
@@ -377,10 +377,10 @@ test('migration upgrades a pilot database once without changing original rows',a
 test('production worker never redirects root or exposes assets/site/CMS',async t=>{
  const f=fixture(t);for(const path of ['/','/index.html','/admin/','/api/formular','/fonts/NotoSans-Regular.ttf'])assert.equal((await worker.fetch(new Request(origin+path),f.env)).status,404);assert.equal((await worker.fetch(new Request(origin+'/api/kalender/config'),f.env)).status,200);
 });
-test('TEB role changes revoke old access until a fresh invited-email OTP activates the new role',async t=>{
- const f=fixture(t),{a,user}=await f.member();await ok(await f.admin.call('/admin/associations/'+a.id+'/members',{data:{email:'manager@example.test',name:'Person',role:'editor'}}));
- assert.deepEqual((await ok(await user.call('/session'))).memberships,[]);await user.login('manager@example.test');assert.equal((await ok(await user.call('/session'))).memberships[0].role,'editor');
- assert.equal((await user.call('/associations/'+a.id+'/invitations',{data:{email:'another@example.test'}})).status,403);
+test('inviting someone who already has access keeps their session and sends no mail',async t=>{
+ const f=fixture(t),{a,user}=await f.member(),before=f.messages.length;
+ assert.equal((await ok(await f.admin.call('/admin/associations/'+a.id+'/members',{data:{email:'manager@example.test',name:'Person'}}))).deliveryState,'not_required');
+ assert.equal((await ok(await user.call('/session'))).memberships.length,1);assert.equal(f.messages.length,before);
 });
 test('revoked invitations and superseded OTP messages cannot be retried',async t=>{
  const f=fixture(t);await f.admin.login('admin@example.test');const a=await f.association();f.env.TEB_EMAIL=null;await f.invite(a,'not-sent@example.test','editor');

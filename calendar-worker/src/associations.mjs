@@ -56,7 +56,7 @@ export async function invitationStatements(env,{associationId,email,name,role,g,
  const active=`EXISTS(SELECT 1 FROM memberships WHERE association_id=? AND email=? AND invitation_id=?)`;
  const activeArgs=[associationId,email,id];
  const a=await stmt(env,'SELECT name FROM associations WHERE id=?',associationId).first();
- const job=await mailStatement(env,{dedupe:'invitation:'+id,to:email,subject:'Invitation til '+(a?.name||associationName||'din forening'),text:`Hej ${name||email}\n\nTEB eller foreningens ansvarlige har inviteret dig som ${role==='manager'?'ansvarlig':'redaktør'} for ${a?.name||associationName||'din forening'}.\nÅbn ${env.PUBLIC_ORIGIN}/forening.html og log ind med denne e-mailadresse. Bed om en ny engangskode efter invitationen. Invitationen gælder i syv dage.`,expiresAt:expiry,condition:active,args:activeArgs});
+ const job=await mailStatement(env,{dedupe:'invitation:'+id,to:email,subject:'Invitation til '+(a?.name||associationName||'din forening'),text:`Hej ${name||email}\n\nDu er inviteret til at få adgang til ${a?.name||associationName||'din forening'} på TEBs hjemmeside. Med adgangen kan du oprette arrangementer, rette foreningens side og invitere andre.\nÅbn ${env.PUBLIC_ORIGIN}/forening.html og log ind med denne e-mailadresse. Bed om en ny engangskode efter invitationen. Invitationen gælder i syv dage.`,expiresAt:expiry,condition:active,args:activeArgs});
  return {id,membershipId,statements:[
   stmt(env,`INSERT INTO memberships(id,association_id,email,name,role,status,invited_at,invitation_id) SELECT ?,?,?,?,?,'invited',?,? WHERE ${conditionSql}
   ON CONFLICT(association_id,email) DO UPDATE SET name=excluded.name,role=excluded.role,status='invited',invited_at=excluded.invited_at,invitation_id=excluded.invitation_id,revoked_at=NULL,user_id=NULL,activated_at=NULL
@@ -66,32 +66,31 @@ export async function invitationStatements(env,{associationId,email,name,role,g,
   stmt(env,`INSERT INTO invitations(id,membership_id,email,created_at,expires_at) SELECT ?,id,?,?,? FROM memberships WHERE association_id=? AND email=? AND invitation_id=?`,id,email,stamp,expiry,...activeArgs),job
  ]};
 }
+// Alle med adgang til en forening har de samme rettigheder. Rollen gemmes kun af hensyn til ældre rækker.
 export async function invite(env,auth,associationId,data,adminOnly=false){
- const g=await requireAccess(env,auth,adminOnly?null:associationId,true);
+ const g=await requireAccess(env,auth,adminOnly?null:associationId);
  ensure(await stmt(env,'SELECT id FROM associations WHERE id=?',associationId).first(),404,'Foreningen findes ikke.');
- const email=emailAddress(data.email),name=field(data,'name',150),role=adminOnly?data.role:'editor';
- ensure(['manager','editor'].includes(role),400,'Vælg ansvarlig eller redaktør.');
+ const email=emailAddress(data.email),name=field(data,'name',150),role='manager';
  await rate(env,'invite:'+auth.user.id,30);
  const existing=await stmt(env,'SELECT * FROM memberships WHERE association_id=? AND email=?',associationId,email).first();
- if(existing?.status==='active'&&existing.role===role)return json({saved:true,deliveryState:'not_required'});
- ensure(existing?.status!=='active'||adminOnly,409,'Personen har allerede adgang. Kun TEB kan ændre en ansvarligs rolle.');
- const invitation=await invitationStatements(env,{associationId,email,name,role,g,replaceRole:adminOnly});
+ if(existing?.status==='active')return json({saved:true,deliveryState:'not_required'});
+ const invitation=await invitationStatements(env,{associationId,email,name,role,g});
  const result=await env.DB.batch(invitation.statements);
  if(result[0].meta.changes!==1){
   const row=await stmt(env,`SELECT m.*,i.id AS live_invitation FROM memberships m JOIN invitations i ON i.id=m.invitation_id WHERE m.association_id=? AND m.email=? AND m.status='invited' AND i.revoked_at IS NULL AND i.accepted_at IS NULL AND i.expires_at>?`,associationId,email,now()).first();
-  ensure(row&&row.role===role,409,'Adgangen er allerede ændret. Genindlæs siden.');
+  ensure(row,409,'Adgangen er allerede ændret. Genindlæs siden.');
   return json({saved:true,deliveryState:await mailState(env,'invitation:'+row.live_invitation)});
  }
  await deliverKeys(env,['invitation:'+invitation.id]);
  return json({saved:true,deliveryState:await mailState(env,'invitation:'+invitation.id)});
 }
 export async function revoke(env,auth,associationId,memberId){
- const g=await requireAccess(env,auth,associationId,true),stamp=now();
+ const g=await requireAccess(env,auth,associationId),stamp=now();
  const target=await stmt(env,'SELECT * FROM memberships WHERE id=? AND association_id=?',memberId,associationId).first();
  ensure(target,404,'Medlemmet findes ikke.');
- ensure(auth.user.is_admin||target.role!=='manager',403,'Kun TEB kan fjerne en ansvarlig.');
+ ensure(auth.user.is_admin||target.user_id!==auth.user.id,400,'Du kan ikke fjerne din egen adgang. Bed en anden i foreningen eller TEB om det.');
  const result=await env.DB.batch([
-  stmt(env,`UPDATE memberships SET status='revoked',revoked_at=? WHERE id=? AND association_id=? AND ${g.sql}${auth.user.is_admin?'':" AND role='editor'"}`,stamp,memberId,associationId,...g.args),
+  stmt(env,`UPDATE memberships SET status='revoked',revoked_at=? WHERE id=? AND association_id=? AND ${g.sql}`,stamp,memberId,associationId,...g.args),
   stmt(env,`UPDATE mail_jobs SET state='cancelled',updated_at=? WHERE state IN ('pending','failed') AND dedupe_key IN (SELECT 'invitation:'||i.id FROM invitations i JOIN memberships m ON m.id=i.membership_id WHERE m.id=? AND m.status='revoked')`,stamp,memberId),
   stmt(env,`UPDATE invitations SET revoked_at=? WHERE membership_id=? AND revoked_at IS NULL AND EXISTS(SELECT 1 FROM memberships WHERE id=? AND status='revoked')`,stamp,memberId,memberId)
  ]);

@@ -226,7 +226,9 @@ async function loadEditions() {
 const workspace = $('#calendar-workspace');
 function openWorkspace(title, intro) {
   workspace.hidden = false;
-  workspace.replaceChildren(node('div', {class: 'fp-row'}, node('h2', {tabIndex: -1, id: 'workspace-heading'}, title), node('a', {href: 'kalender.html'}, 'Tilbage til kalenderen')), intro ? node('p', {}, intro) : null);
+  // Rettelser startes fra Min forening, så linket fører tilbage dertil.
+  const back = query.has('ret') ? node('a', {href: 'forening.html#min-forening'}, '← Tilbage til Min forening') : node('a', {href: 'kalender.html'}, 'Tilbage til kalenderen');
+  workspace.replaceChildren(node('div', {class: 'fp-row'}, node('h2', {tabIndex: -1, id: 'workspace-heading'}, title), back), intro ? node('p', {}, intro) : null);
   return workspace;
 }
 function retryWorkspace(title, error, retry) {
@@ -365,7 +367,7 @@ async function memberEdit(id) {
     // A public event cannot supply the private revision needed for an atomic update.
     const result = await api(session.user?.isAdmin ? '/admin/events' : '/me/events');
     const wrapper = result.events.find(event => event.id === id);
-    if (!wrapper) { openWorkspace('Ingen adgang til arrangementet'); workspace.append(node('p', {}, 'Arrangementet findes ikke blandt dem, du kan rette.'), node('a', {href: 'forening.html'}, 'Gå til foreningsområdet')); return; }
+    if (!wrapper) { openWorkspace('Ingen adgang til arrangementet'); workspace.append(node('p', {}, 'Arrangementet findes ikke blandt dem, du kan rette.'), node('a', {href: 'forening.html#min-forening'}, 'Gå til Min forening')); return; }
     const associationId = wrapper.associationId || wrapper.data.associationId || wrapper.published?.associationId || '';
     let associations = (session.memberships || []).map(membership => membership.association).filter(item => item?.id === associationId);
     // Admins may also edit an event submitted by a guest without a linked association.

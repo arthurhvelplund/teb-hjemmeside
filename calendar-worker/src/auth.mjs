@@ -14,13 +14,13 @@ export async function identity(request,env,required=false){
  ensure(!required||user,401,'Log ind med en kode fra din e-mail.');
  return {user,sessionHash};
 }
-export function guard(auth,associationId=null,manager=false){
- const membership=associationId?` OR EXISTS(SELECT 1 FROM memberships m WHERE m.user_id=u.id AND m.association_id=? AND m.status='active'${manager?" AND m.role='manager'":''})`:'';
+export function guard(auth,associationId=null){
+ const membership=associationId?` OR EXISTS(SELECT 1 FROM memberships m WHERE m.user_id=u.id AND m.association_id=? AND m.status='active')`:'';
  return {sql:`EXISTS(SELECT 1 FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.hash=? AND s.expires_at>? AND (u.is_admin=1${membership}))`,args:[auth.sessionHash,now(),...(associationId?[associationId]:[])]};
 }
-export async function requireAccess(env,auth,associationId=null,manager=false){
+export async function requireAccess(env,auth,associationId=null){
  ensure(auth.user,401,'Log ind med en kode fra din e-mail.');
- const g=guard(auth,associationId,manager);
+ const g=guard(auth,associationId);
  ensure(await stmt(env,`SELECT 1 WHERE ${g.sql}`,...g.args).first(),403,'Du har ikke adgang til denne handling.');
  return g;
 }

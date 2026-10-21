@@ -1,27 +1,21 @@
 // Extends the real isolated portal workflow with the current association scope.
 import assert from 'node:assert/strict';
 export async function checkAssociationFlows({member,guest,association,record}) {
- await member.goto('/forening.html#arbejdsrum?forening='+association.id);
+ await member.goto('/forening.html#min-forening?forening='+association.id);
  await member.getByRole('heading',{name:'Jeres arrangementer',exact:true}).waitFor();
+ for(const name of ['Jeres side','Personer med adgang'])await member.getByRole('heading',{name,exact:true}).waitFor();
  assert.equal(await member.getByRole('link',{name:/Skriv.*nyhed/}).count(),0);
- assert.equal(await member.locator('#own-kind, .fa-owned-row[data-kind=news]').count(),0);
- await member.locator('#own-search').fill('Ingen match');await member.locator('#own-no-match').waitFor();
- await member.locator('#own-search').fill('');
- assert.equal(await member.locator('#own-no-match').isVisible(),false);
- record('Owner workspace contains calendar events and search without news creation or a content-type filter');
+ assert.equal(await member.locator('.mf-events li').filter({hasText:'Foreningens direkte arrangement'}).count(),1);
+ record('Min forening shows events, the public page and people with access on one page without news creation');
  await guest.goto('/nyt.html');await guest.locator('#nyheder-heading').waitFor();
  assert.equal(await guest.locator('#association-news-feed, #foreningsnyt-heading, a[href*="#skriv"]').count(),0);
  assert.ok(await guest.getByRole('link',{name:/Tistrup Nyt/}).count());
  record('Det sker has no association-news feed or creation links and retains the local media links');
- for(const page of [member,guest]){
-  await page.goto('/forening.html#skriv?forening='+association.id);
-  await page.waitForURL('**/kalender.html?opret=1');await page.locator('#ec-form').waitFor();
-  assert.equal(await page.locator('#news-editor-form').count(),0);
- }
- record('Previous news-creation bookmarks lead members and guests to event creation');
+ for(const path of ['/foreningsportal.html','/mit-arrangement.html','/kalender-redaktion.html'])assert.equal((await guest.request.get(path)).status(),404,path);
+ record('Old redirect pages are removed');
  for(const width of [390,320]){
   await member.setViewportSize({width,height:844});await guest.setViewportSize({width,height:844});
-  await member.goto('/forening.html#arbejdsrum?forening='+association.id);await member.locator('#own-search').waitFor();
+  await member.goto('/forening.html#min-forening?forening='+association.id);await member.locator('.mf-events').waitFor();
   assert.equal(await member.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'owner workspace at '+width);
   await guest.goto('/forening.html?id='+association.id);await guest.locator('.fa-public-identity').waitFor();
   assert.equal(await guest.locator('.fa-public-news').count(),0);

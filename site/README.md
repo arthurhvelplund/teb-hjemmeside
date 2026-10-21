@@ -60,11 +60,14 @@ portal eller en offentlig deployment.
 
 ## Arbejdsgange
 
-TEB godkender første foreningsansvarlige. Ansvarlige kan invitere redaktører.
-Godkendte foreningsbrugere kan rette egen profil og udgive egne arrangementer.
-Gæsteopslag, gæsterettelser og gæsteaflysninger kræver TEB. En ventende rettelse
-bevarer den offentlige version. TEBs arbejdsområde ligger på Forening efter
-login. Det eksisterende `/admin/` er fortsat hjemmesidens eget CMS.
+Der er to roller: forening og TEB. TEB godkender den første person i en forening.
+Alle med adgang til en forening har de samme rettigheder: de kan oprette og rette
+arrangementer, rette foreningens side og invitere eller fjerne andre (ikke sig selv).
+Alt for foreningen ligger på én side, Min forening (`forening.html#min-forening`),
+som man når fra Log ind på Foreninger. Gæster kan stadig oprette uden login og
+rette via det private link. Gæsteopslag, gæsterettelser og gæsteaflysninger kræver
+TEB. En ventende rettelse bevarer den offentlige version. TEBs område ligger på
+`forening.html#teb`. Det eksisterende `/admin/` er fortsat hjemmesidens eget CMS.
 
 Print dannes fra offentliggørelseshistorikken ved den valgte frist.
 En udgivet datakopi og PDF-fil gemmes fast. Fremtidige ændringer ændrer kun
