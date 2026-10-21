@@ -27,6 +27,22 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Medlemsafsnit under Facebook på forsiden den 21. oktober 2026
+
+Kodecommit: `7c71333af48a2419b7a0360b2d9b81f039d88d2a` på `main`.
+
+- Sammen gør vi Tistrup endnu bedre/Bliv medlem er flyttet direkte efter
+  Facebook-afsnittet, før den fælles sidefod. Sektionens HTML, tekst,
+  knapper og design er bevaret; kun rækkefølgen er ændret.
+- Kontrol: fælles layout og assetversioner, layoutkontrol på 16 sider og
+  `git diff --check` består. Live-DOM bekræfter én medlemssektion direkte
+  efter `#facebook`; Facebook-opslagene vises over den, og begge knappers
+  links er bevaret (`bliv-medlem.html` og `kontakt.html`).
+- Udgivet i GitHub Actions `39672204443`, job `119472716915`, med succes.
+  Backend og formular-Worker er uændrede. Afleveret på GitHub `main` og i
+  trådens isolerede arbejdskopi; brugerens Projects-pilot er ikke opdateret.
+  Ingen udeståender for ændringen.
+
 ## Tydelig adgang til delingsmuligheder den 21. oktober 2026
 
 Designcommit: `3f908cafe712cea870e9803fe89ee8aad4cc8134`. Endelig placering:
