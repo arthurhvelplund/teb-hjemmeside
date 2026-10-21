@@ -27,6 +27,26 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Hele logoer i foreningernes billedvisning den 21. oktober 2026
+
+Kodecommit: `71519d52674649bae2c5f85aeb79328450c0527c` på `main`.
+
+- Billedvisningens kort viser nu hele billedet centreret i et ensartet
+  180 px felt med hvid baggrund og 16 px luft. Billedernes proportioner
+  bevares, og små originaler bliver ikke forstørret. Manglende billeder
+  beholder initialer på den eksisterende baggrund.
+- Rettelsen er afgrænset til oversigtens Billede-visning. Listevisning,
+  foreningsprofiler, uploads og data er uændrede.
+- Kontrol: layout og assetversioner på 16 sider samt `git diff --check`
+  består. Livekontrol af HTS Fodbold, THGU, Tistrup Boldklub, TEBs trolde
+  og Tistrup Filmklub bekræfter hele logoer uden beskæring. THGUs original
+  på 160 × 80 px vises ved 160 × 80; de større logoer skaleres proportionalt
+  ned til billedfeltet.
+- Udgivet i GitHub Actions `39673147854`, job `119475980335`, med succes.
+  Kun hjemmesiden er udgivet. Afleveret på GitHub `main` og i trådens
+  isolerede arbejdskopi; brugerens Projects-pilot er ikke opdateret.
+  Ingen udeståender for denne ændring.
+
 ## Medlemsafsnit under Facebook på forsiden den 21. oktober 2026
 
 Kodecommit: `7c71333af48a2419b7a0360b2d9b81f039d88d2a` på `main`.
