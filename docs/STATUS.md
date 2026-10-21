@@ -27,6 +27,26 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Tydelig adgang til delingsmuligheder den 21. oktober 2026
+
+Kodecommit: `3f908cafe712cea870e9803fe89ee8aad4cc8134` på `main`.
+
+- Flyttet Vil I dele flere steder? fra bunden til over kalenderen, lige under
+  sidens titel. Mørkegrøn boks, megafonikon, større overskrift og lys knap
+  Se alle delingsmuligheder gør indgangen tydelig.
+- Linker fortsat til den eksisterende infoside med alle seks muligheder.
+  Ved mindre skærme flyttes knappen til næste række og fylder boksens bredde
+  under 600 px. Tastaturfokus har en tydelig markering.
+- Kontrol: fælles layout og assetversioner samt layoutkontrol på 16 sider og
+  `git diff --check` består. Liveknappen åbner `/del-arrangement`; tilbage-linket
+  åbner kalenderen, hvor arrangementerne fortsat indlæses. Ingen vandret
+  overflow ved browserens kontrollerede bredde på 1363 px.
+- Udgivet gennem GitHub Actions `39670990685`, job `119468497672`, med succes.
+  Kun hjemmesiden blev udgivet; backend- og formulartrinnene blev sprunget over.
+- Afleveringssted: GitHub `main` og denne tråds isolerede arbejdskopi
+  `/workspace/scratch/45b6135496c5/teb-calendar-local-filter`. Projects-piloten
+  på brugerens computer er ikke opdateret. Ingen udeståender for ændringen.
+
 ## Filter for Hodde og Tistrup den 21. oktober 2026
 
 Kodecommit: `afb22584f5e2fd34463d93533a6097ce91d24954` på `main`.
