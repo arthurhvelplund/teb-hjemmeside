@@ -27,6 +27,34 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Husstandsomdeling 2026–2027 den 21. oktober 2026
+
+- Kodecommit: `ffa9bf36474ebf64e0ab0c0bbd61b4a05cee1d87` på `main`.
+- På Del jeres arrangement står omdelingsuger og afleveringsfrister nu
+  synligt i Husstandsomdeling uden at åbne en foldud. Frist: senest fredagen
+  før omdelingsugen. Kirsten Thorhauge og afleveringssted fremhæves særskilt.
+- Uger oplyst af brugeren: 2026 uge 44; 2027 uge 6, 15 (kun kontingent),
+  24, 34 og 44. Fire ordinære omdelinger og den ekstra kontingentomdeling
+  forklares, så uge 15 ikke fremstår som en almindelig omdeling.
+- Beregnede fredagsfrister: 23. oktober 2026; 5. februar, 9. april,
+  11. juni, 20. august og 29. oktober 2027. Omdelingsugernes
+  mandag–søndag-datoer står sammen med ugenumrene.
+- Kirstens afleveringssted, Diget 4, 6862 Tistrup, er fundet i den offentlige,
+  søgeindekserede omtale af netop omdelingsordningen:
+  https://www.tistrupnews.dk/nyheder/nemt-billigt-og-saerdeles-effektivt
+  Artiklen knytter navnet og adressen direkte til aflevering af flyers.
+  Direkte hentning af artiklen gav timeout; søgeresultatet indeholdt den
+  relevante sætning. Ingen telefonbogsoplysninger er kopieret til siden.
+  Pris, antal og materialekrav er ikke bekræftet og henvises til TEB.
+- Kontrol: alle seks ISO-uger og fredagen før hver uge verificeret med
+  datetime; markeringen Kun kontingent og modtager/adresse kontrolleret.
+  Synkronisering, fælles layout på 16 sider og git diff --check består.
+  Live-DOM og skærmbillede viser alle datoer og adressen; ingen tabelceller
+  har vandret overløb i desktopvisningen. Mobil er ikke manuelt afprøvet.
+- Udgivet med succes i GitHub Actions `39677759634`, job `119491958976`.
+  Afleveret på GitHub main og i trådens isolerede arbejdskopi;
+  brugerens Projects-pilot er ikke opdateret.
+
 ## Hele arrangementsbilleder i kalenderoversigten den 21. oktober 2026
 
 - Kodecommit: `32df925ecb8504265a7e160c3509aebd7bb00904` på `main`.
