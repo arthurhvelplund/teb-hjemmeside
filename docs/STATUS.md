@@ -42,14 +42,21 @@ Kodecommit: `afb22584f5e2fd34463d93533a6097ce91d24954` på `main`.
 - Kontrol: 85 backendtests, Cloudflare dry-run og fælles layout på 16 sider
   består. De tre nye regressionstests dækker brødtekst efter metadataudsnittet,
   cacheopgradering/driftsfejl og de to kilders forskellige artikelstrukturer.
-- Udgivelse er forsøgt i GitHub Actions-kørsel `39658461758`. Alle 85 tests
-  består også dér, men Cloudflare afviser adgang til `teb-kalender-api` med
-  `No access to the specified service`. Filteret er derfor endnu ikke aktivt
-  i produktion. Den eksisterende kalender fortsætter på den tidligere Worker.
-- Udestår: Ret GitHubs `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`, så
-  forbindelsen har adgang til den TEB-konto, der ejer kalender-Workeren.
-  Genkør derefter den fejlede kørsel og kontrollér begge kilde-endpoints samt
-  Byens kalender. Workflowet tester og udgiver nu kalender-ændringer særskilt.
+- Udgivet i produktion 21. oktober kl. 20.24 UTC i GitHub Actions-kørsel
+  `39658461758`, forsøg 2, job `119464731363`. Alle 85 backendtests og
+  layoutkontrollen består. Kalender-Worker og Cloudflare Pages er udgivet.
+  Worker-version: `9c269cc2-d146-4ae3-80bd-0971f0fd037e`.
+- Første forsøg blev afvist af Cloudflare. Brugeren tilføjede manuelt
+  Workers Scripts Edit samt Workers Routes Edit og Zone Read for
+  `teb-tistrup.dk` til den eksisterende TEB GitHub Pages-token; Pages-adgangen
+  blev bevaret. Den samme GitHub-kørsel lykkedes derefter uden kodeændringer.
+  Ingen credentials er kopieret til repoet.
+- Livekontrol: Begge kilde-endpoints svarer friske data (`stale:false`).
+  Tistrup Nyt har 49 arrangementer mod tidligere 50; Pulsen i Vest har 4 mod
+  tidligere 6. Ølgod Kulturdage og HTS/Horne-kampen er væk fra kilderne.
+  Byens kalender viser fortsat fællesmødet den 22. oktober, indoor cycling,
+  Tistrup Cykelmotion og gudstjenesten i Hodde. Den 23. oktober vises
+  Intet planlagt. Ingen udeståender for dette filter.
 - Afleveringssted for denne tråd: GitHub `main`; isoleret arbejdskopi
   `/workspace/scratch/45b6135496c5/teb-calendar-local-filter`. Den lokale
   Projects-pilot på brugerens computer er ikke opdateret af denne tråd.
