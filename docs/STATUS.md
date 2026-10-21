@@ -27,6 +27,22 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Sammenfoldet husstandsomdeling den 21. oktober 2026
+
+- Kodecommit: `0e06f6c46d973250f57a019e22ea85812049015a` på `main`.
+- Husstandsomdeling starter nu lukket med Se hvordan ligesom de øvrige
+  delingsmuligheder. Ét klik viser afleveringssted, frister, begge årstabeller
+  og praktiske oplysninger. Der er ingen ekstra indre foldud.
+- Begge tabellers HTML er kontrolleret identisk før og efter rettelsen:
+  uge- og datoopsætning, fredagsfrister og Kun kontingent er bevaret.
+  CSS er uændret. Layoutkontrol på 16 sider og git diff --check består.
+- Livekontrol: lukket ved indlæsning; klik åbner begge tabeller og alle seks
+  datoer; klik lukker igen. Skærmbillede viser samme kompakte kortoversigt
+  som de andre muligheder. Ingen udeståender for denne rettelse.
+- Udgivet med succes i GitHub Actions `39678578933`, job `119494786999`.
+  Afleveret på GitHub main og i trådens isolerede arbejdskopi;
+  brugerens Projects-pilot er ikke opdateret.
+
 ## Husstandsomdeling 2026–2027 den 21. oktober 2026
 
 - Kodecommit: `ffa9bf36474ebf64e0ab0c0bbd61b4a05cee1d87` på `main`.
