@@ -1,6 +1,6 @@
 # Samlet status for TEB hjemmesiden
 
-Opdateret 20. oktober 2026. Dette er projektets fælles status og afleveringssted.
+Opdateret 21. oktober 2026. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
 
 ## Det fælles arbejdssted
@@ -22,10 +22,40 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Kalender | Nyt uge/månedsoverblik, kommende arrangementer, kildesammenlægning og billeder gemt i `ce5272b`. Teknisk samlet. Visuelt design afventer nyt valg. |
 | Opret arrangement | Fælles popup med billedupload og kalender/print-preview. Kun ønske om den trykte kalender kan vælges. Øvrige delingsmuligheder findes på den selvstændige infoside. |
 | Foreninger | 24 importerede udkast, 18 med billede/logo. Direkte valg mellem Billede og Liste, søgning og intet interessefilter. |
-| Login og adgang | Lokal mailkode, profil og adgangsstyring samlet i pilotens `4209e48`. Ingen rigtig mail. |
+| Login og adgang | Lokal mailkode. Én foreningsrolle og én side, Min forening, fra `8b028f7`. Ingen rigtig mail. |
 | Foreningsprofil og ejerens side | Kompakt offentlig profil og ejerens arrangementer. Nyhedsoprettelse og foreningsnyheder er taget ud af brugerflowet efter brugerens ønske 20. oktober. Den fælles TEB-kø og historiske data er bevaret. |
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Ny portal er ikke lanceret. Database, fillager, afsender, administratorer og staging skal stadig opsættes og afprøves. |
+
+## Min forening og én rolle den 21. oktober 2026
+
+Kodecommit: `8b028f7` på `local/teb-pilot-ready`.
+
+Brugeren fandt foreningslogin forvirrende. Det er forenklet efter en skitse,
+som brugeren har godkendt. Det overordnede princip er det samme som før: Alt ligger
+på Foreninger. Man logger ind dér, og der er intet nyt punkt i hovedmenuen.
+
+- To roller: forening og TEB. Forskellen på foreningsansvarlig og redaktør
+  er fjernet i backend og brugerflade. Alle aktive medlemmer kan invitere og
+  fjerne andre, men ikke sig selv. Nye invitationer gemmes som `manager`.
+  Gamle `editor`-rækker har fået de samme rettigheder. Databaseskemaet er uændret.
+- `forening.html#min-forening` samler foreningens arrangementer med status,
+  foreningens side med Ret, og personer med adgang med invitation. Menuen
+  "Mere", fanen `personer` og søgningen i egne arrangementer er fjernet.
+  `#arbejdsrum` og `#adgang` åbner stadig samme side.
+- Logget ind uden forening: anmodningen om adgang ligger direkte på Min forening.
+- Opret arrangement åbner fortsat popup'en på stedet. Ret åbner fortsat
+  kalenderens retteside, som nu linker tilbage til Min forening.
+- Gæster kan stadig oprette uden login og rette via det private link.
+- Fjernet: `foreningsportal.html`, `mit-arrangement.html`, `kalender-redaktion.html`,
+  `js/portal-redirect.js` og ruterne `#skriv` og `#opslag`. Nyhedsbackend,
+  TEB-køen for ældre opslag, `site/admin/` og `nyt-eksperiment.html` er ikke ændret.
+
+Kontroller: 81 backendtests, 37 portalforløb, 8 kalenderforløb og fælles layout
+på 16 sider. Alle er bestået med isolerede prøvedata.
+[Kontrolresultater](status/min-forening-2026-10-21.json).
+Lokalt preview på port 8790 med en kopi af pilotens data i
+`calendar-worker/.wrangler/local-min-forening/`. Pilotdata i `local-pilot` er urørt.
 
 ## Deling flyttet til infoside den 20. oktober 2026
 
