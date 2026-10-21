@@ -27,6 +27,33 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Billeder ved rettelse af eksisterende arrangementer den 21. oktober 2026
+
+Kodecommit: `1afaafb03938856a2a91022eba702f97415b9bc9` på `main`.
+
+- Årsagen var, at den ældre eventForm i kalenderens retteforløb helt manglede
+  billedkontrol. Backend understøttede allerede imageUrl. Formularen har nu
+  valg, privat forhåndsvisning, udskiftning og fjernelse af et billede.
+  Den genbruger oprettelsesformularens validering og WebP-klargøring.
+- Billedet uploades ved Gem, inden rettelsen sendes. Fejler upload, sendes
+  rettelsen ikke uden billedet. En eksisterende billedsti bevares ved
+  almindelige tekstrettelser; eksplicit fjernelse sender tom billedsti.
+  Ved et usikkert gemmeforsøg genbruges samme payload og uploadede billedsti.
+- Reproduktion: `node scripts/calendar-edit-image-check.mjs` fejlede før
+  rettelsen med Ret arrangement skal have et felt til at vælge et billede.
+  Samme kontrol består nu med fem forløb: tilføjelse til et eksisterende
+  arrangement uden billede, bevarelse/fjernelse, genforsøg, ugyldigt filvalg
+  og afvist upload. Kontrollen kører den rigtige eventForm med en lille
+  DOM-adapter og simuleret billedklargøring/upload; den er ikke en browsertest.
+- Øvrig kontrol: 85 backendtests, syntakskontrol af de to JavaScript-moduler,
+  fælles layout/assetversioner på 16 sider og `git diff --check` består.
+  Den offentlige kalender indlæses efter liveopdateringen. Det konkrete
+  brugerarrangement er ikke ændret, og upload under brugerens login er
+  ikke manuelt afprøvet i produktion.
+- Udgivet i GitHub Actions `39675825394`, job `119485277660`, med succes.
+  Kun hjemmesiden er udgivet. Afleveret på GitHub `main` og i trådens
+  isolerede arbejdskopi; brugerens Projects-pilot er ikke opdateret.
+
 ## Hele logoer i foreningernes billedvisning den 21. oktober 2026
 
 Kodecommit: `71519d52674649bae2c5f85aeb79328450c0527c` på `main`.
