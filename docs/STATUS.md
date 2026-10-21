@@ -1,6 +1,6 @@
 # Samlet status for TEB hjemmesiden
 
-Opdateret 21. oktober 2026. Dette er projektets fælles status og afleveringssted.
+Opdateret 21. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
 
 ## Det fælles arbejdssted
@@ -25,11 +25,29 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Login og adgang | Lokal mailkode. Én foreningsrolle og én side, Min forening, fra `8b028f7`. Ingen rigtig mail. |
 | Foreningsprofil og ejerens side | Kompakt offentlig profil og ejerens arrangementer. Nyhedsoprettelse og foreningsnyheder er taget ud af brugerflowet efter brugerens ønske 20. oktober. Den fælles TEB-kø og historiske data er bevaret. |
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
-| Staging og produktion | Testversion kører på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). Produktion er ikke lanceret. |
+| Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
+
+## Lancering på teb-tistrup.dk den 21. oktober 2026
+
+Commit: `576b34f`. Udgivet ved at fast-forwarde `main` til `local/teb-pilot-ready`.
+
+- Worker `teb-kalender-api` har to routes: `teb-tistrup.dk/api/kalender*` og `www.teb-tistrup.dk/*`.
+  Den anden sender www videre til teb-tistrup.dk med 301 (`REDIRECT_HOST`), så login,
+  formularen og cookies kun findes ét sted. `PUBLIC_ORIGIN` er https://teb-tistrup.dk.
+  `teb-formular` og `/api/formular*` er uændrede.
+- D1 `teb-kalender-production` har migreringerne 0001–0007. R2 er `teb-kalender-production-pdfs`.
+  Secrets: `MAIL_ENCRYPTION_KEY`, `EDITOR_EMAIL` og `TEB_ADMIN_EMAILS`.
+- 25 foreninger er indlæst. afhvelplund@gmail.com er TEB-administrator og aktivt medlem af
+  "Tistrup Erhvervs- og Borgerforening · TEB". Brugeren blev oprettet direkte i D1.
+  Ingen testdata, øvekonti eller lokale data er overført.
+- Kontrol: 82 backendtests og Cloudflare-runtimecheck er bestået. Live-config svarer
+  `submissionsEnabled:true`. www giver 301, og `/api/formular/config` giver 200.
+- Rulles tilbage med `wrangler rollback` for Workeren og forrige Pages-deployment.
+  Databasen indeholder kun de indlæste foreninger og nye indsendelser.
 
 ## Testversion på test.teb-tistrup.dk den 21. oktober 2026
 
-Commits: `4e9a32e`, `b08f8b4` og `6ea6d21` på `local/teb-pilot-ready`.
+Commits: `37bad2b`, `d463881` og `133d2ac` på `local/teb-pilot-ready`.
 
 - Cloudflare-kontoen er afhvelplund@gmail.com's Account (`53e63615…`). Zonen teb-tistrup.dk og
   Pages-projektet `teb-tistrup` ligger der. Mailafsendelse er slået til for domænet.
