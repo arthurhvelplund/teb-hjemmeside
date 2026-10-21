@@ -114,3 +114,56 @@ test('an image used by many articles is treated as the site logo', async () => {
   const [event] = withArticleDetails([{ url: 'https://tistrupnyt.dk/cid/1/a', description: 'Tekst' }], details);
   assert.equal(event.image, null); assert.equal(event.description, 'Tekst');
 });
+
+test('local calendar keeps either town in titles, summaries, locations or the full event text', async () => {
+  const events = [
+    {id:'title', title:'TISTRUP Cykelmotion'},
+    {id:'summary', title:'Indoor cycling', description:'TRIM Tistrup, kl. 8–12'},
+    {id:'location', title:'Fællesspisning', location:'Hodde Forsamlingshus'},
+    {id:'body', title:'Musikaften'},
+    {id:'outside', title:'Koncert i Ølgod', description:'Kulturhuset i Ølgod'},
+    {id:'footer', title:'Fodbold', description:'Spillested Horne Stadion'},
+    {id:'partial', title:'Foredrag i Hodderup'},
+  ].map(event => ({description:'', ...event, date:'2026-10-24', url:'https://tistrupnyt.dk/cid/123/' + event.id}));
+  const article = (title, body) => htmlResponse(`<nav>Tistrup Hodde</nav><meta name="description" content="Tistrup Nyt dækker området"><div class="event"><div class="newsfullpicture">Tistrup Foto:</div><div class="text"><h1>${title}</h1><div class="event_content">${body}</div></div><div class="event_tags">Hodde Tistrup</div></div><aside>Tistrup kirke</aside><footer>Hodde</footer>`);
+  const service = createNewsService({localOnly:true, articleDetails:true, parser:() => ({events}), fetcher:async url => {
+    if (url.endsWith('/lokal')) return htmlResponse('calendar');
+    const event = events.find(event => event.url === url);
+    // The only locality mention can occur beyond the metadata/teaser length.
+    return article(event.title, event.id === 'body' ? '<p>' + 'Program og praktisk information. '.repeat(40) + '</p><p>Vi mødes i <strong>Hodde</strong>.</p>' : '<p>Program og tilmelding.</p><script>Tistrup</script>');
+  }});
+  const result = await service(localR2());
+  assert.deepEqual(result.events.map(event => event.id), ['title','summary','location','body']);
+  assert.ok(result.events.every(event => !('localityMatch' in event)));
+});
+
+test('existing caches are checked immediately and never restore unrelated events during an outage', async () => {
+  const bucket = localR2(), stamp = Date.parse('2026-10-21T12:00:00Z');
+  const events = [{id:'body',title:'Fællesspisning'}, {id:'outside',title:'Koncert i Ølgod'}]
+    .map(event => ({...event,description:'',date:'2026-10-24',url:'https://tistrupnyt.dk/cid/123/'+event.id}));
+  await bucket.put('calendar-sources/tistrup-nyt-v2.json', new TextEncoder().encode(JSON.stringify({version:2,events,
+    details:Object.fromEntries(events.map(event => [event.url,{image:null,description:'',checkedAt:stamp}])),
+    fetchedAt:new Date(stamp).toISOString(),nextCheckAt:stamp+NEWS_TTL,failed:false})));
+  let calls = 0, now = stamp;
+  const service = createNewsService({localOnly:true,articleDetails:true,clock:()=>now,parser:()=>({events}),fetcher:async url => {
+    calls++;
+    return htmlResponse(url.endsWith('/body') ? '<div class="event"><div class="text"><h1>Fællesspisning</h1><p>Hodde Forsamlingshus</p></div></div>' : '<div class="event"><div class="text"><h1>Koncert i Ølgod</h1></div></div>');
+  }});
+  const first = await service(bucket);
+  assert.deepEqual(first.events.map(event=>event.id),['body']); assert.equal(calls,3);
+  now += NEWS_TTL;
+  const restarted = createNewsService({localOnly:true,articleDetails:true,clock:()=>now,fetcher:async()=>{throw Error('Offline');}});
+  const stale = await restarted(bucket);
+  assert.equal(stale.stale,true); assert.deepEqual(stale.events,first.events);
+});
+
+test('the other media source uses the same local rule and reads its own article layout', async () => {
+  const source={id:'pulsen',name:'Pulsen i Vest',url:'https://pulsenivest.dk/by/tistrup'};
+  const events=[{id:'local',title:'Musikaften'},{id:'outside',title:'Arrangement i Ølgod Kulturdage'}]
+    .map(event=>({...event,date:'2026-10-24',description:'',url:'https://pulsenivest.dk/event/'+event.id}));
+  const service=createNewsService({source,localOnly:true,articleDetails:true,parser:()=>({events}),fetcher:async url=>htmlResponse(
+    '<header>Tistrup Hodde</header><article class="event-detail"><h1>Musikaften</h1><p>'+
+    (url.endsWith('/local')?'Vi mødes i Tistrup.':'Dagens program i Ølgod.')+'</p></article><footer>Tistrup</footer>')});
+  const result=await service(localR2());
+  assert.deepEqual(result.events.map(event=>event.id),['local']); assert.deepEqual(result.source,source);
+});

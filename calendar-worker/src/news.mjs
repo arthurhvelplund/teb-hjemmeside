@@ -7,6 +7,9 @@ export const NEWS_TTL = 60 * 60 * 1000;
 const RETRY_DELAY = 5 * 60 * 1000;
 const MAX_BYTES = 2 * 1024 * 1024;
 const clean = (text, max) => text.replace(/[\u0000-\u001f\u007f\s]+/g, ' ').trim().slice(0, max);
+const mentionsLocalArea = text => /(?:^|[^\p{L}\p{N}])(?:tistrup|hodde)s?(?=$|[^\p{L}\p{N}])/iu.test(String(text || '').normalize('NFKC'));
+const localEvent = event => ['title', 'description', 'summary', 'body', 'location'].some(key => mentionsLocalArea(event[key]));
+const articleText = node => node.type === 'text' ? node.data : (node.children || []).map(articleText).join(' ');
 
 function sourceUrl(value) {
   try {
@@ -85,10 +88,17 @@ function articleImage(value, base) {
   } catch { return null; }
 }
 export function parseArticle(html, base) {
-  const metas = DomUtils.getElementsByTagName('meta', parseDocument(html));
+  const document = parseDocument(html);
+  for (const name of ['script', 'style', 'noscript', 'template']) for (const node of DomUtils.getElementsByTagName(name, document)) DomUtils.removeElement(node);
+  const metas = DomUtils.getElementsByTagName('meta', document);
   const meta = name => metas.find(m => m.attribs.property === name || m.attribs.name === name)?.attribs.content || '';
   const description = clean(meta('og:description') || meta('description'), 600);
-  return { image: articleImage(meta('og:image'), base), description: /\p{L}{3}/u.test(description) ? description : '' };
+  // Source pages repeat town names in menus, image credits, tags and other events.
+  // Only the event's own heading/subheading/body can supply a locality match.
+  const event = DomUtils.findOne(node => hasClass(node, 'event') && DomUtils.getElementsByTagName('h1', node).length > 0, document.children, true);
+  const content = (event && byClass(event, 'text')) || DomUtils.findOne(node => node.name === 'article' && hasClass(node, 'event-detail'), document.children, true);
+  return { image: articleImage(meta('og:image'), base), description: /\p{L}{3}/u.test(description) ? description : '',
+    localityChecked: true, localityMatch: Boolean(content && mentionsLocalArea(articleText(content))) };
 }
 // An image shared by several articles is the site's logo, not a picture of the event.
 export function withArticleDetails(events, details = {}) {
@@ -103,14 +113,14 @@ export function withArticleDetails(events, details = {}) {
   });
 }
 
-export function createNewsService({ fetcher = fetch, clock = () => Date.now(), source = SOURCE, parser = parseTistrupNews, articleDetails = false } = {}) {
+export function createNewsService({ fetcher = fetch, clock = () => Date.now(), source = SOURCE, parser = parseTistrupNews, articleDetails = false, localOnly = false } = {}) {
   const cacheKey = source.id === SOURCE.id ? CACHE_KEY : `calendar-sources/${source.id}-v2.json`;
   const pending = new WeakMap();
   const request = { headers: { Accept: 'text/html', 'User-Agent': 'TEB-Tistrup-Calendar/2.0 (+https://www.teb-tistrup.dk/)' }, redirect: 'manual' };
   async function refreshDetails(events, previous, now) {
     const urls = [...new Set(events.map(event => event.url))];
     const details = Object.fromEntries(urls.filter(url => previous[url]).map(url => [url, previous[url]]));
-    const due = urls.filter(url => !details[url] || now - details[url].checkedAt >= (details[url].failed ? ARTICLE_RETRY : ARTICLE_TTL)).slice(0, ARTICLE_BATCH);
+    const due = urls.filter(url => !details[url] || (localOnly && !details[url].localityChecked && !details[url].failed) || now - details[url].checkedAt >= (details[url].failed ? ARTICLE_RETRY : ARTICLE_TTL)).slice(0, ARTICLE_BATCH);
     for (let i = 0; i < due.length; i += ARTICLE_PARALLEL) await Promise.all(due.slice(i, i + ARTICLE_PARALLEL).map(async url => {
       try {
         const response = await fetcher(url, { ...request, signal: AbortSignal.timeout(8000) });
@@ -128,7 +138,7 @@ export function createNewsService({ fetcher = fetch, clock = () => Date.now(), s
       catch { /* Replace a corrupt cache with a fresh source response. */ }
     }
     if (cached?.version !== 2 || !Array.isArray(cached.events)) cached = null;
-    if (cached && now < cached.nextCheckAt) return result(cached, now);
+    if (cached && now < cached.nextCheckAt && (!localOnly || cached.localityVersion === 1)) return result(cached, now);
     let record;
     try {
       const response = await fetcher(source.url, { ...request, signal: AbortSignal.timeout(12000) });
@@ -137,10 +147,10 @@ export function createNewsService({ fetcher = fetch, clock = () => Date.now(), s
       const items = []; // Only calendar events are cached or returned.
       const details = articleDetails ? await refreshDetails(events, cached?.details || {}, now) : {};
       // Large first imports are read in batches a few minutes apart.
-      const unread = articleDetails && events.some(event => !details[event.url]);
-      record = { version: 2, items, events, details, fetchedAt: new Date(now).toISOString(), nextCheckAt: now + (unread ? RETRY_DELAY : NEWS_TTL), failed: false };
+      const unread = articleDetails && events.some(event => !details[event.url] || (localOnly && !details[event.url].localityChecked && !details[event.url].failed));
+      record = { version: 2, localityVersion: 1, items, events, details, fetchedAt: new Date(now).toISOString(), nextCheckAt: now + (unread ? RETRY_DELAY : NEWS_TTL), failed: false };
     } catch {
-      record = { version: 2, items: cached?.items || [], events: cached?.events || [], details: cached?.details || {}, fetchedAt: cached?.fetchedAt || null,
+      record = { version: 2, localityVersion: 1, items: cached?.items || [], events: cached?.events || [], details: cached?.details || {}, fetchedAt: cached?.fetchedAt || null,
         nextCheckAt: now + RETRY_DELAY, failed: true };
     }
     await bucket.put(cacheKey, new TextEncoder().encode(JSON.stringify(record)), {
@@ -149,7 +159,8 @@ export function createNewsService({ fetcher = fetch, clock = () => Date.now(), s
     return result(record, now);
   }
   function result(record, now) {
-    return { source, items: [], events: withArticleDetails(record.events || [], record.details), fetchedAt: record.fetchedAt,
+    const events = (record.events || []).filter(event => !localOnly || localEvent(event) || record.details?.[event.url]?.localityMatch === true);
+    return { source, items: [], events: withArticleDetails(events, record.details), fetchedAt: record.fetchedAt,
       stale: record.failed || now - Date.parse(record.fetchedAt) >= NEWS_TTL,
       nextCheckAt: new Date(record.nextCheckAt).toISOString() };
   }
@@ -162,7 +173,7 @@ export function createNewsService({ fetcher = fetch, clock = () => Date.now(), s
   };
 }
 
-const news = createNewsService({ articleDetails: true });
+const news = createNewsService({ articleDetails: true, localOnly: true });
 const pulsenSource = {id:'pulsen',name:'Pulsen i Vest',url:'https://pulsenivest.dk/by/tistrup'};
 const hasClass = (node,name) => (node.attribs?.class||'').split(/\s+/).includes(name);
 const byClass = (node,name) => DomUtils.findOne(n=>hasClass(n,name),node.children||[],true);
@@ -194,7 +205,7 @@ export function parsePulsen(html){
  if(!events.length && !byClass(document,'city-events-grid'))throw new Error('No source calendar found');
  return {items,events:events.slice(0,60)};
 }
-const pulsen = createNewsService({source:pulsenSource,parser:parsePulsen,articleDetails:true});
+const pulsen = createNewsService({source:pulsenSource,parser:parsePulsen,articleDetails:true,localOnly:true});
 export async function handleNews(request, env, sourceId = 'tistrup-nyt') {
   const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
   if (request.method !== 'GET') return Response.json({ error: 'Denne handling er ikke tilladt.' }, { status: 405, headers: { ...headers, Allow: 'GET' } });
