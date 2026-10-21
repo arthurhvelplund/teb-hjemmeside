@@ -27,6 +27,23 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Hele arrangementsbilleder i kalenderoversigten den 21. oktober 2026
+
+- Kodecommit: `32df925ecb8504265a7e160c3509aebd7bb00904` på `main`.
+- Brugerens skærmbillede viste ugeoversigten, hvor 4:3-billedfeltet
+  beskårede det brede invitationsbillede med object-fit: cover.
+  Den tidligere centrering gjaldt retteformularen. Ugeoversigten og
+  Kommende arrangementer viser nu hele billedet med contain og centrering
+  i det eksisterende felt. Billedfil og arrangementsdata er uændrede.
+- Kontrol: assetversioner synkroniseret, fælles layout på 16 sider og
+  `git diff --check` består. Livekontrol af Fællesmøde for byens foreninger
+  viser hele invitationen uden beskæring; begge oversigters beregnede CSS
+  er contain og 50% 50%. Kontrolleret i desktopbrowser; mobil er ikke
+  manuelt afprøvet.
+- Udgivet med succes i GitHub Actions `39677014478`, job `119489402352`.
+  Afleveret på GitHub main og i trådens isolerede arbejdskopi;
+  brugerens Projects-pilot er ikke opdateret.
+
 ## Centrerede billeder i retteformularen den 21. oktober 2026
 
 - Kodecommit: `199c147b261c91bbd3c3d6648f3777439e61d758` på `main`.
