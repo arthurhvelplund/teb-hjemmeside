@@ -135,7 +135,7 @@ button.cal-day-number{cursor:pointer}button.cal-day-number:hover{background:var(
 .cal-board--week .cal-chip{padding:0 0 .5rem;border:1px solid var(--line);background:var(--paper);overflow:hidden}
 .cal-board--week .cal-chip>span,.cal-board--week .cal-chip>strong{padding:0 .55rem}
 .cal-board--week .cal-chip>:first-child:not(img){padding-top:.5rem}
-.cal-chip-image{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--paper-deep);margin-bottom:.35rem}
+.cal-chip-image{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;object-position:center;background:var(--paper-deep);margin-bottom:.35rem}
 .cal-day-none{margin:0;font-size:.75rem;color:var(--muted)}
 .cal-board--month .cal-day{min-height:118px}
 .cal-board--month .cal-day-weekday{display:none}
@@ -149,7 +149,7 @@ button.cal-day-number{cursor:pointer}button.cal-day-number:hover{background:var(
 .cal-card:hover{border-color:var(--forest);box-shadow:var(--shadow-lift)}
 .cal-card.is-cancelled .cal-card-title{text-decoration:line-through}
 .cal-card-media{display:block;aspect-ratio:16/10;background:var(--paper-deep);overflow:hidden}
-.cal-card-image{display:block;width:100%;height:100%;object-fit:cover}
+.cal-card-image{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
 .cal-card-tile{display:grid;place-content:center;justify-items:center;height:100%;color:var(--forest);font-size:.8rem}
 .cal-card-tile strong{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:2.6rem;line-height:1.1}
 .cal-card-copy{display:grid;gap:.3rem;padding:.9rem 1rem 1rem}
