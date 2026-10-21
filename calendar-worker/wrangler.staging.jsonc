@@ -1,5 +1,5 @@
 // Testversion på test.teb-tistrup.dk. Egen database og eget lager, adskilt fra produktion.
-// Mail sendes kun til de aftalte testmodtagere.
+// EDITOR_EMAIL og TEB_ADMIN_EMAILS sættes som secrets, så adresserne ikke står i det offentlige repo.
 {
  "$schema": "node_modules/wrangler/config-schema.json",
  "name": "teb-kalender-staging-api",
@@ -12,7 +12,7 @@
  "assets": {"directory":"assets","binding":"ASSETS","run_worker_first":true},
  "d1_databases": [{"binding":"DB","database_name":"teb-kalender-staging","database_id":"b3e9b7c8-0283-4d20-b543-3c77bc0c1c35","migrations_dir":"migrations"}],
  "r2_buckets": [{"binding":"PDFS","bucket_name":"teb-kalender-staging-pdfs"}],
- "send_email": [{"name":"TEB_EMAIL","allowed_destination_addresses":["afhvelplund@gmail.com","<admin-2>","tistrup.kalender@gmail.com","<bødkerhuset-kontakt>"]}],
- "vars": {"PUBLIC_ORIGIN":"https://test.teb-tistrup.dk","SITE_ORIGIN":"https://staging.teb-tistrup.pages.dev","LOCAL_PREVIEW":"false","EDITOR_EMAIL":"tistrup.kalender@gmail.com,afhvelplund@gmail.com","EMAIL_FROM":"kalender@teb-tistrup.dk","REPLY_TO":"tistrup.kalender@gmail.com","TEB_ADMIN_EMAILS":"<admin-2>"},
+ "send_email": [{"name":"TEB_EMAIL"}],
+ "vars": {"PUBLIC_ORIGIN":"https://test.teb-tistrup.dk","SITE_ORIGIN":"https://staging.teb-tistrup.pages.dev","LOCAL_PREVIEW":"false","EMAIL_FROM":"kalender@teb-tistrup.dk","REPLY_TO":"tistrup.kalender@gmail.com"},
  "triggers": {"crons":["*/10 * * * *"]}
 }

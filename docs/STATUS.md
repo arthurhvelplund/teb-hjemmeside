@@ -38,16 +38,15 @@ Commits: `4e9a32e`, `b08f8b4` og `6ea6d21` på `local/teb-pilot-ready`.
   (`SITE_ORIGIN`). Produktionens Worker-opsætning har ikke `SITE_ORIGIN`.
 - D1 `teb-kalender-staging` har migreringerne 0001–0007. R2 er `teb-kalender-staging-pdfs`.
   `MAIL_ENCRYPTION_KEY` er sat som secret og gemmes ikke i Git.
-- Afsenderen er kalender@teb-tistrup.dk, og svar går til tistrup.kalender@gmail.com. TEB får besked
-  på tistrup.kalender@gmail.com og afhvelplund@gmail.com, da `EDITOR_EMAIL` nu kan
-  indeholde flere adresser. TEB-administratorer er afhvelplund@gmail.com og <admin-2>.
-  Testversionen må kun sende mail til de aftalte modtagere, herunder <bødkerhuset-kontakt>.
+- Afsenderen er kalender@teb-tistrup.dk, og svar går til tistrup.kalender@gmail.com. `EDITOR_EMAIL` kan nu
+  indeholde flere adresser. Administratorer og modtagere af TEB-beskeder er sat som secrets
+  (`TEB_ADMIN_EMAILS`, `EDITOR_EMAIL`) og står ikke i repoet.
 - 25 foreninger er indlæst i testdatabasen. Det er de 24 udkast og Bødkerhuset · Café Magnus Bødker.
   Øveforening og øvepersoner er ikke indlæst.
 - Testversionen sender `X-Robots-Tag: noindex`. Det gør også `*.teb-tistrup.pages.dev`.
 - Kontrol: 82 backendtests er bestået. Live-config svarer `submissionsEnabled:true`. Den første loginkode til
   afhvelplund@gmail.com fik `deliveryState: sent`. Levering i indbakken skal bekræftes af brugeren.
-- Udestår: TEB inviterer <bødkerhuset-kontakt> til Bødkerhuset på testversionen. Derefter følger
+- Udestår: TEB inviterer Bødkerhusets kontaktperson. Derefter følger
   produktionsdatabase, -lager og -Worker på teb-tistrup.dk/api/kalender/*, og merge til `main`.
 
 ## Min forening og én rolle den 21. oktober 2026

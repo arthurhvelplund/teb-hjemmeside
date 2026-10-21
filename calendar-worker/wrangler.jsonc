@@ -1,3 +1,6 @@
+// Produktion på teb-tistrup.dk. Workeren tager kun /api/kalender/*; hjemmesiden ligger på Cloudflare Pages.
+// EDITOR_EMAIL og TEB_ADMIN_EMAILS sættes som secrets, så adresserne ikke står i det offentlige repo.
+// www.teb-tistrup.dk sendes videre til teb-tistrup.dk, så login og formularer kun findes ét sted.
 {
  "$schema": "node_modules/wrangler/config-schema.json",
  "name": "teb-kalender-api",
@@ -6,14 +9,14 @@
  "compatibility_flags": ["nodejs_compat"],
  "workers_dev": false,
  "preview_urls": false,
+ "routes": [
+  {"pattern":"teb-tistrup.dk/api/kalender*","zone_name":"teb-tistrup.dk"},
+  {"pattern":"www.teb-tistrup.dk/*","zone_name":"teb-tistrup.dk"}
+ ],
  "assets": { "directory": "assets", "binding": "ASSETS", "run_worker_first": true },
- "d1_databases": [{"binding":"DB","database_name":"teb-kalender-production","database_id":"00000000-0000-0000-0000-000000000000","migrations_dir":"migrations"}],
+ "d1_databases": [{"binding":"DB","database_name":"teb-kalender-production","database_id":"807e1f2c-e8f3-4022-9cab-689fac304653","migrations_dir":"migrations"}],
  "r2_buckets": [{"binding":"PDFS","bucket_name":"teb-kalender-production-pdfs"}],
  "send_email": [{"name":"TEB_EMAIL"}],
- "vars": {"PUBLIC_ORIGIN":"https://www.teb-tistrup.dk","LOCAL_PREVIEW":"false"},
+ "vars": {"PUBLIC_ORIGIN":"https://teb-tistrup.dk","REDIRECT_HOST":"www.teb-tistrup.dk","LOCAL_PREVIEW":"false","EMAIL_FROM":"kalender@teb-tistrup.dk","REPLY_TO":"tistrup.kalender@gmail.com"},
  "triggers": {"crons":["*/10 * * * *"]}
- // Set the actual DB ID, account, verified EMAIL_FROM, EDITOR_EMAIL and
- // TEB_ADMIN_EMAILS before deployment. Set MAIL_ENCRYPTION_KEY as a secret.
- // Deliberately no route by default. Add ONLY the confirmed site's
- // /api/kalender/* route; never /*, /admin/* or /api/formular*.
 }
