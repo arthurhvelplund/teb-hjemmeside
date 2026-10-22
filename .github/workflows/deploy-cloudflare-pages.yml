@@ -97,6 +97,10 @@ jobs:
 
           echo "Formular-Workeren og Turnstile-konfigurationen er aktive."
 
+      # Testpostkassen virker kun lokalt og skal ikke ligge på den offentlige side.
+      - name: Fjern lokale testsider
+        run: rm -f site/kalender-postkasse.html site/js/kalender-postkasse.js
+
       - name: Deploy site/ to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:

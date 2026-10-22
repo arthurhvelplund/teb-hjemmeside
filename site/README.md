@@ -52,7 +52,7 @@ kun layout og kan ikke håndtere login, database eller indsendelser.
 
 Lokalt bruges SQLite og lokalt PDF-lager. Mails gemmes i
 `kalender-postkasse.html` og sendes ikke eksternt. Visningen er kun tilgængelig
-via lokal API på loopback. Den oprindelige pilots data bevares separat.
+via lokal API på loopback, og siden fjernes før udgivelse til Cloudflare Pages. Den oprindelige pilots data bevares separat.
 
 Den selvstændige browserprototype findes stadig i
 `output/foreningsportal-enkel/`. Den er en funktionsreference, ikke den rigtige

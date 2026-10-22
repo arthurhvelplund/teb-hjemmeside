@@ -490,7 +490,7 @@ document.addEventListener('calendar-updated',()=>loadCalendar({quiet:true}));
 showMode();
 try { const session=await getSession(); if(session.authenticated) $('#calendar-login').textContent=session.user?.isAdmin?'TEB · administration →':'Mit foreningsområde →'; } catch {}
 const route = query.has('indsendelse') || query.has('opslag') || location.hash==='#godkendelse' ? loadEarlierSubmission() : query.has('privat') ? privateEvent(query.get('privat'))
-  : query.has('ret') ? memberEdit(query.get('ret'))
+  : query.has('ret') ? openEventComposer({editId: query.get('ret'), fallback: () => memberEdit(query.get('ret'))})
   : query.get('opret') === '1' ? createEvent()
   : query.has('arrangement') ? publicDetails(query.get('arrangement'), {direct: true}) : Promise.resolve();
 await Promise.allSettled([loadCalendar(), loadEditions(), route, Promise.all([loadSources(), loadUpcoming()]).then(()=>renderCalendar(period()))]);

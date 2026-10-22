@@ -55,13 +55,29 @@ export function installEventComposer() {
     const anchor = event.target.closest('a[href]');
     if (!anchor || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || anchor.target === '_blank') return;
     const url = new URL(anchor.href, location.href);
-    if (url.origin !== location.origin || !url.pathname.endsWith('/kalender.html') || url.searchParams.get('opret') !== '1') return;
+    if (url.origin !== location.origin || !url.pathname.endsWith('/kalender.html')) return;
+    const editId = url.searchParams.get('ret');
+    if (url.searchParams.get('opret') !== '1' && !editId) return;
     event.preventDefault();
-    openEventComposer({associationId: url.searchParams.get('forening') || ''});
+    if (editId) openEventComposer({editId, fallback: () => location.assign(url.href)});
+    else openEventComposer({associationId: url.searchParams.get('forening') || ''});
   });
 }
 
-export async function openEventComposer({associationId = '', onSaved} = {}) {
+// Rettelser bruger samme popup. Kan arrangementet ikke rettes her, fx uden login
+// eller for en gæsteindsendelse uden forening, overtager den almindelige side.
+async function loadEdit(editId, session) {
+  if (!session.authenticated) return null;
+  const {events} = await api(session.user?.isAdmin ? '/admin/events' : '/me/events');
+  const wrapper = events.find(event => event.id === editId);
+  const associationId = wrapper && (wrapper.associationId || wrapper.data.associationId || wrapper.published?.associationId);
+  if (!associationId) return null;
+  let association = (session.memberships || []).map(m => m.association).find(a => a?.id === associationId);
+  if (!association && session.user?.isAdmin) association = (await api('/associations/' + encodeURIComponent(associationId))).association;
+  return association ? {id: editId, wrapper, association} : null;
+}
+
+export async function openEventComposer({associationId = '', editId = '', fallback, onSaved} = {}) {
   if (active?.open) { active.querySelector('input,button')?.focus(); return; }
   const opener = document.activeElement;
   const loading = mountedDialog(); active = loading;
@@ -71,6 +87,14 @@ export async function openEventComposer({associationId = '', onSaved} = {}) {
     const [session, config] = await Promise.all([getSession(), api('/config')]);
     if (dismissed) return;
     if (!config.submissionsEnabled) throw new Error('Indsendelse er ikke åben lige nu. Prøv igen senere.');
+    if (editId) {
+      const edit = await loadEdit(editId, session);
+      if (dismissed) return;
+      loading.close();
+      if (!edit) { fallback?.(); return; }
+      makeComposer({key: 'edit:' + editId, edit, associations: [edit.association], session, config, onSaved}).open(opener);
+      return;
+    }
     let associations = (session.memberships || []).map(m => m.association).filter(Boolean);
     if (session.user?.isAdmin) associations = (await api('/associations')).associations;
     if (dismissed) return;
@@ -87,28 +111,30 @@ export async function openEventComposer({associationId = '', onSaved} = {}) {
     if (dismissed) return;
     loading.innerHTML = '<div class="ec-loading"><h2 id="ec-title">Formularen kunne ikke åbnes</h2><p></p><button class="ec-primary" type="button">Prøv igen</button> <button class="ec-text" type="button">Luk</button></div>';
     loading.querySelector('p').textContent = error.message;
-    loading.querySelector('.ec-primary').onclick = () => { loading.close(); openEventComposer({associationId, onSaved}); };
+    loading.querySelector('.ec-primary').onclick = () => { loading.close(); openEventComposer({associationId, editId, fallback, onSaved}); };
     loading.querySelector('.ec-text').onclick = () => loading.close();
     loading.querySelector('button').focus();
   }
 }
 
-function makeComposer({key, associationId, associations, session, config, onSaved}) {
-  const saved = readDraft(key);
+function makeComposer({key, associationId = '', edit = null, associations, session, config, onSaved}) {
+  // En rettelse starter fra den gemte version og gemmer ingen kladde.
+  const saved = edit ? {...edit.wrapper.data, associationId: edit.association.id} : readDraft(key);
   const guest = !associations.length;
   let selectedId = associations.some(a => a.id === saved.associationId) ? saved.associationId : associations.some(a => a.id === associationId) ? associationId : associations.length === 1 ? associations[0].id : '';
-  let imageData = typeof saved.imageData === 'string' && /^data:image\/webp;base64,/.test(saved.imageData) ? saved.imageData : '';
+  let imageData = !edit && typeof saved.imageData === 'string' && /^data:image\/webp;base64,/.test(saved.imageData) ? saved.imageData : '';
   let imageUrl = imagePath.test(saved.imageUrl || '') ? saved.imageUrl : '';
   let busy = false, complete = false, attempt = null, returnFocus = null, imagePending = false;
   const startedAt = Date.now();
+  const sendLabel = edit ? 'Gem rettelsen' : guest ? 'Send til TEBs godkendelse' : 'Udgiv arrangement';
   const dialog = el('dialog', 'ec-dialog');
   dialog.setAttribute('aria-labelledby', 'ec-title');
   dialog.innerHTML = `
     <div class="ec-shell">
       <header class="ec-header">
         <div class="ec-header-top"><span class="ec-eyebrow">${icon} Tistrup og Hodde</span><button type="button" class="ec-close" aria-label="Luk og gem kladde">×</button></div>
-        <h2 id="ec-title" tabindex="-1">Tilføj et arrangement.</h2>
-        <p class="ec-intro">Udfyld oplysningerne. Invitationen opdateres undervejs.</p>
+        <h2 id="ec-title" tabindex="-1">${edit ? 'Ret arrangementet.' : 'Tilføj et arrangement.'}</h2>
+        <p class="ec-intro">${edit ? 'Rettelsen kommer i kalenderen, så snart du gemmer.' : 'Udfyld oplysningerne. Invitationen opdateres undervejs.'}</p>
       </header>
       <div class="ec-body">
         <div class="ec-compose">
@@ -117,7 +143,7 @@ function makeComposer({key, associationId, associations, session, config, onSave
               <section class="ec-section"><h3>Hvad inviterer I til?</h3>
                 <label>Arrangementets navn<input name="title" required maxlength="100" placeholder="Fx fællesspisning i forsamlingshuset" autocomplete="off"></label>
                 ${guest ? '<label>Arrangør<input name="association" required maxlength="100" placeholder="Forening, fællesskab eller dit navn"></label>' : `<label>Forening<select name="associationId" required><option value="">Vælg forening</option>${associations.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('')}</select></label><input name="association" type="hidden">`}
-                <div class="ec-field-row"><label>Dato<input name="date" type="date" required min="${today()}"></label><label>Klokken<input name="time" type="time" required></label></div>
+                <div class="ec-field-row"><label>Dato<input name="date" type="date" required${edit ? '' : ` min="${today()}"`}></label><label>Klokken<input name="time" type="time" required></label></div>
                 <details class="ec-optional"><summary>Tilføj sluttid eller flere dage</summary><div class="ec-field-row"><label>Slutdato <span>valgfrit</span><input name="endDate" type="date"></label><label>Sluttid <span>valgfrit</span><input name="endTime" type="time"></label></div></details>
                 <label>Hvor foregår det?<input name="location" required maxlength="180" placeholder="Fx Hodde-Tistrup Hallen"></label>
                 <label>Kort om arrangementet <span>valgfrit</span><textarea name="description" maxlength="1500" rows="3" placeholder="Hvad kan man glæde sig til, og hvem er det for?"></textarea></label>
@@ -128,7 +154,7 @@ function makeComposer({key, associationId, associations, session, config, onSave
                 <p class="ec-image-message" aria-live="polite"></p>
               </section>
               ${printRequestHTML({preview: true})}
-              ${guest ? '<section class="ec-section ec-contact"><label>Din e-mail<input name="email" required type="email" maxlength="254" autocomplete="email" placeholder="din@email.dk"></label><p>Her får du kvittering og et privat link til at rette arrangementet. Mailadressen vises ikke offentligt.</p><p>Har du foreningsadgang? <a href="forening.html?return=kalender.html%3Fopret%3D1#login">Log ind her</a>.</p></section>' : '<p class="ec-access-note">Du opretter med din foreningsadgang. Arrangementet udgives, når du bekræfter.</p>'}
+              ${guest ? '<section class="ec-section ec-contact"><label>Din e-mail<input name="email" required type="email" maxlength="254" autocomplete="email" placeholder="din@email.dk"></label><p>Her får du kvittering og et privat link til at rette arrangementet. Mailadressen vises ikke offentligt.</p><p>Har du foreningsadgang? <a href="forening.html?return=kalender.html%3Fopret%3D1#login">Log ind her</a>.</p></section>' : edit ? '<p class="ec-access-note">' + (edit.wrapper.pendingKind ? 'Der ligger også en ventende indsendelse hos TEB. Gemmer du her, udgiver du dine oplysninger direkte.' : 'Du retter med din foreningsadgang.') + '</p>' : '<p class="ec-access-note">Du opretter med din foreningsadgang. Arrangementet udgives, når du bekræfter.</p>'}
               <div class="ec-trap" aria-hidden="true"><label>Lad feltet stå tomt<input name="website" tabindex="-1" autocomplete="off"></label></div>
             </form>
             <aside class="ec-live" aria-label="Forhåndsvisning"><span class="ec-eyebrow">Din invitation</span>
@@ -145,7 +171,7 @@ function makeComposer({key, associationId, associations, session, config, onSave
         </div>
         <section class="ec-receipt" hidden aria-label="Kvittering"></section>
       </div>
-      <footer class="ec-footer"><div><p class="ec-save-hint">Du kan lukke og fortsætte senere i denne fane.</p><p class="ec-form-message" aria-live="polite"></p></div><div class="ec-footer-actions"><button type="button" class="ec-text ec-preview-shortcut">Se invitationen ↑</button><button type="button" class="ec-primary ec-send">${guest ? 'Send til TEBs godkendelse' : 'Udgiv arrangement'}</button></div></footer>
+      <footer class="ec-footer"><div><p class="ec-save-hint">${edit ? 'Lukker du uden at gemme, bliver intet ændret.' : 'Du kan lukke og fortsætte senere i denne fane.'}</p><p class="ec-form-message" aria-live="polite"></p></div><div class="ec-footer-actions">${edit && edit.wrapper.published && edit.wrapper.published.state !== 'cancelled' ? '<button type="button" class="ec-text ec-cancel-event">Aflys arrangementet</button>' : ''}<button type="button" class="ec-text ec-preview-shortcut">Se invitationen ↑</button><button type="button" class="ec-primary ec-send">${sendLabel}</button></div></footer>
     </div>`;
   const $ = selector => dialog.querySelector(selector);
   const form = $('#ec-form');
@@ -158,7 +184,7 @@ function makeComposer({key, associationId, associations, session, config, onSave
     return {...Object.fromEntries(fields.map(name => [name, form.elements[name].value.trim()])), printRequested: form.elements.printRequested.checked, imageUrl};
   }
   function persist() {
-    if (complete) return;
+    if (complete || edit) return;
     try { sessionStorage.setItem(draftPrefix + key, JSON.stringify({...values(), associationId: selectedId, email: form.elements.email?.value || '', imageData})); }
     catch { $('.ec-save-hint').textContent = 'Kladden bevares, mens siden er åben.'; }
   }
@@ -214,10 +240,10 @@ function makeComposer({key, associationId, associations, session, config, onSave
   dialog.addEventListener('click', event => { if (event.target === dialog) { const box = dialog.getBoundingClientRect(); if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) close(); } });
   dialog.addEventListener('close', () => {
     document.body.classList.remove('ec-modal-open'); if (active === dialog) active = null;
-    if (location.pathname.endsWith('/kalender.html') && new URL(location.href).searchParams.has('opret')) { const url = new URL(location.href); url.searchParams.delete('opret'); url.searchParams.delete('forening'); history.replaceState(null, '', url); }
+    if (location.pathname.endsWith('/kalender.html') && ['opret', 'ret'].some(name => new URL(location.href).searchParams.has(name))) { const url = new URL(location.href); for (const name of ['opret', 'forening', 'ret']) url.searchParams.delete(name); history.replaceState(null, '', url); }
     returnFocus?.isConnected && returnFocus.focus({preventScroll: true});
     dialog.remove();
-    if (!complete && (form.elements.title.value || imageData)) showToast('Din kladde er gemt i denne fane.', () => instance.open(returnFocus));
+    if (!complete && !edit && (form.elements.title.value || imageData)) showToast('Din kladde er gemt i denne fane.', () => instance.open(returnFocus));
   });
   $('.ec-close').onclick = close;
   form.onsubmit = event => { event.preventDefault(); $('.ec-send').click(); };
@@ -248,7 +274,40 @@ function makeComposer({key, associationId, associations, session, config, onSave
     } catch (error) { message($('.ec-image-message'), error.message || 'Billedet kunne ikke åbnes. Prøv et andet.', true); }
     finally { imagePending = false; $('.ec-send').disabled = false; $('.ec-remove-image').disabled = false; form.elements.photo.value = ''; }
   };
+  async function saveEdit(action) {
+    if (busy || imagePending) return;
+    if (action === 'update' && !valid()) return;
+    if (action === 'cancel' && !confirm('Vil du aflyse arrangementet? Det vises som aflyst i kalenderen med det samme.')) return;
+    busy = true;
+    for (const control of dialog.querySelectorAll('input, select, textarea, button')) control.disabled = true;
+    $('.ec-send').textContent = action === 'cancel' ? 'Aflyser…' : 'Gemmer rettelsen…';
+    message($('.ec-form-message'), '');
+    try {
+      const event = values();
+      if (action === 'update' && imageData) {
+        const blob = await (await fetch(imageData)).blob();
+        const response = await fetch('/api/kalender/event-images', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': blob.type}, body: blob, signal: AbortSignal.timeout(30000)});
+        const result = await response.json();
+        if (!response.ok || !imagePath.test(result.imageUrl || '')) throw Object.assign(new Error(result.error || 'Billedet kunne ikke gemmes.'), {status: response.status});
+        imageUrl = result.imageUrl; imageData = ''; event.imageUrl = imageUrl;
+      }
+      const result = await api('/member/events/' + encodeURIComponent(edit.id), {body: {action, event, associationId: selectedId, revision: edit.wrapper.revision}});
+      complete = true;
+      renderReceipt({...result, id: edit.id, published: true, cancelled: action === 'cancel'}, {event});
+      try { await onSaved?.(result); } catch { /* The receipt remains valid if calendar refresh fails. */ }
+      document.dispatchEvent(new CustomEvent('teb:event-saved', {detail: result}));
+    } catch (error) {
+      // Rettelser bærer revisionen, så et nyt forsøg kan ikke overskrive andres ændringer.
+      message($('.ec-form-message'), error.message + (error.status === 409 ? ' Luk og åbn arrangementet igen for at se den nyeste version.' : ''), true);
+      for (const control of dialog.querySelectorAll('input, select, textarea, button')) control.disabled = false;
+      if (error.status === 409) $('.ec-send').disabled = true;
+    } finally {
+      busy = false; $('.ec-send').textContent = sendLabel;
+    }
+  }
+  if (edit) $('.ec-cancel-event')?.addEventListener('click', () => saveEdit('cancel'));
   $('.ec-send').onclick = async () => {
+    if (edit) return saveEdit('update');
     if (busy || imagePending) return;
     if (!attempt && !valid()) return;
     if (!attempt) {
@@ -278,7 +337,7 @@ function makeComposer({key, associationId, associations, session, config, onSave
       const uncertain = !error.status || error.status >= 500;
       if (!uncertain) { attempt = null; for (const input of form.querySelectorAll('input, select, textarea')) input.disabled = false; }
       message($('.ec-form-message'), error.message + (uncertain ? ' Brug knappen igen for at prøve samme indsendelse uden dubletter.' : ''), true);
-      $('.ec-send').textContent = uncertain ? 'Prøv samme indsendelse igen' : guest ? 'Send til TEBs godkendelse' : 'Udgiv arrangement';
+      $('.ec-send').textContent = uncertain ? 'Prøv samme indsendelse igen' : sendLabel;
     } finally {
       busy = false;
       for (const button of dialog.querySelectorAll('button')) button.disabled = false;
@@ -287,8 +346,8 @@ function makeComposer({key, associationId, associations, session, config, onSave
   function renderReceipt(result, payload) {
     $('.ec-compose').hidden = true;
     $('.ec-footer').hidden = true; $('.ec-receipt').hidden = false;
-    $('#ec-title').textContent = result.published ? 'Så er invitationen ude.' : 'Tak. TEB har modtaget det.';
-    $('.ec-intro').textContent = result.published ? 'Arrangementet er nu synligt i byens kalender.' : 'Arrangementet afventer godkendelse og er endnu ikke offentligt.';
+    $('#ec-title').textContent = result.cancelled ? 'Arrangementet er aflyst.' : edit ? 'Rettelsen er gemt.' : result.published ? 'Så er invitationen ude.' : 'Tak. TEB har modtaget det.';
+    $('.ec-intro').textContent = result.cancelled ? 'Det står nu som aflyst i byens kalender.' : edit ? 'Kalenderen viser nu de nye oplysninger.' : result.published ? 'Arrangementet er nu synligt i byens kalender.' : 'Arrangementet afventer godkendelse og er endnu ikke offentligt.';
     const receipt = $('.ec-receipt'); receipt.replaceChildren();
     receipt.append(card(payload.event));
     if (payload.event.printRequested) receipt.append(el('p', 'ec-receipt-print', 'Dit ønske om at komme med i den trykte kalender er også gemt.'));

@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-21T17:00:19.678Z",
+  "date": "2026-10-22T07:39:42.873Z",
   "checks": [
     "Two-step login, email correction, resend and wrong-code recovery use the real API",
     "Lost, truncated and incomplete creation responses retain one key and create one association",
@@ -32,6 +32,8 @@
     "Saving print-specific text preserves the public event",
     "Newly saved print appears in the archive without a reload",
     "Print editor fits desktop and small phones",
+    "Ret opens the same popup on Min forening and refreshes the list",
+    "Direct edit links open the popup, and cancelling there takes effect immediately",
     "Published PDF bytes remain unchanged after event edit",
     "Login, Min forening and profile editor fit 390px and 320px",
     "Multiple-association users choose only among their own associations",
