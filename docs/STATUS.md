@@ -32,8 +32,11 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 - Jens Bach har nu aktiv manager-adgang til både TEB og Bødkerhuset i
   produktion. Hans eksisterende TEB-adgang var revoked, og Bødkerhusets
   invitation blev knyttet til hans eksisterende konto og aktiveret.
-  Han er fortsat ikke global administrator. Min forening giver valg mellem
-  begge foreninger og mulighed for at oprette og rette deres arrangementer.
+  Efter brugerens præcisering om hans bestyrelsesrolle er han også gjort
+  til fuld TEB-administrator i produktion. Tilbagelæsning bekræfter
+  is_admin=1 samt begge aktive foreningsadgange. Ændringen gælder straks
+  i API; genindlæs siden for at få administrationsmenuen frem.
+  Min forening giver fortsat valg mellem de to foreninger.
 - Flyttet i produktion: Åbningsfest i Bødkerhuset og Baren er åben :-).
   Både association_id og offentlig arrangør er rettet, revision øget fra
   2 til 3 og publiceringshistorik registreret af database-triggeren.
