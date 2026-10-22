@@ -199,6 +199,46 @@
     </div>
   </section>
 
+  <section id="form" class="band section">
+    <div class="wrap-narrow">
+      <span class="eyebrow">Kontaktformular</span>
+      <h2 class="mt-0">Skriv til os.</h2>
+      <p>Beskeden sendes direkte til formanden.</p>
+
+      <form class="form" action="/api/formular" method="POST">
+        <input type="hidden" name="formular" value="kontakt">
+        <input type="hidden" name="formular_startet" value="">
+        <div class="form-honeypot" aria-hidden="true">
+          <label for="website-kontakt">Lad dette felt være tomt</label>
+          <input id="website-kontakt" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+        <div>
+          <label for="navn">Navn</label>
+          <input id="navn" name="navn" type="text" required autocomplete="name">
+        </div>
+        <div>
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" required autocomplete="email">
+        </div>
+        <div>
+          <label for="tlf">Telefon (valgfri)</label>
+          <input id="tlf" name="tlf" type="tel" autocomplete="tel">
+        </div>
+        <div>
+          <label for="emne">Emne</label>
+          <input id="emne" name="emne" type="text">
+        </div>
+        <div>
+          <label for="besked">Besked</label>
+          <textarea id="besked" name="besked" required placeholder="Hvad har du på hjerte?"></textarea>
+        </div>
+        <div>
+          <button type="submit" class="btn">Send besked</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
 </main>
 
 <footer class="site-footer">
