@@ -27,6 +27,24 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Facebook-ikon sammen med menuen den 22. oktober 2026
+
+- Kodecommit: `9a59914db0a3844bd697a95a296873e700b7f1fe` på main.
+- Facebook-linket er flyttet ind i den fælles hovedmenu lige efter Bliv
+  medlem. Ikonet har samme 44 px højde og afrundede ramme som knapperne.
+  Den ledige plads øverst til højre er fjernet. På mobil følger ikonet
+  den åbne menu i stedet for at stå alene ved logoet.
+- Den fælles headerskabelon ejer nu nav-elementet, og generatoren indsætter
+  menulinkene i det. Eksisterende linkmål og tilgængeligt Facebook-navn
+  samt åbning i ny fane er bevaret.
+- Kontrol: fælles layout/assetversioner på 16 sider og git diff --check
+  består. Live-DOM bekræfter placering inde i nav, samme y-position som
+  Bliv medlem, 7 px mellemrum, 44 × 44 px og intet vandret overløb.
+  Skærmbillede bekræfter placeringen på forsiden.
+- Udgivet med succes i GitHub Actions `39813678086`, job `119946404184`.
+  Afleveret på GitHub main og i isoleret worktree teb-association-user-guide
+  på codex/association-user-guide. Brugerens Projects-pilot er ikke opdateret.
+
 ## Godkendt menu med rammer den 22. oktober 2026
 
 - Kodecommit: `053bb601693fee867ca8dce7159054782169daec` på main.
