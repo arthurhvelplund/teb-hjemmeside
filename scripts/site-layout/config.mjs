@@ -1,6 +1,6 @@
 export const navigation = [
   ['index.html', 'Forside'], ['erhverv.html', 'Erhverv'],
-  ['forening.html', 'Forening'], ['kalender.html', 'Kalender'],
+  ['forening.html', 'Foreninger'], ['kalender.html', 'Kalender'],
   ['nyt.html', 'Det sker'], ['om-tistrup.html', 'Om byen'],
   ['projekter.html', 'Projekter'], ['om-foreningen.html', 'Om TEB'],
   ['bliv-medlem.html', 'Bliv medlem']

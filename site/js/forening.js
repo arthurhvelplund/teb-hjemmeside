@@ -81,7 +81,7 @@ function navigation(page) {
   document.querySelector('#forening-main').classList.toggle('fa-auth-page', loginScreen);
   document.querySelector('#forening-main').classList.toggle('fa-private-page', account && authenticated());
   document.querySelector('#forening-main').classList.toggle('fa-directory', page === 'oversigt');
-  document.querySelector('.fa-heading h1').textContent = 'Foreninger';
+  document.querySelector('.fa-heading h1').textContent = 'Foreninger og institutioner';
   document.querySelector('#forening-main').classList.toggle('fa-compact-page', page !== 'oversigt');
   document.querySelector('#forening-main').classList.toggle('fa-profile-page', page === 'profil');
   // Kun TEB har en fanebjælke. En forening har alt samlet på Min forening.
