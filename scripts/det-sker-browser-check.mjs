@@ -46,8 +46,9 @@ try{
  assert.equal(await page.locator('#association-news-feed, a[href*="#skriv"]').count(),0);assert.equal(await page.locator('#facebook').count(),1);assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');assert.equal(sourceRequests.length,0);
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:resolve(output,'nyt-'+width+'.png'),fullPage:true});}
  await page.goto('/index.html');
- assert.equal(await page.locator('main > section:last-child').getAttribute('id'),'facebook');
- check('Det sker preserves media links and Facebook without association news; both pages end with Facebook');
+ // Forsiden slutter med medlemskab, som ligger under Facebook-feedet.
+ assert.equal(await page.locator('main > section#facebook').count(),1);
+ check('Det sker preserves media links and Facebook without association news, ends with Facebook, and the home page keeps the Facebook feed');
  await page.setViewportSize({width:1440,height:1000});await page.goto('/kalender.html');await page.locator('#calendar-events[aria-busy="false"]').waitFor();await page.locator('.cal-card').filter({hasText:'Arrangement om seks dage'}).waitFor();
  assert.equal(await page.locator('#calendar-week').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('#calendar-search').count(),0);
  assert.equal(await page.locator('.cal-board--week .cal-day').count(),7);assert.equal(await page.locator('.cal-board--week .cal-day.is-today').count(),1);

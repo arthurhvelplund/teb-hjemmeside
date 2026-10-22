@@ -1,6 +1,6 @@
 # Samlet status for TEB hjemmesiden
 
-Opdateret 21. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
+Opdateret 22. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
 
 ## Det fælles arbejdssted
@@ -26,6 +26,21 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Foreningsprofil og ejerens side | Kompakt offentlig profil og ejerens arrangementer. Nyhedsoprettelse og foreningsnyheder er taget ud af brugerflowet efter brugerens ønske 20. oktober. Den fælles TEB-kø og historiske data er bevaret. |
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
+
+## Ret og aflys i popuppen den 22. oktober 2026
+
+- Ret fra Min forening åbner nu samme popup som Opret arrangement, med billede,
+  forhåndsvisning og Aflys arrangementet. Man bliver på foreningssiden, og listen
+  opdateres efter gem. Direkte links til `kalender.html?ret=` åbner også popuppen.
+- Den gamle ret-side bruges kun som reserve, hvis man ikke er logget ind, eller
+  arrangementet er en gæsteindsendelse uden forening.
+- Testpostkassen (`kalender-postkasse.html`) fjernes nu før udgivelse til Pages
+  og findes kun lokalt. `nyt-eksperiment.html` bevares som viderestilling for
+  gamle mails, og opslags-API'et bevares til gamle kvitteringer og TEB-køen.
+- Kontroller: 85 backendtests, 39 portal-browserscenarier (inkl. ret og aflys i
+  popuppen), 8 kalenderscenarier, ret-billedkontrol og layoutkontrol består.
+  To browserkontroller blev opdateret til husstandsomdelingens nye tekst og
+  forsidens rækkefølge fra `0e06f6c` og `7c71333`.
 
 ## Sammenfoldet husstandsomdeling den 21. oktober 2026
 

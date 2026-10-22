@@ -40,7 +40,7 @@ export async function checkAssociationFlows({member,guest,association,record}) {
   assert.equal(await guest.locator('input, select, textarea').count(),0);
   for(const summary of await guest.locator('.sharing-card summary').all())await summary.click();
   assert.ok((await guest.locator('[data-sharing=flyers]').innerText()).includes('Kirsten Thorhauge'));
-  assert.ok((await guest.locator('[data-sharing=flyers]').innerText()).includes('Omdelingsdato'));
+  assert.ok((await guest.locator('[data-sharing=flyers]').innerText()).includes('Omdeling i 2026'));
   assert.equal(await guest.locator('a[href="mailto:jemantonsen@bbsyd.dk"]').count(),1);
   assert.equal(await guest.locator('a[href="https://vardekommune.dk/kommunen/byportal/"]').count(),1);
   assert.equal(await guest.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'expanded information page at '+width);
