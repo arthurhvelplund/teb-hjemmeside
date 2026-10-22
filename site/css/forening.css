@@ -1,4 +1,11 @@
 /* Kun foreningssiden. Fælles design kommer fra style.css og portal.css. */
+.fa-get-started{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;margin:0 0 1.5rem;padding:1.25rem 1.4rem;border:1px solid var(--line);border-radius:10px;background:var(--paper-soft)}
+.fa-get-started h2{margin:0 0 .45rem;font-size:1.3rem;line-height:1.25}
+.fa-get-started p{max-width:60ch;margin:0;font-size:.88rem;line-height:1.6;color:var(--muted)}
+.fa-get-started-actions{display:flex;flex:none;flex-direction:column;align-items:center;gap:.5rem}
+.fa-get-started-actions a{font-size:.82rem;text-underline-offset:3px}
+.fa-get-started-actions .btn{min-height:44px;text-align:center;justify-content:center}
+@media(max-width:700px){.fa-get-started{flex-direction:column;align-items:stretch;gap:1rem;padding:1.1rem}.fa-get-started-actions{align-items:flex-start}.fa-get-started-actions .btn{width:100%}}
 .fa-skip{position:fixed;left:1rem;top:-8rem;z-index:110;background:var(--paper-soft);padding:.8rem;color:var(--forest)}
 .fa-skip:focus{top:1rem}
 .fa-filter{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1.5rem}

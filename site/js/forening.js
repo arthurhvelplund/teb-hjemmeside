@@ -138,14 +138,15 @@ async function directoryPage() {
   directory = (await api('/associations')).associations.sort((a, b) => a.name.localeCompare(b.name, 'da'));
   // Keep the original fictional seed in the database and workspaces, outside the real directory draft.
   if (directory.some(draftMeta)) directory = directory.filter(a => a.name !== 'Eksempelforeningen Solsiden');
-  return `<section aria-label="Find en forening">
+  return `<aside class="fa-get-started" aria-labelledby="association-guide-title"><div><h2 id="association-guide-title">Ny forening, klub eller institution?</h2><p>Kom godt i gang med jeres profil og byens kalender. Guiden viser, hvordan I får adgang gennem TEB.</p></div><div class="fa-get-started-actions"><a class="btn btn-secondary" href="downloads/brugerguide-foreninger.pdf" target="_blank" rel="noopener">Åbn brugerguiden (PDF)<span class="fa-visually-hidden"> – åbner i en ny fane</span></a><a href="kontakt.html#form">Kontakt TEB om oprettelse →</a></div></aside>
+  <section aria-label="Find en forening">
     <div class="fa-directory-tools">
       <label class="fa-directory-search"><span class="fa-visually-hidden">Søg efter en forening</span><span class="fa-search-icon" aria-hidden="true">⌕</span><input id="association-search" type="search" placeholder="Søg efter forening..." autocomplete="off"></label>
       <div class="fa-view-switch" role="group" aria-label="Vis foreninger som"><button type="button" data-directory-view="cards" aria-controls="association-results" aria-pressed="${directoryView === 'cards'}">Billede</button><button type="button" data-directory-view="list" aria-controls="association-results" aria-pressed="${directoryView === 'list'}">Liste</button></div>
     </div>
     <div class="fa-directory-meta"><p id="association-count" aria-live="polite"></p>${directory.some(draftMeta) ? '<span class="fa-directory-draft" title="Foreningerne har endnu ikke bekræftet oplysningerne.">Foreløbig oversigt</span>' : ''}</div>
     <div id="association-results" class="fa-associations" data-view="${directoryView}"></div>
-  </section><p class="fa-contact">Mangler din forening? <a href="kontakt.html#form">Kontakt TEB</a></p>`;
+  </section>`;
 }
 function associationImage(value) {
   if (!value || /[\\\u0000-\u0020]/.test(value)) return null;
