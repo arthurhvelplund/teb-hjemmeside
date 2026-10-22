@@ -1,4 +1,10 @@
 (function () {
+  var header = document.querySelector('.site-header');
+  if (header && 'ResizeObserver' in window) {
+    new ResizeObserver(function () {
+      document.documentElement.style.setProperty('--site-header-height', header.offsetHeight + 'px');
+    }).observe(header);
+  }
   var toggle = document.querySelector('.nav-toggle');
   var nav = document.querySelector('.nav');
   if (toggle && nav) {

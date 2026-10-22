@@ -1,5 +1,6 @@
 /* Fælles sideramme. Indholdssider bruger .page-hero med .wrap eller .hero-grid. */
 .site-main{min-width:0}
+#erhverv,#tistrup-video{scroll-margin-top:calc(var(--site-header-height,90px) + 1rem)}
 .page-hero{position:relative;padding:0;isolation:isolate}
 .page-hero > .wrap,.page-hero > .wrap-narrow,.page-hero > .hero-grid,.page-hero > .thank-you__inner{
   position:relative;z-index:1;padding-block:4rem 6rem;

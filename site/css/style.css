@@ -131,11 +131,11 @@ strong { font-weight: 700; }
   max-width: 1480px;
   margin: 0 auto;
   padding: 0.65rem 1.5rem;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
   align-items: center;
   justify-content: space-between;
-  gap: 1.25rem;
-  flex-wrap: nowrap;
+  gap: 1rem;
 }
 
 .logo-link {
@@ -196,39 +196,45 @@ strong { font-weight: 700; }
 
 .nav {
   display: flex;
-  margin-left: auto;
-  gap: 0.05rem;
-  flex-wrap: nowrap;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin-left: 0;
+  gap: 7px;
+  flex-wrap: wrap;
   align-items: center;
   white-space: nowrap;
 }
 .nav a {
   text-decoration: none;
-  color: var(--ink);
-  padding: 0.52rem 0.5rem;
-  font-size: 0.94rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  border-radius: var(--radius);
+  color: var(--forest);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.6rem 0.82rem;
+  border: 1px solid #c3c6b6;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  border-radius: 6px;
   position: relative;
 }
-.nav a:hover { color: var(--terra); }
+.nav a:hover { color: var(--forest); background: var(--paper-deep); border-color: var(--forest); }
 .nav a.active {
   color: var(--forest);
-  font-weight: 700;
+  background: var(--paper-deep);
+  border-color: var(--forest);
 }
 .nav a.active::after {
-  content: "";
-  position: absolute;
-  left: 0.5rem;
-  right: 0.5rem;
-  bottom: 0.25rem;
-  height: 2px;
-  background: var(--terra);
+  display: none;
 }
 
 
 .header-facebook {
+  grid-column: 2;
+  grid-row: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -253,30 +259,34 @@ strong { font-weight: 700; }
   display: block;
 }
 
-@media (max-width: 1420px) {
-  .header-inner { flex-wrap: wrap; }
+@media (max-width: 700px) {
+  .header-inner { grid-template-columns: minmax(0, 1fr) auto 44px; gap: .5rem; }
+  .logo-link { min-width: 0; }
+  .logo-word em { display: none; }
+  .header-facebook { grid-column: 3; }
   .nav-toggle {
     display: block;
-    margin-left: auto;
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 44px;
   }
   .nav {
     display: none;
-    order: 1;
     width: 100%;
     margin-left: 0;
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: stretch;
-    gap: 0;
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid var(--line);
+    gap: 8px;
+    margin-top: .5rem;
   }
-  .nav.open { display: flex; }
+  .nav.open { display: grid; }
   .nav a {
-    padding: 0.9rem 0.5rem;
-    border-bottom: 1px dashed var(--line);
-    border-radius: 0;
+    padding: .65rem .5rem;
+    white-space: normal;
+    min-height: 46px;
+    font-size: .8rem;
   }
+  .nav a[href="forening.html"] { grid-column: 1 / -1; }
   .nav a.active::after { display: none; }
 }
 
