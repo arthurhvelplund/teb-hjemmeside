@@ -56,6 +56,15 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
   flyttede arrangementer er allerede bekræftet gennem det offentlige API
   og på Bødkerhusets eksisterende profil. Ingen ændring af Workeren.
 
+## Opsætning af byportalbannere den 22. oktober 2026
+
+- Kodecommit: `07419e5`. Under Opsætning står nu, at Jørgen Tarp står for
+  opsætning af bannerne, oplyst af brugeren.
+- Kontroller: fælles layout på 16 sider, assetversioner og `git diff --check`
+  består. Ren tekstrettelse, ingen ny manuel browserkontrol.
+- Afleveres på arbejdsgrenen og `main` med brugerens pushgodkendelse.
+  Automatisk udgivelse og livekontrol afventer.
+
 ## Kontaktoplysninger til byportaler den 22. oktober 2026
 
 - Kodecommit: `d032a11` på `local/teb-pilot-ready`.
