@@ -37,7 +37,9 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
   Obligatoriske felter afviser tom formular og accepterer gyldige værdier;
   den fælles JavaScript-kode udfylder formularens starttidspunkt.
 - Ingen rigtig besked sendt. Statisk lokal kontrol har ikke formular-API;
-  faktisk mailafsendelse er derfor ikke afprøvet her. Ikke udgivet til produktion.
+  faktisk mailafsendelse er derfor ikke afprøvet her.
+- Pushet til `main` efter brugerens besked. Udgivelse startet i GitHub Actions
+  `39796662229` fra `c788029`; udgivelsesresultat afventer kontrol.
 
 ## Ret og aflys i popuppen den 22. oktober 2026
 
