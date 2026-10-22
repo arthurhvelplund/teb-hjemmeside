@@ -27,6 +27,28 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Brugerguide på foreningssiden den 22. oktober 2026
+
+- Kodecommit: `23c836348b1db0a114eb0087b4e1e27bb24c7835` på `main`.
+- Brugerens vedhæftede Bruger guide.pdf er lagt uændret på
+  `site/downloads/brugerguide-foreninger.pdf` (231950 bytes).
+  SHA-256 er identisk med uploaden:
+  c2886ae53fcb73bff7e3c48e9774e11e5abad90032785b2c95f0fec82844a062.
+- Øverst i den offentlige foreningsoversigt står nu Ny forening, klub eller
+  institution? med kort introduktion, Åbn brugerguiden (PDF) og Kontakt TEB
+  om oprettelse. Den tidligere kontaktlinje efter listen er samlet her.
+  PDF åbner i en ny fane, med tilgængelig tekst om det. Ingen login kræves.
+- Kontroller: originalen renderet og visuelt gennemgået; JavaScript-syntaks,
+  assetversioner, fælles layout på 16 sider og git diff --check består.
+  Livekontrol viser boksen over søgningen og 25 eksisterende foreninger.
+  Linket åbner den korrekte PDF i browserens PDF-viser (én side).
+  Intet vandret overløb i desktopboksen. CSS stakker ved 700 px;
+  mobil er ikke manuelt afprøvet.
+- Udgivet med succes i GitHub Actions `39807375086`, job `119924086266`.
+  Afleveret på GitHub main og i isoleret worktree teb-association-user-guide
+  på codex/association-user-guide. Brugerens Projects-pilot er ikke opdateret.
+  Ingen udeståender for denne ændring.
+
 ## Jens Bach og alle foreningens arrangementer den 22. oktober 2026
 
 - Jens Bach har nu aktiv manager-adgang til både TEB og Bødkerhuset i
