@@ -49,8 +49,12 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
   Worker dry-run og git diff --check består. Produktionsdata læst tilbage
   efter rettelsen: Jens har to aktive adgange, og alle fire arrangementer
   har korrekt arrangør. Ingen rigtig mail sendt.
-- Kodecommit registreres ved aflevering. Push til pilot og main samt
-  produktionskontrol udføres efter brugerens udtrykkelige godkendelse her.
+- Kodecommit: `ce1c491fb973cb98ee345cc7e65cb0ca1577fb00`, pushet til både
+  local/teb-pilot-ready og main. 8 kalender-browserscenarier består også.
+  GitHub Actions-udgivelse: 39797142845. Ved seneste aflæsning står den i
+  kø; frontendændringen er derfor endnu ikke bekræftet live. De to
+  flyttede arrangementer er allerede bekræftet gennem det offentlige API
+  og på Bødkerhusets eksisterende profil. Ingen ændring af Workeren.
 
 ## Kontaktformular på Om TEB den 22. oktober 2026
 
