@@ -56,6 +56,18 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
   flyttede arrangementer er allerede bekræftet gennem det offentlige API
   og på Bødkerhusets eksisterende profil. Ingen ændring af Workeren.
 
+## Kontaktoplysninger til byportaler den 22. oktober 2026
+
+- Kodecommit: `d032a11` på `local/teb-pilot-ready`.
+- De to kontaktlinks er samlet under Kontakt Jens Ejnar. Telefonnummeret
+  28 94 98 42 og jemantonsen@bbsyd.dk står på hver sin linje som synlige,
+  markerbare links med henholdsvis `tel:` og `mailto:`.
+- Kontroller: fælles layout på 16 sider, assetversioner og `git diff --check`
+  består. Lokal browserkontrol bekræfter linkmål, markerbar tekst og intet
+  vandret overløb i desktopvisningen. Mobil er ikke manuelt afprøvet.
+- Push til arbejdsgrenen og `main` er godkendt af brugeren. Udgivelsesresultat
+  kontrolleres efter push. Andre igangværende lokale ændringer er udeladt.
+
 ## Kontaktformular på Om TEB den 22. oktober 2026
 
 - Kodecommit: `b535b7e` på `local/teb-pilot-ready`.
