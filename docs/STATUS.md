@@ -27,6 +27,18 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Kontaktformular på Om TEB den 22. oktober 2026
+
+- Kodecommit: `b535b7e` på `local/teb-pilot-ready`.
+- Kontaktformularen fra kontaktsiden er også lagt nederst på Om TEB, før
+  sidefoden. Samme felter, spamværn og POST til `/api/formular`.
+- Kontroller: fælles layout på 16 sider og `git diff --check` består.
+  Lokal browserkontrol ved 1280 og 320 px viser intet vandret overløb.
+  Obligatoriske felter afviser tom formular og accepterer gyldige værdier;
+  den fælles JavaScript-kode udfylder formularens starttidspunkt.
+- Ingen rigtig besked sendt. Statisk lokal kontrol har ikke formular-API;
+  faktisk mailafsendelse er derfor ikke afprøvet her. Ikke udgivet til produktion.
+
 ## Ret og aflys i popuppen den 22. oktober 2026
 
 - Ret fra Min forening åbner nu samme popup som Opret arrangement, med billede,
