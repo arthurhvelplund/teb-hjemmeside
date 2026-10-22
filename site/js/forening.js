@@ -177,10 +177,11 @@ function safeWebsite(value) {
 }
 async function publicProfile(id) {
   if (!id) return heading('Vælg en forening') + link('Se alle foreninger', 'forening.html');
-  const [{association:a},{events}]=await Promise.all([api('/associations/'+idPath(id)),api('/events')]);
+  const [{association:a},{events}]=await Promise.all([api('/associations/'+idPath(id)),api('/events?from=2000-01-01')]);
   const website=safeWebsite(a.website),draft=draftMeta(a),own=admin()||memberships().some(m=>m.associationId===id);
   const email=a.email?'mailto:'+encodeURIComponent(a.email):'',phone=a.phone?'tel:'+a.phone.replace(/[^+\d]/g,''):'';
-  const contact=email||phone||website,ownEvents=events.filter(e=>e.associationId===id&&(e.endDate||e.date)>=today()).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  const contact=email||phone||website,ownEvents=events.filter(e=>e.associationId===id).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  const upcoming=ownEvents.filter(e=>(e.endDate||e.date)>=today()),past=ownEvents.filter(e=>(e.endDate||e.date)<today()).reverse();
   const details=[['Kontaktperson',esc(a.chair)],['E-mail',email?'<a href="'+esc(email)+'">'+esc(a.email)+'</a>':''],['Telefon',phone?'<a href="'+esc(phone)+'">'+esc(a.phone)+'</a>':''],['Mødested',esc(a.place)]];
   const controls=own?link('Ret jeres side',memberships().some(m=>m.associationId===id)?workURL(id,'profil'):adminURL('foreninger',id),true):'';
   return '<div class="fa-profile-back">'+link('← Alle foreninger','forening.html')+controls+'</div>'+
@@ -188,13 +189,18 @@ async function publicProfile(id) {
     '<p class="fa-public-intro">'+esc(a.description||'Kontakt foreningen for at høre mere om fællesskabet.')+'</p>'+
     '<div class="fp-actions fa-public-actions">'+(contact?'<a class="btn" href="'+esc(contact)+'"'+(!email&&!phone?' target="_blank" rel="noopener noreferrer"':'')+'>'+(email||phone?'Kontakt foreningen':'Besøg hjemmesiden')+'</a>':link('Spørg TEB om kontakt','kontakt.html#form',true))+
     (website&&(email||phone)?'<a class="btn btn-secondary" href="'+esc(website)+'" target="_blank" rel="noopener noreferrer">Besøg hjemmeside ↗</a>':'')+'</div>'+
-    '<div class="fa-public-columns"><div><section><h2>'+(ownEvents.length?'Næste arrangement':'Arrangementer')+'</h2>'+publicEvents(ownEvents.slice(0,3))+(ownEvents.length>3?link('Se flere arrangementer','kalender.html'):'')+'</section>'+
+    '<div class="fa-public-columns"><div><section aria-labelledby="association-events-heading"><h2 id="association-events-heading">Kommende arrangementer</h2>'+publicEvents(upcoming)+(past.length?'<details class="fa-past-events"><summary>Tidligere arrangementer ('+past.length+')</summary>'+publicEvents(past)+'</details>':'')+'</section>'+
     (draft?'<p class="fp-note fa-source">Profiludkast · Oplysningerne afventer foreningens bekræftelse. Kilde: <a href="'+esc(draft.sourceUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(new URL(draft.sourceUrl).hostname.replace(/^www\./,''))+'</a>.'+(draft.imageCredit&&a.imageUrl===draft.imageUrl?' Billede/logo: '+esc(draft.imageCredit)+'.':'')+'</p>':'')+'</div>'+
     '<aside class="fa-public-contact"><h2>Tag kontakt</h2><dl class="fa-details">'+(details.filter(([,v])=>v).map(([k,v])=>'<dt>'+k+'</dt><dd>'+v+'</dd>').join('')||'<dd>Kontaktoplysninger er ikke tilføjet endnu.</dd>')+'</dl></aside></div>';
 }
 function publicEvents(events) {
-  return events.map(e => `<article class="fp-list-row"><h3>${link(e.title, calendarURL('arrangement', e.id))}</h3><p>${esc(dateLabel(e.date))} kl. ${esc(e.time)} · ${esc(e.location)}</p>${e.state === 'cancelled' ? status('cancelled') : ''}</article>`).join('') || empty('Ingen kommende arrangementer.');
+  if (!events.length) return empty('Ingen kommende arrangementer.');
+  return '<div class="fa-event-list">'+events.map(e => {
+    const image = /^\/api\/kalender\/event-images\/[a-f0-9-]{36}\.(jpg|png|webp)$/.test(e.imageUrl || '') ? e.imageUrl : '';
+    return `<article class="fa-event-card">${image ? `<a class="fa-event-image" href="${esc(calendarURL('arrangement',e.id))}" aria-label="${esc(e.title)}"><img src="${esc(image)}" alt="" loading="lazy" decoding="async"></a>` : ''}<div class="fa-event-copy"><p class="fa-event-date">${esc(dateLabel(e.date))}${e.endDate && e.endDate !== e.date ? ' – '+esc(dateLabel(e.endDate)) : ''} kl. ${esc(e.time)}</p><h3>${link(e.title, calendarURL('arrangement', e.id))}</h3><p>${esc(e.location)}</p>${e.description ? `<p class="fa-event-description">${esc(e.description)}</p>` : ''}${e.state === 'cancelled' ? status('cancelled') : ''}${link('Se arrangement',calendarURL('arrangement',e.id))}</div></article>`;
+  }).join('')+'</div>';
 }
+
 function loginPage() {
   if (authenticated()) return `<section class="fa-welcome-panel"><h1>Du er logget ind.</h1><p>${esc(session.user.email)}</p>${link('Åbn Min forening', '#min-forening', true)}</section>`;
   const form = challenge

@@ -36,3 +36,17 @@
 .fa-admin-heading h1,.fa-compact-page #forening-content>h1{font-size:2.2rem;line-height:1.2;margin:0}.fa-admin-heading .btn{font-size:.85rem;padding:.55rem .85rem}.fa-admin-heading+.fp-tabs{margin:.8rem 0 1.2rem}.fa-compact-page #forening-content>h2{font-size:1.6rem;margin:1.4rem 0 .6rem}
 
 @media(max-width:560px){.fa-public-identity h1{font-size:1.55rem}}
+
+/* Foreningens fulde arrangementsoversigt. */
+.fa-event-list{display:grid;gap:1rem}
+.fa-event-card{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--paper-soft);min-width:0}
+.fa-event-image{display:block;background:#fff;border-bottom:1px solid var(--line)}
+.fa-event-image img{display:block;width:100%;height:220px;object-fit:contain;object-position:center}
+.fa-event-copy{padding:1.1rem;overflow-wrap:anywhere}
+.fa-event-copy h3{font:400 1.5rem/1.25 Fraunces,Georgia,serif;margin:.3rem 0 .6rem}
+.fa-event-copy p{margin:.4rem 0;font-size:.94rem}
+.fa-event-copy .fa-event-date{color:var(--forest);font-size:.85rem;font-weight:600}
+.fa-event-description{white-space:pre-line;line-height:1.6}
+.fa-event-copy>a{display:inline-block;margin-top:.6rem}
+.fa-past-events{margin-top:1.5rem}.fa-past-events>summary{cursor:pointer;font-weight:600;padding:.75rem 0}.fa-past-events[open]>summary{margin-bottom:.5rem}
+@media(max-width:560px){.fa-event-image img{height:180px}.fa-event-copy{padding:.9rem}.fa-event-copy h3{font-size:1.3rem}}

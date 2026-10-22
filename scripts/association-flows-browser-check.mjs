@@ -13,6 +13,19 @@ export async function checkAssociationFlows({member,guest,association,record}) {
  record('Det sker has no association-news feed or creation links and retains the local media links');
  for(const path of ['/foreningsportal.html','/mit-arrangement.html','/kalender-redaktion.html'])assert.equal((await guest.request.get(path)).status(),404,path);
  record('Old redirect pages are removed');
+ // Exercise the display limit and history without changing the existing workflow's data.
+ await guest.route('**/api/kalender/events?from=2000-01-01',async route=>{
+  const response=await route.fetch(),body=await response.json();
+  const base={associationId:association.id,time:'12:00',location:'Teststed',description:'Hele beskrivelsen på foreningssiden.',state:'approved'};
+  body.events.push(...[1,2,3,4].map(i=>({...base,id:'profile-test-'+i,title:'Profilens arrangement '+i,date:'2099-01-01'})),{...base,id:'profile-old',title:'Tidligere profilarrangement',date:'2020-01-01'});
+  await route.fulfill({response,json:body});
+ });
+ await guest.goto('/forening.html?id='+association.id);await guest.locator('.fa-public-identity').waitFor();
+ for(let i=1;i<=4;i++)await guest.getByRole('heading',{name:'Profilens arrangement '+i,exact:true}).waitFor();
+ assert.equal(await guest.getByRole('link',{name:'Se flere arrangementer',exact:true}).count(),0);
+ await guest.locator('.fa-past-events summary').click();await guest.getByRole('heading',{name:'Tidligere profilarrangement',exact:true}).waitFor();
+ record('Association profile shows every upcoming event beyond the old three-event limit and its expandable history');
+ await guest.unroute('**/api/kalender/events?from=2000-01-01');
  for(const width of [390,320]){
   await member.setViewportSize({width,height:844});await guest.setViewportSize({width,height:844});
   await member.goto('/forening.html#min-forening?forening='+association.id);await member.locator('.mf-events').waitFor();

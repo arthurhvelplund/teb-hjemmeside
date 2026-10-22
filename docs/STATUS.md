@@ -27,6 +27,31 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Jens Bach og alle foreningens arrangementer den 22. oktober 2026
+
+- Jens Bach har nu aktiv manager-adgang til både TEB og Bødkerhuset i
+  produktion. Hans eksisterende TEB-adgang var revoked, og Bødkerhusets
+  invitation blev knyttet til hans eksisterende konto og aktiveret.
+  Han er fortsat ikke global administrator. Min forening giver valg mellem
+  begge foreninger og mulighed for at oprette og rette deres arrangementer.
+- Flyttet i produktion: Åbningsfest i Bødkerhuset og Baren er åben :-).
+  Både association_id og offentlig arrangør er rettet, revision øget fra
+  2 til 3 og publiceringshistorik registreret af database-triggeren.
+  Fællesmøde for byens foreninger og Julefrokost er bevaret hos TEB.
+- Komplet D1-eksport taget før ændringen og bevaret under lokal, ignoreret
+  .wrangler. Ingen loginoplysninger eller databaseeksport indgår i Git.
+- Offentlige foreningsprofiler viser nu alle kommende arrangementer med
+  dato, sted, beskrivelse og eventuelt hele arrangementsbilledet. Tidligere
+  arrangementer kan foldes ud på samme side. Grænsen på tre og linket til
+  den ufiltrerede kalender er fjernet. Eksisterende arrangementslinks bevares.
+- Kontroller: 85 backendtests, 40 portal-browserscenarier inklusive mere end
+  tre arrangementer, historik og 320/390 px, fælles layout på 16 sider,
+  Worker dry-run og git diff --check består. Produktionsdata læst tilbage
+  efter rettelsen: Jens har to aktive adgange, og alle fire arrangementer
+  har korrekt arrangør. Ingen rigtig mail sendt.
+- Kodecommit registreres ved aflevering. Push til pilot og main samt
+  produktionskontrol udføres efter brugerens udtrykkelige godkendelse her.
+
 ## Kontaktformular på Om TEB den 22. oktober 2026
 
 - Kodecommit: `b535b7e` på `local/teb-pilot-ready`.
