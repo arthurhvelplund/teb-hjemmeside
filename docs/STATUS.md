@@ -65,8 +65,9 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 - Kontroller: fælles layout på 16 sider, assetversioner og `git diff --check`
   består. Lokal browserkontrol bekræfter linkmål, markerbar tekst og intet
   vandret overløb i desktopvisningen. Mobil er ikke manuelt afprøvet.
-- Push til arbejdsgrenen og `main` er godkendt af brugeren. Udgivelsesresultat
-  kontrolleres efter push. Andre igangværende lokale ændringer er udeladt.
+- Pushet til arbejdsgrenen og `main`. GitHub Actions `39797238145` står i kø;
+  live viser endnu den tidligere tekst. Andre igangværende lokale ændringer
+  er udeladt. Udestående: automatisk udgivelse og efterfølgende livekontrol.
 
 ## Kontaktformular på Om TEB den 22. oktober 2026
 
