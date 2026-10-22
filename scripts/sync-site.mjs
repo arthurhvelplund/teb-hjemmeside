@@ -40,10 +40,10 @@ export async function syncSite({ check = false, directory = defaultSite } = {}) 
     }
     if (!/<footer\b[^>]*class="site-footer"/.test(html) || !/<main\b/.test(html)) throw Error('Fælles side mangler main eller footer: ' + filename);
     const active = parents[filename] || filename;
-    const nav = '<nav class="nav" id="primary-nav" aria-label="Hovedmenu">\n' + navigation.map(([href, label]) => {
+    const nav = navigation.map(([href, label]) => {
       const classes = [href === 'bliv-medlem.html' ? 'nav-cta' : '', href === active ? 'active' : ''].filter(Boolean).join(' ');
       return `      <a href="${escape(href)}"${classes ? ` class="${classes}"` : ''}${href === active ? ' aria-current="page"' : ''}>${escape(label)}</a>`;
-    }).join('\n') + '\n    </nav>';
+    }).join('\n');
     html = html.replace(/<header\b[^>]*class="site-header"[^>]*>[\s\S]*?<\/header>/, header.replace('{{navigation}}', nav));
     html = html.replace(/<footer\b[^>]*class="site-footer"[^>]*>[\s\S]*?<\/footer>/, footer);
     html = html.replace(/<main\b([^>]*)>/, (tag, attributes) => {
