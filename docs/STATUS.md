@@ -27,6 +27,30 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Godkendt menu med rammer den 22. oktober 2026
+
+- Kodecommit: `053bb601693fee867ca8dce7159054782169daec` på main.
+- Efter brugerens godkendelse af layoutforslaget har menupunkterne nu en
+  tynd grøn/grå ramme, afrundede hjørner og lys baggrund på den aktive side.
+  Bliv medlem beholder grøn fyldning. Menupunkt og sidefodslink hedder
+  nu Foreninger og institutioner.
+- Over 700 px står menuen synligt i en række under logo og Facebook-link,
+  med ombrydning ved behov. På små skærme bevares Menu-knappen;
+  den åbne menu har to kolonner og fuld bredde til det lange menupunkt.
+  Eksisterende skjult menu i kontoforløb bevares.
+- Headerens målte højde opdaterer en CSS-variabel via ResizeObserver,
+  så ankerafstand ved Erhverv og byvideo følger den højere header.
+- Kontrol: JavaScript-syntaks, fælles layout/assetversioner på 16 sider
+  og git diff --check består. Livekontrol af foreningssiden og forsiden
+  bekræfter ni menupunkter med 1 px rammer, aktiv markering, grønt
+  medlemslink og ingen vandret overløb ved 1363 px. Den målte header er
+  152 px, og Erhvervs ankerafstand bliver 168 px.
+  Small-screen CSS er gennemgået; zoomtaster ændrede ikke browserbredden,
+  så den smalle visning er ikke visuelt afprøvet i cloudbrowseren.
+- Udgivet med succes i GitHub Actions `39812812243`, job `119943320933`.
+  Afleveret på GitHub main og i isoleret worktree teb-association-user-guide
+  på codex/association-user-guide. Brugerens Projects-pilot er ikke opdateret.
+
 ## Foreninger og institutioner den 22. oktober 2026
 
 - Kodecommit: `1d6bd2d63f217c0aa4df5e472f5569a21dd31df1` på main.
