@@ -27,6 +27,23 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## Foreninger og institutioner den 22. oktober 2026
+
+- Kodecommit: `1d6bd2d63f217c0aa4df5e472f5569a21dd31df1` på main.
+- Brugerens godkendte forslag: Foreninger i den fælles menu og sidefod;
+  Foreninger og institutioner som sideoverskrift og sidetitel.
+  Undertekst: Find lokale foreninger, klubber og institutioner i Tistrup og Hodde.
+  Den dynamiske overskrift er også rettet, så JavaScript bevarer den nye tekst.
+- Fælles navigation og sidefod genereret på 16 sider. Brugerguideboksen
+  og det eksisterende katalog er bevaret. Ingen backendændringer.
+- Kontrol: JavaScript-syntaks, fælles layout/assetversioner og git diff --check
+  består. Livekontrol bekræfter sidetitel, overskrift, undertekst og
+  Foreninger i den åbnede menu samt 25 eksisterende poster.
+- Udgivet med succes i GitHub Actions `39809520230`, job `119931657557`.
+  Afleveret på GitHub main og i isoleret worktree teb-association-user-guide
+  på codex/association-user-guide. Brugerens Projects-pilot er ikke opdateret.
+  Ingen udeståender for denne tekstændring.
+
 ## Brugerguide på foreningssiden den 22. oktober 2026
 
 - Kodecommit: `23c836348b1db0a114eb0087b4e1e27bb24c7835` på `main`.
