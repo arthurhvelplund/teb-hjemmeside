@@ -1,6 +1,6 @@
 # Samlet status for TEB hjemmesiden
 
-Opdateret 22. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
+Opdateret 23. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
 
 ## Det fælles arbejdssted
@@ -26,6 +26,26 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Foreningsprofil og ejerens side | Kompakt offentlig profil og ejerens arrangementer. Nyhedsoprettelse og foreningsnyheder er taget ud af brugerflowet efter brugerens ønske 20. oktober. Den fælles TEB-kø og historiske data er bevaret. |
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
+
+## Godkendt menu uden rammer den 23. oktober 2026
+
+- Kodecommit: `9c0a42fb26415fe671374a596a302c2b3965ce97` på main.
+- Efter brugerens godkendelse af forsideforslaget er de tynde rammer
+  fjernet. Logo, TEB-navn og navigation står i én række på brede skærme.
+  Facebook-ikonet følger menuen efter Bliv medlem. Det fulde navn
+  Foreninger og institutioner og den grønne medlemsknap er bevaret.
+- Ved højst 1100 px samles navigationen under Menu-knappen, så de lange
+  menutekster får plads. Den eksisterende dynamiske ankerafstand følger
+  fortsat headerens højde.
+- Kontrol: sync-site, fælles layout/assetversioner på 16 sider og
+  git diff --check består. På liveforsiden ved 1363 px er logo og menu
+  centreret på samme vandrette linje, headeren er 90,78 px høj, alle
+  almindelige menulinks inklusive Facebook har 0 px ramme, og siden har
+  intet vandret overløb. Skærmbillede bekræfter udseendet.
+  Mobilvisningen er ikke visuelt kontrolleret i denne browser.
+- Udgivet med succes i GitHub Actions `39997555862`, job `120564939758`.
+  Afleveret på GitHub main og i isoleret worktree teb-association-user-guide
+  på codex/association-user-guide. Brugerens Projects-pilot er ikke opdateret.
 
 ## Facebook-ikon sammen med menuen den 22. oktober 2026
 
