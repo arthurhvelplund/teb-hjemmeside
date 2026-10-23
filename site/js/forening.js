@@ -135,7 +135,10 @@ async function render() {
   }
 }
 async function directoryPage() {
-  directory = (await api('/associations')).associations.sort((a, b) => a.name.localeCompare(b.name, 'da'));
+  // OK-Klubben was removed from the public directory at TEB's request on 23 October 2026.
+  directory = (await api('/associations')).associations
+    .filter(a => a.name !== 'OK-Klubben Tistrup')
+    .sort((a, b) => a.name.localeCompare(b.name, 'da'));
   // Keep the original fictional seed in the database and workspaces, outside the real directory draft.
   if (directory.some(draftMeta)) directory = directory.filter(a => a.name !== 'Eksempelforeningen Solsiden');
   return `<aside class="fa-get-started" aria-labelledby="association-guide-title"><div><h2 id="association-guide-title">Ny forening, klub eller institution?</h2><p>Kom godt i gang med jeres profil og byens kalender. Guiden viser, hvordan I får adgang gennem TEB.</p></div><div class="fa-get-started-actions"><a class="btn btn-secondary" href="downloads/brugerguide-foreninger.pdf" target="_blank" rel="noopener">Åbn brugerguiden (PDF)<span class="fa-visually-hidden"> – åbner i en ny fane</span></a><a href="kontakt.html#form">Kontakt TEB om oprettelse →</a></div></aside>
