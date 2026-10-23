@@ -27,6 +27,26 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
 
+## OK-Klubben fjernet fra oversigten den 23. oktober 2026
+
+- Kodecommit: `2b9390d72833b58e8c022899923b129f834960a9` på main.
+- OK-Klubben Tistrup er efter brugerens ønske taget ud af den offentlige
+  oversigt, både Billede og Liste samt søgning og optælling.
+  Den særskilte OK Tistrup Voksenklub vises fortsat.
+- Afgrænsningen ligger i directoryPage, før søgning og rendering.
+  Databasens profil, eksisterende arrangementer og adgangsrelationer er
+  bevaret; dette er fjernelse fra oversigten, ikke en datasletning.
+- Kontrol: JavaScript-syntaks, fælles layout på 16 sider og git diff --check
+  består. Liveoversigten er gået fra 26 til 25 poster. OK-Klubben Tistrup
+  findes ikke i kortene, mens OK Tistrup Voksenklub er bevaret. Søgning
+  efter OK-Klubben i Liste giver 0 foreninger.
+- Udgivet med succes i GitHub Actions `40015627233`,
+  job `120626830761`.
+  Afleveret på GitHub main og i isoleret worktree teb-association-user-guide
+  på codex/association-user-guide. Brugerens Projects-pilot er ikke opdateret.
+- Menu med dropdowns er alene vist som designforslag i samtalen og er
+  endnu ikke godkendt til udgivelse.
+
 ## Godkendt menu uden rammer den 23. oktober 2026
 
 - Kodecommit: `9c0a42fb26415fe671374a596a302c2b3965ce97` på main.
