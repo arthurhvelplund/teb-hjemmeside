@@ -1,4 +1,4 @@
-import { ensure, hash, now } from './shared.mjs';
+import { ensure, hash, now, HttpError } from './shared.mjs';
 export const stmt=(env,sql,...args)=>env.DB.prepare(sql).bind(...args);
 export const all=async statement=>(await statement.all()).results;
 export const local=env=>env.LOCAL_PREVIEW==='true';
@@ -7,8 +7,12 @@ export async function rate(env,key,limit,minutes=60){
  const stamp=now();
  const row=await stmt(env,`INSERT INTO rate_limits(key,count,expires_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET
  count=CASE WHEN expires_at<=? THEN 1 ELSE count+1 END,
- expires_at=CASE WHEN expires_at<=? THEN excluded.expires_at ELSE expires_at END RETURNING count`,key,new Date(Date.now()+minutes*60000).toISOString(),stamp,stamp).first();
- ensure(row.count<=limit,429,'For mange forsøg. Vent lidt, og prøv igen.');
+ expires_at=CASE WHEN expires_at<=? THEN excluded.expires_at ELSE expires_at END RETURNING count,expires_at`,key,new Date(Date.now()+minutes*60000).toISOString(),stamp,stamp).first();
+ if(row.count>limit){
+  const error=new HttpError(429,'For mange forsøg. Vent lidt, og prøv igen.');
+  error.retryAfterSeconds=Math.max(1,Math.ceil((Date.parse(row.expires_at)-Date.now())/1000));
+  throw error;
+ }
 }
 export const ipKey=async request=>hash(request.headers.get('CF-Connecting-IP')||'local');
 export function emailAddress(input){
