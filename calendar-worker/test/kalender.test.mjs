@@ -26,7 +26,9 @@ function fixture(t){
  function client(){
   let cookie='';const ip=crypto.randomUUID();
   const call=(path,{data,authorization,headers={},method}={})=>handleApi(new Request(env.PUBLIC_ORIGIN+'/api/kalender'+path,{method:method||(data?'POST':'GET'),headers:{'CF-Connecting-IP':ip,...(data?{'Content-Type':'application/json',Origin:env.PUBLIC_ORIGIN}:{}),...(cookie?{Cookie:cookie}:{}),...(authorization?{Authorization:'Bearer '+authorization}:{}),...headers},...(data?{body:JSON.stringify(data)}:{})}),env);
-  const request=async email=>{const r=await call('/auth/request',{data:{email}});assert.equal(r.status,200,await r.clone().text());const data=await r.json();const message=messages.findLast(m=>m.to===email);return {...data,code:message?.text.match(/\b\d{6}\b/)[0]};};
+  // These tests exercise sessions, invitation freshness and the longer limits.
+  // The dedicated login-clarity tests exercise the real 60-second cooldown.
+  const request=async email=>{await DB.prepare("UPDATE rate_limits SET expires_at='2000-01-01' WHERE key=?").bind('otp-cooldown:'+await hash(email)).run();const r=await call('/auth/request',{data:{email}});assert.equal(r.status,200,await r.clone().text());const data=await r.json();const message=messages.findLast(m=>m.to===email);return {...data,code:message?.text.match(/\b\d{6}\b/)[0]};};
   const verify=async challenge=>{const r=await call('/auth/verify',{data:{challengeId:challenge.challengeId,code:challenge.code}});if(r.ok)cookie=r.headers.get('Set-Cookie').split(';')[0];return r;};
   const login=async email=>{const challenge=await request(email),r=await verify(challenge);assert.equal(r.status,200,await r.clone().text());return r.json();};
   return {call,request,verify,login,cookie:()=>cookie};
@@ -52,7 +54,7 @@ test('anonymous session, secret-free OTP responses and secure authenticated sess
  const r=await f.guest.verify(challenge);assert.match(r.headers.get('Set-Cookie'),/HttpOnly; SameSite=Strict; Path=\/api\/kalender; Max-Age=28800; Secure/);
  const session=await ok(r);assert.equal(session.authenticated,true);assert.equal(session.user.isAdmin,false);assert.deepEqual(session.memberships,[]);
  assert.equal((await f.guest.call('/admin/events')).status,403);assert.equal((await f.guest.call('/admin/session',{data:{token:token()}})).status,404);
- const api=await f.client().call('/auth/request',{data:{email:'other@example.test'}});const response=await api.json();assert.deepEqual(Object.keys(response).sort(),['challengeId','deliveryState','mode']);
+ const api=await f.client().call('/auth/request',{data:{email:'other@example.test'}});const response=await api.json();assert.deepEqual(Object.keys(response).sort(),['accessState','challengeId','deliveryState','mode','resendAfterSeconds']);
  const jobs=(await f.DB.prepare('SELECT payload FROM mail_jobs').all()).results;assert.ok(jobs.every(j=>!j.payload.includes('@')&&!j.payload.includes(challenge.code)));
 });
 test('OTP expiry, replay and five failed attempts',async t=>{

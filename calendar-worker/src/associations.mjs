@@ -46,7 +46,9 @@ export async function createAssociation(env,auth,data){
 }
 export async function members(env,auth,id){
  await requireAccess(env,auth,id);
- const rows=await all(stmt(env,"SELECT id,email,name,role,status FROM memberships WHERE association_id=? AND status IN ('active','invited') ORDER BY role DESC,name,email",id));
+ const rows=await all(stmt(env,`SELECT m.id,m.email,m.name,m.role,m.status,i.expires_at AS invitationExpiresAt,j.state AS invitationDeliveryState
+ FROM memberships m LEFT JOIN invitations i ON i.id=m.invitation_id LEFT JOIN mail_jobs j ON j.dedupe_key='invitation:'||i.id
+ WHERE m.association_id=? AND m.status IN ('active','invited') ORDER BY m.role DESC,m.name,m.email`,id));
  return json({members:rows});
 }
 export async function invitationStatements(env,{associationId,email,name,role,g,replaceRole=false,associationName='',condition='1',args=[]}){

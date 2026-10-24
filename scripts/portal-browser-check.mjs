@@ -6,6 +6,7 @@ import {createRequire} from 'node:module';
 import {mkdtemp,mkdir,writeFile,rm,access} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {DatabaseSync} from 'node:sqlite';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const backend=resolve(root,'calendar-worker');
 const require=createRequire(resolve(backend,'package.json'));
@@ -27,17 +28,24 @@ async function json(context,path,options={}){
  const result=await response.json();assert.ok(response.ok(),path+': '+response.status()+' '+(result.error||''));return result;
 }
 async function fill(form,values){for(const [name,value]of Object.entries(values)){const field=form.locator('[name="'+name+'"]');if(await field.evaluate(node=>node.tagName==='SELECT'))await field.selectOption(value);else await field.fill(value);}}
+function expireCooldowns(){const db=new DatabaseSync(resolve(runtime,'calendar.sqlite'));try{db.prepare("UPDATE rate_limits SET expires_at='2000-01-01' WHERE key LIKE 'otp-cooldown:%'").run();}finally{db.close();}}
 async function login(page,email,exerciseSteps=false){
+ expireCooldowns();
  await page.goto('/forening.html#login');
  const request=page.locator('form[data-action="request-code"]');await request.waitFor();await fill(request,{email});
  const response=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');
  await request.locator('button[type="submit"]').click();assert.ok((await response).ok());
  await page.locator('form[data-action="verify-code"]').waitFor();
+ assert.ok((await page.locator('.fa-login-card').innerText()).includes('spam/uønsket post'));
+ if(email===memberEmail)assert.ok((await page.locator('.fa-login-card').innerText()).includes('Denne e-mailadresse har adgang'));
  assert.equal(await page.locator('form[data-action="request-code"]').count(),0,'Email and code are separate steps');
  if(exerciseSteps){
+  assert.equal(await page.locator('form[data-action="resend-code"] button').isDisabled(),true);
+  await page.clock.install();await page.clock.fastForward(61000);expireCooldowns();
   await page.locator('[data-change-email]').click();await request.waitFor();assert.equal(await request.locator('[name="email"]').inputValue(),email);
   const next=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');await request.locator('button[type="submit"]').click();assert.ok((await next).ok());
   const resend=page.locator('form[data-action="resend-code"]');await resend.waitFor();
+  assert.equal(await resend.locator('button').isDisabled(),true);await page.clock.fastForward(61000);expireCooldowns();
   const resent=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');await resend.locator('button[type="submit"]').click();assert.ok((await resent).ok());await page.locator('form[data-action="verify-code"]').waitFor();
  }
  const mailbox=await page.context().newPage();mailbox.on('pageerror',error=>errors.push(error.message));
@@ -199,7 +207,7 @@ try{
  await json(adminContext,'/admin/associations/'+second.id+'/members',{method:'POST',data:{email:memberEmail,name:'Foreningsperson'}});
  await member.locator('.mf-account').getByRole('button',{name:'Log ud'}).click();await member.waitForURL(url=>!url.hash);await login(member,memberEmail);await member.getByRole('heading',{name:'Hvilken forening vil du åbne?'}).waitFor();
  await member.locator('.fa-membership-choices a').filter({hasText:second.name}).click();await member.locator('.mf-header h1').filter({hasText:second.name}).waitFor();record('Multiple-association users choose only among their own associations');
- await login(guest,'ny-forening@example.org');await guest.getByRole('heading',{name:'Hvilken forening hører du til?'}).waitFor();assert.equal(await guest.getByRole('link',{name:/^Kontakt TEB/}).getAttribute('href'),'kontakt.html#form');
+ await login(guest,'ny-forening@example.org');await guest.getByRole('heading',{name:'Hvilken forening hører du til?'}).waitFor();assert.equal(await guest.locator('.mf-account').getByRole('link',{name:/^Kontakt TEB/}).getAttribute('href'),'kontakt.html#form');
  const accessRequest=guest.locator('form[data-action=access-request]');await fill(accessRequest,{name:'Ny foreningsperson',associationId:association.id,roleNote:'Ansvarlig i foreningen.'});await accessRequest.locator('button').click();await guest.getByText('Din anmodning er gemt hos TEB.',{exact:false}).waitFor();
  await admin.goto('/forening.html#teb');const accessReview=admin.locator('form[data-action=review-access]');await accessReview.waitFor();await accessReview.locator('button[value=approve]').click();await accessReview.getByText('Bekræft først, at du har kontrolleret personens tilknytning.').waitFor();await accessReview.locator('[name=note]').fill('Vi kontakter jer først.');await accessReview.locator('button[value=reject]').click();await admin.getByText('Anmodningen er afvist.').waitFor();
  await guest.reload();await guest.getByText('Vi kontakter jer først.').waitFor();record('Unassigned accounts request access through the UI and the shared queue requires explicit verification');
@@ -212,6 +220,32 @@ try{
  }
  await guest.goto('/kalender.html');await guest.screenshot({path:resolve(output,'kalender-mobil.png'),fullPage:true});record('Public pages fit 390px and 320px without horizontal overflow');
  assert.deepEqual(errors,[]);await writeFile(resolve(output,'checks.json'),JSON.stringify({date:new Date().toISOString(),checks,errors,externalMailSent:false},null,2));
+ const loginContext=await browser.newContext({baseURL:origin,viewport:{width:320,height:844}});
+ const loginPage=await loginContext.newPage();pages.push(loginPage);loginPage.on('pageerror',error=>errors.push(error.message));
+ await loginPage.clock.install();
+ const longEmail='a-long-association-email-for-testing-layout@example.org';
+ for(const state of ['failed','uncertain','pending']){
+  await loginPage.evaluate(()=>sessionStorage.clear()).catch(()=>{});
+  await loginContext.route('**/api/kalender/auth/request',route=>route.fulfill({json:{challengeId:crypto.randomUUID(),mode:'live',deliveryState:state,accessState:'unlinked',resendAfterSeconds:60}}));
+  await loginPage.goto('/forening.html?login-state='+state+'#login');
+  const form=loginPage.locator('form[data-action="request-code"]');await form.waitFor();await fill(form,{email:longEmail});await form.locator('button').click();
+  await loginPage.locator('form[data-action="verify-code"]').waitFor();
+  const text=await loginPage.locator('.fa-login-card').innerText();assert.ok(text.includes('Denne e-mailadresse er ikke tilknyttet en forening'));assert.ok(!text.includes('Koden er sendt.'));
+  assert.equal(await loginPage.locator('form[data-action="resend-code"] button').isDisabled(),true);
+  assert.equal(await loginPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'code state '+state+' on 320px');
+  await loginPage.reload();await loginPage.locator('form[data-action="verify-code"]').waitFor();
+  assert.equal(await loginPage.locator('form[data-action="resend-code"] button').isDisabled(),true);
+  await loginPage.clock.fastForward(61000);assert.equal(await loginPage.locator('form[data-action="resend-code"] button').isDisabled(),false);
+  if(state==='failed')await loginPage.screenshot({path:resolve(output,'login-failed-320.png'),fullPage:true});
+  await loginContext.unroute('**/api/kalender/auth/request');
+ }
+ record('Failed, uncertain and pending delivery never claims a sent code; unknown-email guidance and countdown survive reload on 320px');
+ await loginContext.route('**/api/kalender/auth/request',route=>route.fulfill({status:429,headers:{'Retry-After':'120'},json:{error:'For mange forsøg. Vent lidt, og prøv igen.',retryAfterSeconds:120}}));
+ await loginPage.locator('form[data-action="resend-code"] button').click();await loginPage.getByText('For mange forsøg. Vent lidt, og prøv igen.',{exact:true}).waitFor();
+ assert.ok((await loginPage.locator('form[data-action="resend-code"] button').innerText()).includes('120'));assert.equal(await loginPage.locator('form[data-action="verify-code"]').count(),1);
+ record('Server rate limits update the countdown while preserving the existing code form');
+ await loginContext.close();
+ assert.deepEqual(errors,[],'No uncaught browser errors in login failure states');
  console.log('Portal browser checks passed: '+checks.length+' complete real API/UI scenarios. No external mail sent.');
 }catch(error){
  console.error(error.stack || error.message);for(const [i,page]of pages.entries())await page.screenshot({path:resolve(output,'failure-'+i+'.png'),fullPage:true}).catch(()=>{});process.exitCode=1;

@@ -131,7 +131,10 @@ Den gamle `/experiment/*`-API og `experiment_posts` bevares som et separat,
 kun lokalt sandkasselager. De er ikke datakilden til den offentlige kalender.
 
 OTP har seks tilfældige cifre, ti minutters levetid og højst fem forsøg.
-Anmodninger begrænses pr. mail, IP og globalt. Verifikation begrænses pr.
+Der er mindst 60 sekunder mellem nye koder pr. mail, håndhævet atomisk i databasen.
+Anmodninger begrænses desuden pr. mail, IP og globalt. Svaret indeholder
+`resendAfterSeconds` og `accessState: linked|unlinked`, men ingen foreningsnavne
+før verificering. HTTP 429 har `retryAfterSeconds` og `Retry-After`. Verifikation begrænses pr.
 mail, IP og challenge. Ny kode ugyldiggør tidligere challenges og afventende
 mailjobs. Databasen gemmer en HMAC af kode og challenge-id, aldrig selve koden.
 Indløsning, brugeroprettelse, session og invitationsaccept sker atomisk.
