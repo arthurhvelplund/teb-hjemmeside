@@ -1,0 +1,64 @@
+name: Preview association login on test.teb-tistrup.dk
+
+on:
+  push:
+    branches: [codex/association-login-clarity]
+    paths:
+      - "site/**"
+      - "calendar-worker/**"
+      - ".github/workflows/preview-association-login.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: teb-association-staging
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate the reviewed source
+        run: node scripts/sync-site.mjs --check && node scripts/site-layout-check.mjs
+      - name: Install and test calendar worker
+        working-directory: calendar-worker
+        run: npm ci && npm test
+      - name: Deploy isolated staging API
+        working-directory: calendar-worker
+        run: npx wrangler deploy --config wrangler.staging.jsonc --keep-vars
+      - name: Label the preview and omit local mailboxes
+        shell: bash
+        run: |
+          rm -f site/kalender-postkasse.html site/js/kalender-postkasse.js
+          python3 - <<'PY'
+          from pathlib import Path
+          banner = '<div role="note" style="padding:12px 20px;background:#fff0c2;color:#173e2d;text-align:center;font:600 14px/1.5 system-ui,sans-serif">Testversion - ændringer gemmes kun her. Login sender en rigtig kode til din mail. <a href="/forening.html#teb?fane=foreninger">Test administration</a></div>'
+          for path in Path('site').glob('*.html'):
+              text = path.read_text()
+              import re
+              text = re.sub(r'(<body\b[^>]*>)',lambda m:m.group(1)+banner,text,count=1)
+              path.write_text(text)
+          PY
+          printf '\n# Preview only\n/*\n  X-Robots-Tag: noindex, nofollow\n' >> site/_headers
+      - name: Publish staging frontend only
+        working-directory: calendar-worker
+        run: npx wrangler pages deploy ../site --project-name=teb-tistrup --branch=staging --commit-hash=${{ github.sha }} --commit-dirty=true
+      - name: Verify the preview
+        shell: bash
+        run: |
+          curl --fail --silent --show-error https://test.teb-tistrup.dk/api/kalender/config
+          curl --fail --silent --show-error --output /tmp/teb-preview-login.js https://test.teb-tistrup.dk/js/forening.js
+          grep -q 'resendAfterSeconds' /tmp/teb-preview-login.js
+          curl --fail --silent --show-error --output /tmp/teb-admin-manual.pdf https://test.teb-tistrup.dk/downloads/teb-admin-brugermanual.pdf
+          echo 'Preview: https://test.teb-tistrup.dk/forening.html#login' >> "$GITHUB_STEP_SUMMARY"

@@ -5,6 +5,11 @@ Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreni
 
 ## Foreningsoprettelse og login den 24. oktober 2026
 
+- Preview er bestilt af brugeren og klargøres på `https://test.teb-tistrup.dk`.
+  Den bruger staging-D1/R2 og eksisterende mailopsætning; produktion ændres ikke.
+  Brugerens egen eksisterende stagingkonto er gjort til testadministrator, så
+  oprettelse og invitation kan afprøves. Preview-workflowet udgiver kun staging.
+
 - Leverance i denne arbejdskopi: `/workspace/scratch/69bc69c2fd90/teb-hjemmeside`,
   `codex/association-login-clarity`, kodecommit `040371c36d7233721146b7f4720f051f63439eb6`.
   Brugerens Projects-pilot er ikke opdateret. Direkte push til main blev afvist af
