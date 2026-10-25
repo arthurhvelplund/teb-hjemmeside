@@ -18,9 +18,16 @@ Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreni
   også to samtidige adgangsanmodninger og kontrollerer én korrekt mail.
   Ingen eksterne mails er sendt under testen. Ingen historiske anmodninger
   genudsendes. Gmail-kladder til foreningerne sendes af brugeren selv.
-- Leverance: `codex/access-request-notifications` i
-  `/workspace/scratch/8e8070a92109/teb-hjemmeside`. Udgivelse og produktionskontrol
-  pågår; Projects-piloten er ikke opdateret.
+- Udgivet via PR #4 og mergecommit
+  `d60fead38eddad922d67af27293c35ff3613ecb4` (kodecommit `7011d3f`).
+  GitHub CI `40206783709` består alle trin, herunder browserkontrollerne.
+  Produktionsudgivelse `40206952265`, job `121209833880`, er afsluttet med succes.
+  Den aktive Worker er læst via Cloudflare API og kontrolleret for
+  modtagerindstilling, atomisk mailkø, deduplikeringsnøgle og administrationslink.
+  Secret-bindingens tilstedeværelse er bekræftet. Direkte HTTP-kontrol fra
+  containeren blev blokeret med HTTP 403; ingen rigtig mail er udløst.
+- Arbejdskopi: `/workspace/scratch/8e8070a92109/teb-hjemmeside`.
+  Projects-piloten er ikke opdateret.
 
 ## Kun kontaktlink ved login den 25. oktober 2026
 
