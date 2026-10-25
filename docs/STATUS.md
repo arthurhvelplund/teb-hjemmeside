@@ -3,6 +3,14 @@
 Opdateret 25. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
 
+## Invitationer uden syvdagesfrist den 25. oktober 2026
+
+- Brugeren har bedt om at fjerne aktiveringsfristen for alle foreninger, også fremtidige invitationer.
+- Alle fire aktuelle, ikke tilbagekaldte invitationer i produktion er opdateret; tre fik ændret datoen, Tistrup Mediehus var allerede ændret. Accepterede og tilbagekaldte invitationer er ikke genåbnet.
+- Nye invitationer bruger 9999-12-31 i den eksisterende NOT NULL-kolonne, så alle eksisterende adgangs- og tilbagekaldelseskontroller fortsat virker. Invitationsmailen omtaler ikke længere syv dage.
+- Regressionstest prøver første aktivering 30 dage efter invitationen og kontrollerer, at engangskoden fortsat kun gælder i ti minutter. Produktionsworkflowet kører backendtests før udgivelse.
+- Ingen eksterne mails er sendt under ændringen. Den eksisterende PDF-adminmanual omtaler stadig den tidligere frist og er ikke regenereret i denne leverance.
+
 ## Mail ved adgangsanmodninger den 25. oktober 2026
 
 - Brugeren har bedt om mail til sig, når en person anmoder om tilknytning til

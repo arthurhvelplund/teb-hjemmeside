@@ -502,3 +502,16 @@ test('TEB notifications go to every configured address',async()=>{
  assert.deepEqual(editorRecipients({EDITOR_EMAIL:'a@example.test, b@example.test'}),['a@example.test','b@example.test']);
  assert.equal(editorRecipients({}),'');
 });
+
+test('an invitation still activates after thirty days with a fresh ten-minute OTP',async t=>{
+ const f=fixture(t);await f.admin.login('admin@example.test');const a=await f.association();
+ await f.invite(a,'later@example.test');
+ assert.doesNotMatch(f.messages.findLast(m=>m.to==='later@example.test').text,/syv dage|7 dage/);
+ t.mock.timers.enable({apis:['Date'],now:Date.now()+30*86400000});
+ const c=f.client(),challenge=await c.request('later@example.test');
+ assert.equal(challenge.accessState,'linked');
+ const otp=await f.DB.prepare('SELECT * FROM otp_challenges WHERE id=?').bind(challenge.challengeId).first();
+ assert.equal(Date.parse(otp.expires_at)-Date.now(),600000);
+ await ok(await c.verify(challenge));
+ assert.equal((await ok(await c.call('/session'))).memberships[0].associationId,a.id);
+});

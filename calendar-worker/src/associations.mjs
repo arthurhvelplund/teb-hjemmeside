@@ -51,14 +51,15 @@ export async function members(env,auth,id){
  WHERE m.association_id=? AND m.status IN ('active','invited') ORDER BY m.role DESC,m.name,m.email`,id));
  return json({members:rows});
 }
+// Invitationer har ingen aktiveringsfrist. Den eksisterende NOT NULL-datokolonne bruger en fjern slutdato.
 export async function invitationStatements(env,{associationId,email,name,role,g,replaceRole=false,associationName='',condition='1',args=[]}){
- const id=crypto.randomUUID(),membershipId=crypto.randomUUID(),stamp=now(),expiry=new Date(Date.now()+7*86400000).toISOString();
+ const id=crypto.randomUUID(),membershipId=crypto.randomUUID(),stamp=now(),expiry='9999-12-31T23:59:59.999Z';
  const conditionSql=`${g.sql} AND (${condition})`;
  const conditionArgs=[...g.args,...args];
  const active=`EXISTS(SELECT 1 FROM memberships WHERE association_id=? AND email=? AND invitation_id=?)`;
  const activeArgs=[associationId,email,id];
  const a=await stmt(env,'SELECT name FROM associations WHERE id=?',associationId).first();
- const job=await mailStatement(env,{dedupe:'invitation:'+id,to:email,subject:'Invitation til '+(a?.name||associationName||'din forening'),text:`Hej ${name||email}\n\nDu er inviteret til at få adgang til ${a?.name||associationName||'din forening'} på TEBs hjemmeside. Med adgangen kan du oprette arrangementer, rette foreningens side og invitere andre.\nÅbn ${env.PUBLIC_ORIGIN}/forening.html og log ind med denne e-mailadresse. Bed om en ny engangskode efter invitationen. Invitationen gælder i syv dage.`,expiresAt:expiry,condition:active,args:activeArgs});
+ const job=await mailStatement(env,{dedupe:'invitation:'+id,to:email,subject:'Invitation til '+(a?.name||associationName||'din forening'),text:`Hej ${name||email}\n\nDu er inviteret til at få adgang til ${a?.name||associationName||'din forening'} på TEBs hjemmeside. Med adgangen kan du oprette arrangementer, rette foreningens side og invitere andre.\nÅbn ${env.PUBLIC_ORIGIN}/forening.html og log ind med denne e-mailadresse. Bed om en ny engangskode efter invitationen.`,expiresAt:expiry,condition:active,args:activeArgs});
  return {id,membershipId,statements:[
   stmt(env,`INSERT INTO memberships(id,association_id,email,name,role,status,invited_at,invitation_id) SELECT ?,?,?,?,?,'invited',?,? WHERE ${conditionSql}
   ON CONFLICT(association_id,email) DO UPDATE SET name=excluded.name,role=excluded.role,status='invited',invited_at=excluded.invited_at,invitation_id=excluded.invitation_id,revoked_at=NULL,user_id=NULL,activated_at=NULL
