@@ -235,18 +235,30 @@ function publicEvents(events) {
 
 function loginPage() {
   if (authenticated()) return `<section class="fa-welcome-panel"><h1>Du er logget ind.</h1><p>${esc(session.user.email)}</p>${link('Åbn Min forening', '#min-forening', true)}</section>`;
+  const deliveryProblem = challenge && !['sent', 'delivered', 'local'].includes(challenge.deliveryState);
+  const accessNote = challenge?.accessState === 'unlinked'
+    ? '<p class="fp-note fa-login-access">Ingen foreningsadgang på denne mail. <a href="kontakt.html#form">Kontakt TEB</a>.</p>'
+    : challenge?.accessState === 'linked' ? '<p class="fp-note fa-login-access">Mailadressen har adgang.</p>' : '';
   const form = challenge
-    ? `<h1>${['failed','uncertain','pending'].includes(challenge.deliveryState) ? 'Tjek status på din kode.' : 'Tjek din e-mail.'}</h1><p>E-mail: <strong>${esc(challenge.email)}</strong></p>${challenge.accessState === 'unlinked' ? '<p class="fp-notice" role="status">Denne e-mailadresse er ikke tilknyttet en forening. Kontrollér adressen, eller <a href="kontakt.html#form">kontakt TEB for at få adgang</a>. Du kan også bekræfte din e-mail med koden og derefter bede om adgang.</p>' : challenge.accessState === 'linked' ? '<p class="fp-note">Denne e-mailadresse har adgang til foreningen eller TEB. Efter login vises de foreninger, du har adgang til.</p>' : ''}<p class="fp-notice" role="status">${esc(loginDeliveryText(challenge.deliveryState))}</p>${formStart('verify-code', `data-challenge="${esc(challenge.id)}"`)}${input('code', 'Koden fra din mail', '', 'text', 'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" aria-describedby="login-code-help"')}<p id="login-code-help" class="fp-note">Skriv de seks cifre. Koden gælder i 10 minutter. Brug den nyeste kode, hvis du har bedt om flere.</p>${button('Log ind')}${resultBox()}</form><p class="fp-note">Ingen mail? Tjek spam/uønsket post og eventuelt fanen Andet. Søg efter afsenderen kalender@teb-tistrup.dk. Behold denne side åben, mens du læser mailen.</p><div class="fa-login-options"><button class="fa-text-button" type="button" data-change-email>Ret e-mailadressen</button>${formStart('resend-code')}${button('Send en ny kode')}${resultBox()}</form></div><p class="fp-note">Der skal gå 60 sekunder mellem nye koder. En ny kode erstatter den gamle.</p>`
-    : `<h1>Log ind til din forening.</h1><p>Brug præcis den e-mailadresse, som TEB eller din forening har givet adgang. Vi sender en kode med seks cifre. Du skal ikke oprette en adgangskode.</p>${formStart('request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="email" maxlength="254"')}${button('Send kode')}${resultBox()}</form><p class="fp-note">Er din e-mail ikke tilknyttet endnu? <a href="kontakt.html#form">Kontakt TEB</a> med foreningens navn og den e-mailadresse, du vil bruge.</p>`;
-  return `<div class="fa-login-layout"><a class="fa-back-link" href="forening.html">← Tilbage til foreningerne</a><section class="fa-login-card" aria-label="Login til din forening"><span class="eyebrow">For foreninger</span>${form}${localMode ? '<p class="fa-local-help">Lokal afprøvning. Find din kode i <a href="kalender-postkasse.html" target="_blank" rel="noopener">testpostkassen</a>.</p>' : ''}</section><p class="fa-login-help">Har du brug for hjælp? <a href="kontakt.html#form">Kontakt TEB</a>.</p></div>`;
+    ? `<h1>${deliveryProblem ? 'Log ind.' : 'Indtast koden.'}</h1>
+      <p class="fa-login-recipient">${deliveryProblem ? 'E-mail:' : challenge.deliveryState === 'local' ? 'Kode til' : 'Kode sendt til'} <strong>${esc(challenge.email)}</strong></p>
+      ${accessNote}${deliveryProblem ? `<p class="fp-notice" role="alert">${esc(loginDeliveryText(challenge.deliveryState))}</p>` : ''}
+      ${formStart('verify-code', `data-challenge="${esc(challenge.id)}"`)}
+        ${input('code', 'Kode fra din mail', '', 'text', 'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" aria-describedby="login-code-help"')}
+        <p id="login-code-help" class="fp-note">6 cifre · gælder i 10 minutter.</p>
+        ${button('Log ind')}${resultBox()}
+      </form>
+      <p class="fp-note fa-login-spam">Ingen mail? Tjek spam/uønsket post.</p>
+      <div class="fa-login-options"><button class="fa-text-button" type="button" data-change-email>Ret e-mail</button>${formStart('resend-code')}${button('Send en ny kode')}${resultBox()}</form></div>`
+    : `<h1>Log ind til din forening.</h1><p>Brug den mailadresse, der har adgang til din forening.</p>${formStart('request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="email" maxlength="254"')}${button('Send kode')}${resultBox()}</form>`;
+  const help = '<details class="fa-login-help"><summary>Hjælp til login</summary><p>Mailen kommer fra kalender@teb-tistrup.dk. Tjek også fanen Andet i din mail. Brug den nyeste kode, hvis du har bedt om flere.</p><p>Mangler du foreningsadgang? <a href="kontakt.html#form">Kontakt TEB</a>, eller log ind med koden og bed om adgang.</p></details>';
+  return `<div class="fa-login-layout"><a class="fa-back-link" href="forening.html">← Tilbage til foreningerne</a><section class="fa-login-card" aria-label="Login til din forening">${form}${localMode ? '<p class="fa-local-help">Lokal afprøvning. Find din kode i <a href="kalender-postkasse.html" target="_blank" rel="noopener">testpostkassen</a>.</p>' : ''}</section>${help}</div>`;
 }
 function loginDeliveryText(state) {
-  if (state === 'failed') return 'Koden kunne ikke sendes. Vent på, at knappen til en ny kode bliver klar, og prøv igen. Kontakt TEB, hvis det fortsætter.';
-  if (state === 'uncertain') return 'Vi kan ikke bekræfte, om koden blev sendt. Tjek din mail og spam. Hvis den ikke kommer, kan du bede om en ny kode, når knappen bliver klar.';
-  if (state === 'pending') return 'Koden venter på afsendelse. Den er endnu ikke bekræftet sendt. Vent lidt, og tjek din mail.';
-  if (state === 'local') return 'Koden ligger i den lokale testpostkasse.';
-  if (state === 'sent' || state === 'delivered') return 'Koden er sendt. Mailen kommer normalt inden for få sekunder, men kan blive forsinket af din mailudbyder.';
-  return 'Afsendelsen kunne ikke bekræftes. Tjek din mail, eller kontakt TEB.';
+  if (state === 'failed') return 'Koden kunne ikke sendes. Prøv igen, når knappen er klar.';
+  if (state === 'uncertain') return 'Afsendelsen er usikker. Tjek din mail, eller bed om en ny kode.';
+  if (state === 'pending') return 'Koden venter på afsendelse. Tjek din mail om lidt.';
+  return 'Afsendelsen kunne ikke bekræftes. Kontakt TEB.';
 }
 // Logget ind uden forening: Bed om adgang på samme side, ingen blindgyde.
 async function accessPage() {

@@ -1,7 +1,22 @@
 # Samlet status for TEB hjemmesiden
 
-Opdateret 24. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
+Opdateret 25. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
+
+## Forenklet login og udgivelsesgodkendelse den 25. oktober 2026
+
+- Brugeren har udtrykkeligt godkendt offentliggørelse af hele forenings-/loginopdateringen
+  efter den sidste forenkling. Den tidligere godkendelsesblokering er dermed afklaret.
+- Kodevisningen er forkortet til mailadresse, kort adgangsstatus, kodefelt, Log ind,
+  spamhenvisning og eksisterende nedtælling. De to store informationsbokse og
+  gentagne forklaringer er fjernet. Ekstra hjælp ligger lukket under Hjælp til login.
+- Også den første loginside har fået kortere tekst. Fejlet/usikker/afventende
+  afsendelse står stadig tydeligt, og cooldown samt adgangskontrol er uændret.
+- Kontroller: 42 browserforløb med rigtig lokal API, desktop og 320/390 px,
+  JavaScript-syntaks, fælles layout/assetversioner på 16 sider og diff-check består.
+  Mobilvisningen af fejl-/kodeformularen er gennemgået visuelt.
+- Udgivelse: klargjort på codex/association-login-clarity i PR #3. Produktionens
+  deploy og efterfølgende livekontrol afventer gennemførelse i denne leverance.
 
 ## Foreningsoprettelse og login den 24. oktober 2026
 

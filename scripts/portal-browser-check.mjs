@@ -37,7 +37,7 @@ async function login(page,email,exerciseSteps=false){
  await request.locator('button[type="submit"]').click();assert.ok((await response).ok());
  await page.locator('form[data-action="verify-code"]').waitFor();
  assert.ok((await page.locator('.fa-login-card').innerText()).includes('spam/uønsket post'));
- if(email===memberEmail)assert.ok((await page.locator('.fa-login-card').innerText()).includes('Denne e-mailadresse har adgang'));
+ if(email===memberEmail)assert.ok((await page.locator('.fa-login-card').innerText()).includes('Mailadressen har adgang.'));
  assert.equal(await page.locator('form[data-action="request-code"]').count(),0,'Email and code are separate steps');
  if(exerciseSteps){
   assert.equal(await page.locator('form[data-action="resend-code"] button').isDisabled(),true);
@@ -230,7 +230,7 @@ try{
   await loginPage.goto('/forening.html?login-state='+state+'#login');
   const form=loginPage.locator('form[data-action="request-code"]');await form.waitFor();await fill(form,{email:longEmail});await form.locator('button').click();
   await loginPage.locator('form[data-action="verify-code"]').waitFor();
-  const text=await loginPage.locator('.fa-login-card').innerText();assert.ok(text.includes('Denne e-mailadresse er ikke tilknyttet en forening'));assert.ok(!text.includes('Koden er sendt.'));
+  const text=await loginPage.locator('.fa-login-card').innerText();assert.ok(text.includes('Ingen foreningsadgang på denne mail.'));assert.ok(!text.includes('Koden er sendt.'));
   assert.equal(await loginPage.locator('form[data-action="resend-code"] button').isDisabled(),true);
   assert.equal(await loginPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'code state '+state+' on 320px');
   await loginPage.reload();await loginPage.locator('form[data-action="verify-code"]').waitFor();
