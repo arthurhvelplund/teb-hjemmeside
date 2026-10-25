@@ -16,7 +16,7 @@ En udløbet invitation skal fornyes før tildeling. Eksisterende aktive adgange 
 ## Teknik og udgivelse
 
 Migration 0008_password_login.sql opretter kun password_credentials. Produktions- og
-stagingworkflow anvender ventende migrationer før Worker-deploy. Almindelige OTP-konti er uændrede.
+staging skal have migrationen anvendt før Worker-deploy. GitHubs eksisterende deploy-token har ikke D1-adgang; brug Cloudflare-forbindelsen til migrationen, og registrér den i d1_migrations. Almindelige OTP-konti er uændrede.
 
 Adgangskoder gemmes som PBKDF2-SHA-256 med 100.000 iterationer, tilfældigt salt og server-side
 HMAC-pepper via den eksisterende MAIL_ENCRYPTION_KEY. Bevar nøglen i backup/rotation;

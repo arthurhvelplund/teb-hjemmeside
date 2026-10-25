@@ -909,7 +909,9 @@ ikke produktkoden eller designvalget.
 - TEB kan sætte adgangskode på en eksisterende aktiv adgang eller gyldig invitation.
   Personer kan vælge/ændre egen kode efter login. Mailkode og adgangskø bevares.
 - Tildeling sender ingen mails. Ingen produktionskonti er ændret.
-- Ti lokale adgangskodetests og syntakskontroller består. Fælles assetversioner er genereret
-  og kontrolleret. De samlede CI-/browserkontroller og stagingudgivelsen afventer kørsel.
-- Migration 0008 og udgivelsesworkflow klargjort. Se `docs/PASSWORD_LOGIN.md`.
+- 105 backendtests består i CI på 5705a65. Ti af dem dækker adgangskoder. Syntaks og fælles assetversioner består.
+  Første browserkørsel fandt en for bred selector til invitationsfoldud; egen kode har nu selvstændig klasse.
+  Den samlede browserkontrol og stagingudgivelse genkøres.
+- Migration 0008 anvendt i staging via Cloudflare-forbindelsen og registreret i d1_migrations.
+  GitHub deploy-token kan udgive Worker/Pages, men mangler D1-adgang. Produktionsmigration afventer udgivelse. Se `docs/PASSWORD_LOGIN.md`.
 - Produktionsudgivelse er ikke gennemført i denne leverance.
