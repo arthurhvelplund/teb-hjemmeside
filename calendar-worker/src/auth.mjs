@@ -38,7 +38,24 @@ function randomCode(){
 }
 export async function requestOtp(request,env,data){
  const email=emailAddress(data.email),emailHash=await hash(email),ip=await ipKey(request);
- await rate(env,'otp-send-ip:'+ip,15,15);await rate(env,'otp-send-email:'+emailHash,3,10);await rate(env,'otp-send-global',100,10);
+ await rate(env,'otp-send-ip:'+ip,15,15);
+ // Atomic reservation: a second tab/request must not replace a code that is
+ // still on its way. Use the existing rate-limit table, without a migration.
+ const cooldownKey='otp-cooldown:'+emailHash,stampNow=now();
+ const reserved=await stmt(env,`INSERT INTO rate_limits(key,count,expires_at) VALUES(?,1,?)
+ ON CONFLICT(key) DO UPDATE SET count=1,expires_at=excluded.expires_at WHERE rate_limits.expires_at<=? RETURNING expires_at`,cooldownKey,new Date(Date.now()+60000).toISOString(),stampNow).first();
+ if(!reserved){
+  const row=await stmt(env,'SELECT expires_at FROM rate_limits WHERE key=?',cooldownKey).first();
+  const retryAfterSeconds=Math.max(1,Math.ceil((Date.parse(row.expires_at)-Date.now())/1000));
+  return json({error:`Vent ${retryAfterSeconds} sekunder, før du beder om en ny kode. Den seneste kode gælder stadig.`,retryAfterSeconds},429,{'Retry-After':String(retryAfterSeconds)});
+ }
+ await rate(env,'otp-send-email:'+emailHash,3,10);await rate(env,'otp-send-global',100,10);
+ const admins=(env.TEB_ADMIN_EMAILS||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+ // Only disclose whether access exists, never association names or roles
+ // until the person has verified ownership of the email address.
+ const linked=admins.includes(email)||Boolean(await stmt(env,`SELECT 1 FROM users WHERE email=? AND is_admin=1
+ UNION ALL SELECT 1 FROM memberships m WHERE m.email=? AND (m.status='active' OR
+ (m.status='invited' AND EXISTS(SELECT 1 FROM invitations i WHERE i.id=m.invitation_id AND i.accepted_at IS NULL AND i.revoked_at IS NULL AND i.expires_at>?))) LIMIT 1`,email,email,now()).first());
  const id=crypto.randomUUID(),code=randomCode(),stamp=now(),expiry=new Date(Date.now()+600000).toISOString(),dedupe='otp:'+id;
  const job=await mailStatement(env,{dedupe,to:email,subject:'Din engangskode til TEB',text:`Din kode er ${code}\n\nKoden gælder i ti minutter og kan bruges én gang. Hvis du ikke bad om en kode, kan du se bort fra mailen.`,expiresAt:expiry});
  await env.DB.batch([
@@ -48,7 +65,7 @@ export async function requestOtp(request,env,data){
   stmt(env,`INSERT INTO otp_invitations(challenge_id,invitation_id) SELECT ?,id FROM invitations WHERE email=? AND accepted_at IS NULL AND revoked_at IS NULL AND expires_at>?`,id,email,stamp),job
  ]);
  await deliverKeys(env,[dedupe]);
- return json({challengeId:id,mode:local(env)?'local':'live',deliveryState:await mailState(env,dedupe)});
+ return json({challengeId:id,mode:local(env)?'local':'live',deliveryState:await mailState(env,dedupe),accessState:linked?'linked':'unlinked',resendAfterSeconds:60});
 }
 export async function verifyOtp(request,env,data){
  await rate(env,'otp-verify-ip:'+await ipKey(request),50,10);

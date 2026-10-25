@@ -1,7 +1,66 @@
 # Samlet status for TEB hjemmesiden
 
-Opdateret 23. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
+Opdateret 25. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
+
+## Forenklet login og udgivelsesgodkendelse den 25. oktober 2026
+
+- Brugeren har udtrykkeligt godkendt offentliggørelse af hele forenings-/loginopdateringen
+  efter den sidste forenkling. Den tidligere godkendelsesblokering er dermed afklaret.
+- Kodevisningen er forkortet til mailadresse, kort adgangsstatus, kodefelt, Log ind,
+  spamhenvisning og eksisterende nedtælling. De to store informationsbokse og
+  gentagne forklaringer er fjernet. Ekstra hjælp ligger lukket under Hjælp til login.
+- Også den første loginside har fået kortere tekst. Fejlet/usikker/afventende
+  afsendelse står stadig tydeligt, og cooldown samt adgangskontrol er uændret.
+- Kontroller: 42 browserforløb med rigtig lokal API, desktop og 320/390 px,
+  JavaScript-syntaks, fælles layout/assetversioner på 16 sider og diff-check består.
+  Mobilvisningen af fejl-/kodeformularen er gennemgået visuelt.
+- Udgivelse: klargjort på codex/association-login-clarity i PR #3. Produktionens
+  deploy og efterfølgende livekontrol afventer gennemførelse i denne leverance.
+
+## Foreningsoprettelse og login den 24. oktober 2026
+
+- Preview er live på `https://test.teb-tistrup.dk/forening.html#login`.
+  Kodecommit: `c76817b114d314bff1120ce565e0f37457816232`. Staging-udgivelsen
+  `40084762349` består alle trin. Pages-preview `8a932079` er bekræftet klar.
+  Opdateret login og testbanner er kontrolleret i den offentlige browser; API,
+  beskyttet administration og identisk PDF-manual er kontrolleret over HTTP.
+  Ingen kode er bestilt under kontrollen. Testen bruger staging-D1/R2 og
+  eksisterende mailopsætning; produktionens deployment er bekræftet uændret.
+  Brugerens egen eksisterende stagingkonto er gjort til testadministrator, så
+  oprettelse og invitation kan afprøves. Preview-workflowet udgiver kun staging.
+
+- Leverance i denne arbejdskopi: `/workspace/scratch/69bc69c2fd90/teb-hjemmeside`,
+  `codex/association-login-clarity`, kodecommit `040371c36d7233721146b7f4720f051f63439eb6`.
+  Brugerens Projects-pilot er ikke opdateret. Direkte push til main blev afvist af
+  automatisk godkendelseskontrol, fordi det udløser produktionsdeploy. Produktionsmain
+  er bekræftet uændret på `0900ec4`; rettelserne afventer brugerens udgivelsesgodkendelse.
+- Login viser, om den indtastede mail har aktiv adgang eller en gyldig invitation.
+  Navne på foreninger og roller vises først efter verificering. En mail uden adgang
+  får en tydelig besked, Kontakt TEB og mulighed for at bekræfte mailen og anmode om adgang.
+- Atomisk 60-sekunders spærring pr. mail forhindrer samtidige anmodninger i at
+  erstatte en kode, der er på vej. Frontend viser nedtælling og følger serverens
+  Retry-After ved længere spærring. Kodeformular og nedtælling bevares ved genindlæsning;
+  hverken kode eller session-token gemmes i browserlageret.
+- Fejlet, afventende eller usikker mailafsendelse omtales ikke længere som sendt.
+  Siden forklarer spam/Andet, afsender, kodens ti minutter og brug af nyeste kode.
+- Administrationen skelner tydeligt mellem offentlig profil og loginadgang. Personer
+  vises med aktiv adgang, afventende første login eller udløbet invitation. Admin får
+  en genvej fra Min forening og kan vende tilbage til en direkte adminadresse efter login.
+- Ny tosidet manual: `site/downloads/teb-admin-brugermanual.pdf`, med link under
+  TEB → Foreninger. Kilden er `scripts/build-admin-guide.py` (kræver ReportLab).
+- Kontroller: 90 backendtests, 42 browserscenarier inklusive 320/390 px og
+  afsendelsesfejl, HTTP-integration, gentagen pilotopsætning, workerd med lokal D1/R2,
+  Worker dry-run, fælles layout/assetversioner på 16 sider og git diff --check består.
+  PDF er renderet og visuelt kontrolleret på begge sider. En eksisterende overbred
+  sidefod ved 320 px er rettet med mindre skrift på de smalleste skærme.
+- Produktionsundersøgelse: eksisterende kodemails blev accepteret og leveret til
+  modtagernes mailservere. Den konkrete supportsags fem kodemails blev leveret cirka
+  ét sekund efter anmodning; der var aktiv foreningsadgang. Det beviser ikke placering
+  i indbakken. Ingen nye rigtige mails er sendt, og ingen foreningsdata er ændret.
+- Testhjælpere udløber kun cooldown i deres isolerede testdatabaser, når andre
+  forløb testes. Produktionslogikken har ingen testundtagelse. To ældre forventninger
+  er ajourført til én foreningsrolle og katalogets faktiske antal.
 
 ## Det fælles arbejdssted
 
@@ -22,7 +81,7 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Kalender | Nyt uge/månedsoverblik, kommende arrangementer, kildesammenlægning og billeder gemt i `ce5272b`. Teknisk samlet. Visuelt design afventer nyt valg. |
 | Opret arrangement | Fælles popup med billedupload og kalender/print-preview. Kun ønske om den trykte kalender kan vælges. Øvrige delingsmuligheder findes på den selvstændige infoside. |
 | Foreninger | 24 importerede udkast, 18 med billede/logo. Direkte valg mellem Billede og Liste, søgning og intet interessefilter. |
-| Login og adgang | Lokal mailkode. Én foreningsrolle og én side, Min forening, fra `8b028f7`. Ingen rigtig mail. |
+| Login og adgang | Mailkode er live. Klar til godkendelse på codex/association-login-clarity: 60 sekunders ventetid og tydelig adgangs- og afsendelsesstatus. |
 | Foreningsprofil og ejerens side | Kompakt offentlig profil og ejerens arrangementer. Nyhedsoprettelse og foreningsnyheder er taget ud af brugerflowet efter brugerens ønske 20. oktober. Den fælles TEB-kø og historiske data er bevaret. |
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |

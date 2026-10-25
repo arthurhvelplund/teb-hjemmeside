@@ -1,5 +1,5 @@
 // Fælles API-klient. Serveren afgør identitet, adgang og offentliggørelse.
-export class ApiError extends Error { constructor(message,status){super(message);this.status=status;} }
+export class ApiError extends Error { constructor(message,status,retryAfterSeconds){super(message);this.status=status;this.retryAfterSeconds=retryAfterSeconds;} }
 export async function api(path,{body,token,method,signal,...options}={}) {
   const response=await fetch('/api/kalender'+path,{credentials:'same-origin',signal:signal||AbortSignal.timeout(25000),...options,
     method:method||(body!==undefined?'POST':'GET'),headers:{Accept:'application/json',...(body!==undefined?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{})},
@@ -8,7 +8,7 @@ export async function api(path,{body,token,method,signal,...options}={}) {
   try { result=await response.json(); }
   catch { throw new ApiError('Svaret fra serveren kunne ikke læses. Prøv igen. Oplysningerne kan allerede være gemt.',response.ok?502:response.status); }
   if(!result||typeof result!=='object'||Array.isArray(result))throw new ApiError('Svaret fra serveren kunne ikke læses. Prøv igen. Oplysningerne kan allerede være gemt.',response.ok?502:response.status);
-  if(!response.ok)throw new ApiError(result.error||'Der opstod en fejl.',response.status);
+  if(!response.ok)throw new ApiError(result.error||'Der opstod en fejl.',response.status,Number(result.retryAfterSeconds||response.headers.get('Retry-After'))||0);
   return result;
 }
 export const getSession=()=>api('/session');

@@ -86,7 +86,7 @@ async function api(request,env){
 }
 export async function handleApi(request,env){
  try{return await api(request,env);}catch(error){
-  if(error instanceof HttpError)return json({error:error.message},error.status);
+  if(error instanceof HttpError)return json({error:error.message,...(error.retryAfterSeconds?{retryAfterSeconds:error.retryAfterSeconds}:{})},error.status,error.retryAfterSeconds?{'Retry-After':String(error.retryAfterSeconds)}:{});
   // Never log payloads, addresses, tokens, SQL bind values, or provider errors.
   return json({error:'Der opstod en fejl. Prøv igen, eller kontakt TEB.'},500);
  }

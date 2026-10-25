@@ -12,6 +12,33 @@ let session = null;
 let challenge = null;
 let loginEmail = '';
 let loginPending = false;
+const loginCooldowns = new Map();
+function saveLoginChallenge() {
+  try {
+    if (challenge) sessionStorage.setItem('teb-login-challenge', JSON.stringify(challenge));
+    else sessionStorage.removeItem('teb-login-challenge');
+  } catch { /* Login also works when browser storage is unavailable. */ }
+}
+try {
+  const saved = JSON.parse(sessionStorage.getItem('teb-login-challenge') || 'null');
+  if (saved && typeof saved.id === 'string' && typeof saved.email === 'string' && saved.expiresAt > Date.now()) {
+    challenge = saved;
+    loginEmail = saved.email;
+    loginCooldowns.set(saved.email, saved.retryAt || 0);
+  }
+} catch { /* No saved challenge. */ }
+function updateLoginCooldown() {
+  for (const form of content.querySelectorAll('form[data-action="request-code"],form[data-action="resend-code"]')) {
+    const email = (form.elements.email?.value || challenge?.email || '').trim().toLowerCase();
+    const seconds = Math.max(0, Math.ceil(((loginCooldowns.get(email) || 0) - Date.now()) / 1000));
+    const submit = form.querySelector('button[type="submit"]');
+    if (submit) {
+      submit.disabled = loginPending || seconds > 0;
+      submit.textContent = seconds ? `Send en ny kode om ${seconds} sek.` : form.dataset.action === 'resend-code' ? 'Send en ny kode' : 'Send kode';
+    }
+  }
+}
+setInterval(updateLoginCooldown, 1000);
 let directory = [];
 let directoryView = 'cards';
 try { if (localStorage.getItem('teb-association-view') === 'list') directoryView = 'list'; } catch { /* Browsing without storage still supports both views. */ }
@@ -122,6 +149,7 @@ async function render() {
     }
     if (sequence !== renderNumber) return;
     content.innerHTML = html;
+    updateLoginCooldown();
     const printRoot = content.querySelector('[data-print-editor]');
     if (printRoot) disposePrintEditor = mountPrintEditor(printRoot);
     if (r.page === 'oversigt') filterDirectory();
@@ -207,10 +235,30 @@ function publicEvents(events) {
 
 function loginPage() {
   if (authenticated()) return `<section class="fa-welcome-panel"><h1>Du er logget ind.</h1><p>${esc(session.user.email)}</p>${link('Åbn Min forening', '#min-forening', true)}</section>`;
+  const deliveryProblem = challenge && !['sent', 'delivered', 'local'].includes(challenge.deliveryState);
+  const accessNote = challenge?.accessState === 'unlinked'
+    ? '<p class="fp-note fa-login-access">Ingen foreningsadgang på denne mail. <a href="kontakt.html#form">Kontakt TEB</a>.</p>'
+    : challenge?.accessState === 'linked' ? '<p class="fp-note fa-login-access">Mailadressen har adgang.</p>' : '';
   const form = challenge
-    ? `<h1>Tjek din e-mail.</h1><p>Vi har sendt en kode til <strong>${esc(challenge.email)}</strong>.</p>${formStart('verify-code', `data-challenge="${esc(challenge.id)}"`)}${input('code', 'Koden fra din mail', '', 'text', 'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" aria-describedby="login-code-help"')}<p id="login-code-help" class="fp-note">Skriv de seks cifre. Koden gælder i 10 minutter.</p>${button('Log ind')}${resultBox()}</form><div class="fa-login-options"><button class="fa-text-button" type="button" data-change-email>Ret e-mailadressen</button>${formStart('resend-code')}${button('Send en ny kode')}${resultBox()}</form></div>`
-    : `<h1>Log ind til din forening.</h1><p>Brug din e-mailadresse. Vi sender en engangskode, så du slipper for at huske en adgangskode.</p>${formStart('request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="email" maxlength="254"')}${button('Send kode')}${resultBox()}</form>`;
-  return `<div class="fa-login-layout"><a class="fa-back-link" href="forening.html">← Tilbage til foreningerne</a><section class="fa-login-card" aria-label="Login til din forening"><span class="eyebrow">For foreninger</span>${form}${localMode ? '<p class="fa-local-help">Lokal afprøvning. Find din kode i <a href="kalender-postkasse.html" target="_blank" rel="noopener">testpostkassen</a>.</p>' : ''}</section><p class="fa-login-help">Har du brug for hjælp? <a href="kontakt.html#form">Kontakt TEB</a>.</p></div>`;
+    ? `<h1>${deliveryProblem ? 'Log ind.' : 'Indtast koden.'}</h1>
+      <p class="fa-login-recipient">${deliveryProblem ? 'E-mail:' : challenge.deliveryState === 'local' ? 'Kode til' : 'Kode sendt til'} <strong>${esc(challenge.email)}</strong></p>
+      ${accessNote}${deliveryProblem ? `<p class="fp-notice" role="alert">${esc(loginDeliveryText(challenge.deliveryState))}</p>` : ''}
+      ${formStart('verify-code', `data-challenge="${esc(challenge.id)}"`)}
+        ${input('code', 'Kode fra din mail', '', 'text', 'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" aria-describedby="login-code-help"')}
+        <p id="login-code-help" class="fp-note">6 cifre · gælder i 10 minutter.</p>
+        ${button('Log ind')}${resultBox()}
+      </form>
+      <p class="fp-note fa-login-spam">Ingen mail? Tjek spam/uønsket post.</p>
+      <div class="fa-login-options"><button class="fa-text-button" type="button" data-change-email>Ret e-mail</button>${formStart('resend-code')}${button('Send en ny kode')}${resultBox()}</form></div>`
+    : `<h1>Log ind til din forening.</h1><p>Brug den mailadresse, der har adgang til din forening.</p>${formStart('request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="email" maxlength="254"')}${button('Send kode')}${resultBox()}</form>`;
+  const help = '<details class="fa-login-help"><summary>Hjælp til login</summary><p>Mailen kommer fra kalender@teb-tistrup.dk. Tjek også fanen Andet i din mail. Brug den nyeste kode, hvis du har bedt om flere.</p><p>Mangler du foreningsadgang? <a href="kontakt.html#form">Kontakt TEB</a>, eller log ind med koden og bed om adgang.</p></details>';
+  return `<div class="fa-login-layout"><a class="fa-back-link" href="forening.html">← Tilbage til foreningerne</a><section class="fa-login-card" aria-label="Login til din forening">${form}${localMode ? '<p class="fa-local-help">Lokal afprøvning. Find din kode i <a href="kalender-postkasse.html" target="_blank" rel="noopener">testpostkassen</a>.</p>' : ''}</section>${help}</div>`;
+}
+function loginDeliveryText(state) {
+  if (state === 'failed') return 'Koden kunne ikke sendes. Prøv igen, når knappen er klar.';
+  if (state === 'uncertain') return 'Afsendelsen er usikker. Tjek din mail, eller bed om en ny kode.';
+  if (state === 'pending') return 'Koden venter på afsendelse. Tjek din mail om lidt.';
+  return 'Afsendelsen kunne ikke bekræftes. Kontakt TEB.';
 }
 // Logget ind uden forening: Bed om adgang på samme side, ingen blindgyde.
 async function accessPage() {
@@ -218,13 +266,14 @@ async function accessPage() {
   const pending = requests.filter(r => r.status === 'pending');
   const name = r => associations.find(a => a.id === r.associationId)?.name || r.newAssociationName || 'Foreningsadgang';
   return `<p class="mf-back">${link('← Alle foreninger', 'forening.html')}</p><section class="mf-start"><span class="eyebrow">Min forening</span><h1>${pending.length ? 'TEB kigger på din anmodning.' : 'Hvilken forening hører du til?'}</h1>` +
+    `<p class="fp-notice">Du er logget ind med <strong>${esc(session.user.email)}</strong>. Denne e-mailadresse er ikke tilknyttet en forening endnu. <a href="kontakt.html#form">Kontakt TEB</a>, eller bed om adgang nedenfor.</p>` +
     (pending.length ? `<p>Du får en mail, når TEB har givet dig adgang. Log derefter ind igen med ${esc(session.user.email)}.</p>` : '<p>TEB bekræfter din tilknytning, før du får adgang. Bagefter kan du oprette arrangementer, rette foreningens side og invitere andre.</p>') +
     (requests.length ? `<ul class="mf-requests">${requests.map(r => `<li><strong>${esc(name(r))}</strong>${status(r.status)}${r.note ? `<p>${esc(r.note)}</p>` : ''}</li>`).join('')}</ul>` : '') +
     `<details class="mf-request-form"${pending.length ? '' : ' open'}><summary>${pending.length ? 'Bed om adgang til en anden forening' : 'Bed om adgang'}</summary>${formStart('access-request')}<label>Forening<select name="associationId" data-access-choice><option value="">Min forening er ikke i oversigten</option>${associations.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('')}</select></label><div data-new-association>${input('newAssociationName', 'Foreningens navn', '', 'text', 'required maxlength="100"')}</div>${input('name', 'Dit navn', '', 'text', 'required maxlength="100" autocomplete="name"')}${textarea('roleNote', 'Hvad laver du i foreningen?', '', 'required maxlength="1500" placeholder="Fx formand, kasserer eller træner"')}${button('Send til TEB')}${resultBox()}</form></details>` +
     accountLine() + '</section>';
 }
 function accountLine(extra = '') {
-  return `<p class="mf-small mf-account">Logget ind som ${esc(session.user.email)}${extra} · <button type="submit" form="mf-logout" class="fa-text-button">Log ud</button> · <a href="kontakt.html#form">Kontakt TEB</a></p><form id="mf-logout" data-action="logout"></form>`;
+  return `<p class="mf-small mf-account">Logget ind som ${esc(session.user.email)}${extra}${admin() ? ' · <a href="#teb">TEBs administration</a>' : ''} · <button type="submit" form="mf-logout" class="fa-text-button">Log ud</button> · <a href="kontakt.html#form">Kontakt TEB</a></p><form id="mf-logout" data-action="logout"></form>`;
 }
 function profileForm(a, creating = false) {
   return formStart(creating ? 'create-association' : 'save-profile', `data-id="${esc(a.id || '')}" data-revision="${esc(a.revision ?? '')}"`) +
@@ -232,7 +281,7 @@ function profileForm(a, creating = false) {
     input('name', 'Foreningens navn', a.name, 'text', 'required maxlength="100"') +
     input('category', 'Interesse', a.category, 'text', 'maxlength="100" placeholder="Fx motion eller kultur"') +
     textarea('description', 'Kort om foreningen', a.description, 'maxlength="1500"') +
-    '</fieldset><fieldset class="fa-profile-group"><legend>Kontakt</legend><p class="fp-note">Disse oplysninger vises på jeres offentlige side.</p>' +
+    '</fieldset><fieldset class="fa-profile-group"><legend>Kontakt</legend><p class="fp-note">Disse oplysninger vises på jeres offentlige side. En offentlig kontaktmail giver ikke automatisk login. Giv personer adgang under Personer med adgang efter oprettelsen.</p>' +
     input('chair', 'Formand eller kontaktperson', a.chair, 'text', 'maxlength="100"') +
     `<div class="fp-form-row">${input('email', 'Offentlig kontaktmail', a.email, 'email', 'maxlength="254"')}${input('phone', 'Offentligt telefonnummer', a.phone, 'tel', 'maxlength="50"')}</div>` +
     input('place', 'Mødested', a.place, 'text', 'maxlength="180"') +
@@ -277,9 +326,9 @@ async function memberPage(a, isAdmin = false) {
   const { members } = await api('/associations/' + idPath(a.id) + '/members');
   const me = session.user.email.toLowerCase();
   return `<div class="mf-card-head"><h2>Personer med adgang</h2></div><p class="mf-small">Alle her kan oprette arrangementer, rette jeres side og invitere andre.</p><ul class="mf-people">` +
-    members.map(m => `<li><div><strong>${esc(m.name || m.email)}</strong><span>${esc(m.email)}${m.email.toLowerCase() === me ? ' · dig' : ''}${m.status === 'invited' ? ' · inviteret' : ''}</span></div>` +
+    members.map(m => `<li><div><strong>${esc(m.name || m.email)}</strong><span>${esc(m.email)}${m.email.toLowerCase() === me ? ' · dig' : ''} · ${m.status === 'active' ? 'Adgang aktiv' : m.invitationExpiresAt && Date.parse(m.invitationExpiresAt) <= Date.now() ? 'Invitation udløbet - invitér igen' : 'Inviteret - afventer første login'}</span>${m.status === 'invited' && ['failed','uncertain','pending'].includes(m.invitationDeliveryState) ? '<p class="fp-note">Invitationsmailen er ikke bekræftet sendt. Personen kan åbne Log ind og bede om en kode med denne adresse.</p>' : ''}</div>` +
       (m.email.toLowerCase() !== me ? `${formStart('revoke-member', `data-association="${esc(a.id)}" data-member="${esc(m.id)}" data-email="${esc(m.email)}"`)}<button type="submit" class="fa-text-button">Fjern</button>${resultBox()}</form>` : '') + '</li>').join('') +
-    `</ul>${!members.length ? empty('Ingen personer har adgang endnu.') : ''}` +
+    `</ul>${!members.length ? '<p class="fp-notice">Ingen personer har adgang endnu. Den offentlige kontaktmail giver ikke login. Tilføj den første person nedenfor.</p>' : ''}` +
     `<details class="mf-invite"${isAdmin && !members.length ? ' open' : ''}><summary>+ Invitér en person</summary>${formStart(isAdmin ? 'admin-member' : 'invite-member', `data-id="${esc(a.id)}"`)}${input('name', 'Navn', '', 'text', 'required maxlength="100"')}${input('email', 'E-mail', '', 'email', 'required maxlength="254"')}${isAdmin ? check('verified', 'Jeg har kontrolleret personens tilknytning til foreningen', true) : '<p class="fp-note">Personen får en mail og logger ind med denne adresse.</p>'}${button('Send invitation')}${resultBox()}</form></details>`;
 }
 async function adminPage(r) {
@@ -338,12 +387,12 @@ async function adminAccess() {
 async function adminAssociations(id) {
   const { associations } = await api('/associations');
   const listing = `<div class="fp-grid">${associations.map(a => `<article class="fp-card"><h3>${esc(a.name)}</h3>${link('Profil og personer med adgang', adminURL('foreninger', a.id))}</article>`).join('') || empty('Der er ingen foreninger endnu.')}</div>`;
-  if (id === 'ny') return heading('Opret forening') + `<p>${link('Alle foreninger', adminURL('foreninger'))}</p><section class="fp-panel fa-form-narrow">${profileForm({}, true)}</section>`;
+  if (id === 'ny') return heading('Opret forening') + `<p>${link('Alle foreninger', adminURL('foreninger'))}</p><p class="fp-notice"><strong>1. Opret foreningens offentlige profil.</strong> Kun navnet er obligatorisk. <strong>2. Giv en person adgang.</strong> Efter oprettelsen skriver du personens navn og loginmail under Personer med adgang. Kontaktmail og loginmail kan være forskellige.</p><section class="fp-panel fa-form-narrow">${profileForm({}, true)}</section>`;
   if (id) {
     const { association: a } = await api('/associations/' + idPath(id));
     return heading(a.name) + `<p>${link('Alle foreninger', adminURL('foreninger'))} · ${link('Offentlig profil', publicURL(id))}</p><section class="fp-panel fa-form-narrow">${profileForm(a)}</section><section class="fa-section">${await memberPage(a, true)}</section>`;
   }
-  return heading('Foreninger') + `<p>${link('Opret forening', adminURL('foreninger', 'ny'), true)}</p>` + listing;
+  return heading('Foreninger') + `<p>Find først foreningen nedenfor, så den kun oprettes én gang. Vælg Profil og personer med adgang for at give en person login.</p><p>${link('Opret forening', adminURL('foreninger', 'ny'), true)} · ${link('Brugermanual til TEB (PDF)', 'downloads/teb-admin-brugermanual.pdf')}</p>` + listing;
 }
 function editionLabel(e) {
   if (e.start && e.end) return `${dateLabel(e.start)} til ${dateLabel(e.end)}`;
@@ -360,6 +409,7 @@ function values(form, names) {
 }
 function deliveryMessage(result, subject) {
   const state = result.deliveryState;
+  if (state === 'not_required') return subject + ' er allerede aktiv. Personen kan logge ind med sin e-mailadresse og bede om en kode.';
   if (state === 'failed') return subject + ' er gemt, men mailen kunne ikke sendes. Kontakt TEB, hvis personen ikke kan komme videre.';
   if (state === 'uncertain') return subject + ' er gemt. Vi kan ikke bekræfte, om mailen blev sendt. Personen kan prøve at logge ind med den valgte e-mailadresse.';
   if (state === 'pending') return subject + ' er gemt. Mailen venter på afsendelse.';
@@ -406,12 +456,11 @@ async function onSubmit(event) {
           loginEmail = email;
           const response = await api('/auth/request', { body: { email } });
           if (!response.challengeId) throw new Error('Der kom ingen loginanmodning fra serveren. Prøv igen.');
-          challenge = { id: response.challengeId, email };
+          challenge = { id: response.challengeId, email: email.toLowerCase(), accessState: response.accessState, deliveryState: response.deliveryState, expiresAt: Date.now() + 600000, retryAt: Date.now() + (response.resendAfterSeconds || 60) * 1000 };
+          loginCooldowns.set(email.toLowerCase(), challenge.retryAt);
+          saveLoginChallenge();
           localMode = localMode || response.mode === 'local';
-          flash = response.deliveryState === 'failed' ? 'Koden kunne ikke sendes. Bed om en ny kode om lidt, eller kontakt TEB.'
-            : response.deliveryState === 'uncertain' ? 'Vi kan ikke bekræfte, om koden blev sendt. Tjek din mail, og bed om en ny kode, hvis den ikke kommer.'
-            : response.deliveryState === 'pending' ? 'Koden venter på afsendelse. Tjek din mail om lidt.'
-            : '';
+          flash = '';
           await render();
           document.querySelector('[name="code"]')?.focus();
           break;
@@ -421,9 +470,11 @@ async function onSubmit(event) {
           session = await getSession();
           if (!authenticated()) throw new Error('Login kunne ikke bekræftes. Prøv igen.');
           challenge = null;
+          saveLoginChallenge();
           const target = returnTarget();
           if (target) { location.assign(target); return; }
           flash = 'Du er logget ind.';
+          if (admin() && currentRoute.page === 'teb') { await render(); break; }
           location.hash = admin() && !memberships().length ? '#teb' : '#min-forening';
           break;
         }
@@ -431,6 +482,7 @@ async function onSubmit(event) {
           await api('/auth/logout', { body: {} });
           session = null;
           challenge = null;
+          saveLoginChallenge();
           ++renderNumber;
           eventSnapshots.clear();
           disposePrintEditor?.(); disposePrintEditor = null;
@@ -515,11 +567,16 @@ async function onSubmit(event) {
       }
     });
   } catch (error) {
+    if (loginAction && error.status === 429 && error.retryAfterSeconds) {
+      const email = (form.elements.email?.value || challenge?.email || '').trim().toLowerCase();
+      loginCooldowns.set(email, Date.now() + error.retryAfterSeconds * 1000);
+      if (challenge?.email === email) { challenge.retryAt = loginCooldowns.get(email); saveLoginChallenge(); }
+    }
     showMessage(box.isConnected ? box : notice, loginAction && error.status === 401 ? 'Koden er forkert eller udløbet. Prøv igen, eller bed om en ny kode.' : errorText(error), true);
     if (error.status === 401) { session = null; navigation(currentRoute.page); }
   } finally {
     delete form.dataset.pending;
-    if (loginAction) loginPending = false;
+    if (loginAction) { loginPending = false; updateLoginCooldown(); }
   }
 }
 async function prepareProfileImage(file) {
@@ -587,6 +644,7 @@ async function uploadProfileImage(input) {
 }
 document.addEventListener('submit', onSubmit);
 document.addEventListener('input', event => {
+  if (event.target.matches('form[data-action="request-code"] input[name="email"]')) updateLoginCooldown();
   if (event.target.id === 'association-search') filterDirectory();
 });
 document.addEventListener('change', event => {
@@ -603,6 +661,7 @@ document.addEventListener('click', event => {
   if (event.target.closest('[data-change-email]')) {
     if (loginPending) return;
     challenge = null;
+    saveLoginChallenge();
     render().then(() => document.querySelector('input[name="email"]')?.focus());
     return;
   }
