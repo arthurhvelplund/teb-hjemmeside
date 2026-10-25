@@ -42,6 +42,15 @@ try{
  async function login(email){const ch=await api('/auth/request',{email});const job=await db.prepare('SELECT id FROM mail_jobs WHERE dedupe_key=?').bind('otp:'+ch.challengeId).first();const {messages}=await api('/local-mail'),code=messages.find(m=>m.id===job.id).body.match(/\b\d{6}\b/)[0];return api('/auth/verify',{challengeId:ch.challengeId,code});}
  await login('admin@example.test');const adminCookie=cookie;
  const a=(await api('/admin/associations',{requestKey:crypto.randomUUID(),association:{name:'Workerd Eksempelforening'}})).association;
+ await login('requester@example.test');
+ const accessPayload={associationId:a.id,name:'Workerd Person',roleNote:'Formand'};
+ const [access,repeatedAccess]=await Promise.all([api('/access-requests',accessPayload),api('/access-requests',accessPayload)]);
+ assert.equal(access.id,repeatedAccess.id);
+ const notification=await db.prepare('SELECT state FROM mail_jobs WHERE dedupe_key=?').bind('access-request:'+access.id).first();
+ assert.equal(notification.state,'local');
+ const accessMail=(await api('/local-mail')).messages.filter(m=>m.subject==='Adgangsanmodning: '+a.name);
+ assert.equal(accessMail.length,1);assert.equal(accessMail[0].recipient,'admin@example.test');
+ assert.ok(accessMail[0].body.includes('requester@example.test'));cookie=adminCookie;
  await api('/admin/associations/'+a.id+'/members',{email:'manager@example.test',role:'manager'});const member=await login('manager@example.test');assert.equal(member.memberships[0].role,'manager');
  const next=new Date(copenhagenDate()+'T12:00:00Z');next.setUTCDate(1);next.setUTCMonth(next.getUTCMonth()+1);const month=next.toISOString().slice(0,7);
  const event={title:'Workerd testarrangement',date:month+'-12',time:'18:00',location:'Eksempelhuset',association:a.name};

@@ -217,6 +217,49 @@ test('rejected access and duplicate pending requests grant no membership',async 
  const request=await ok(await c.call('/access-requests',{data:payload}),201),replay=await ok(await c.call('/access-requests',{data:payload}));assert.equal(request.id,replay.id);
  await f.admin.login('admin@example.test');await ok(await f.admin.call('/admin/access-requests/'+request.id,{data:{action:'reject',note:'Kontakt os'}}));assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM memberships').first()).n,0);
 });
+test('access requests notify TEB with the verified email and an administration link',async t=>{
+ const f=fixture(t);await f.admin.login('admin@example.test');const a=await f.association('FTF Eksempel');
+ const c=f.client();await c.login('requester@example.test');f.messages.length=0;
+ f.env.ACCESS_REQUEST_EMAIL='admin@example.test';f.env.TEB_ADMIN_EMAILS+=' , other-admin@example.test';
+ for(const choice of [{associationId:a.id},{newAssociationName:'Ny Eksempelforening'}]){
+  await ok(await c.call('/access-requests',{data:{...choice,name:'Person',roleNote:'Formand',email:'spoof@example.test'}}),201);
+ }
+ assert.equal(f.messages.length,2);
+ for(const [i,message] of f.messages.entries()){
+  assert.equal(message.to,'admin@example.test');
+  assert.match(message.subject,/Adgangsanmodning/);
+  assert.ok(message.text.includes(i===0?'FTF Eksempel':'Ny Eksempelforening'));
+  assert.ok(message.text.includes('Person'));assert.ok(message.text.includes('Formand'));
+  assert.ok(message.text.includes('requester@example.test'));assert.ok(!message.text.includes('spoof@example.test'));
+  assert.ok(message.text.includes(origin+'/forening.html#teb?fane=adgang'));
+ }
+ assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM memberships').first()).n,0);
+});
+test('simultaneous and repeated access requests send just one TEB notification',async t=>{
+ const f=fixture(t),c=f.client();await c.login('requester@example.test');f.messages.length=0;
+ const payload={newAssociationName:'Eksempel',name:'Person'};
+ const responses=await Promise.all([c.call('/access-requests',{data:payload}),c.call('/access-requests',{data:payload})]);
+ const requests=await Promise.all(responses.map(r=>ok(r,r.status===201?201:200)));
+ assert.equal(requests[0].id,requests[1].id);assert.equal(f.messages.length,1);
+ await ok(await c.call('/access-requests',{data:payload}));assert.equal(f.messages.length,1);
+ assert.equal((await f.DB.prepare("SELECT count(*) AS n FROM mail_jobs WHERE dedupe_key LIKE 'access-request:%'").first()).n,1);
+});
+test('failed access notifications remain queued and recover without losing the request',async t=>{
+ const f=fixture(t),c=f.client();await c.login('requester@example.test');f.messages.length=0;
+ const send=f.env.TEB_EMAIL.send;f.env.TEB_EMAIL.send=async()=>{throw Object.assign(new Error('rejected'),{definitive:true});};
+ const request=await ok(await c.call('/access-requests',{data:{newAssociationName:'Eksempel',name:'Person'}}),201);
+ const job=()=>f.DB.prepare('SELECT state FROM mail_jobs WHERE dedupe_key=?').bind('access-request:'+request.id).first();
+ assert.equal((await job()).state,'failed');
+ assert.equal((await f.DB.prepare('SELECT status FROM access_requests WHERE id=?').bind(request.id).first()).status,'pending');
+ f.env.TEB_EMAIL.send=send;await flushMail(f.env);await flushMail(f.env);
+ assert.equal((await job()).state,'sent');assert.equal(f.messages.length,1);
+});
+test('access request and notification are committed together',async t=>{
+ const f=fixture(t),c=f.client();await c.login('requester@example.test');
+ await f.DB.prepare("CREATE TRIGGER reject_access_mail BEFORE INSERT ON mail_jobs WHEN NEW.dedupe_key LIKE 'access-request:%' BEGIN SELECT RAISE(ABORT,'test mail persistence failure'); END").run();
+ assert.equal((await c.call('/access-requests',{data:{newAssociationName:'Eksempel',name:'Person'}})).status,500);
+ assert.equal((await f.DB.prepare('SELECT count(*) AS n FROM access_requests').first()).n,0);
+});
 test('members publish directly with canonical association identity and no author token',async t=>{
  const f=fixture(t),{a,user}=await f.member(),s=await f.memberEvent(user,a,{event:event({association:'Spoofed association'})});assert.equal(s.published,true);assert.equal(s.status,'approved');
  const visible=await f.publicEvents();assert.equal(visible[0].association,a.name);assert.equal(visible[0].associationId,a.id);assert.equal(visible[0].price,'75 kr.');assert.equal(visible[0].state,'approved');

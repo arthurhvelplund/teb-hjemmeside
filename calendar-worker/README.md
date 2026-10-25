@@ -153,6 +153,15 @@ administratorrolle. Ved fratrædelse skal en operatør også sætte den pågæld
 `users.is_admin=0` og udløbe brugerens sessions. Dette er ikke en offentlig API.
 
 Ukendt verificeret mail giver kun adgang til egne adgangsanmodninger. En TEB-
+administrator får en mail for hver ny anmodning med navn, verificeret mail,
+forening, rolle/besked og link til adgangskøen. Modtageren sættes i secret
+`ACCESS_REQUEST_EMAIL` (kommasepareret ved flere modtagere); hvis den ikke er
+sat, bruges `TEB_ADMIN_EMAILS`. Anmodningen og den krypterede mail gemmes i samme
+transaktion. Gentagne eller samtidige indsendelser af den samme ventende
+anmodning opretter kun én mail. Definitive afsendelsesfejl genforsøges af den
+eksisterende mailkø; usikker afsendelse genforsøges ikke automatisk.
+
+En TEB-
 godkendelse kræver `verified:true` og inviterer ansvarlig. Invitationen gælder
 syv dage. Kun en OTP, som blev anmodet efter invitationen til den samme mail,
 kan aktivere den. En gammel session eller en gammel kode aktiverer ikke en ny

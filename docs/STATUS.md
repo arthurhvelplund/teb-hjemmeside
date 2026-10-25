@@ -3,6 +3,25 @@
 Opdateret 25. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
 
+## Mail ved adgangsanmodninger den 25. oktober 2026
+
+- Brugeren har bedt om mail til sig, når en person anmoder om tilknytning til
+  en forening. Login og anmodning fra en endnu ikke tilknyttet mail er bevaret.
+- Nye anmodninger gemmer en krypteret notifikation atomisk i den eksisterende
+  mailkø. Mailen indeholder navn, verificeret mail, forening, rolle/besked og
+  link til TEBs adgangskø. Gentagne og samtidige klik giver kun én mail;
+  definitive afsendelsesfejl kan genforsøges uden at miste anmodningen.
+- Modtageren styres af secret `ACCESS_REQUEST_EMAIL`, som er konfigureret i
+  produktion. Uden særskilt modtager bruges `TEB_ADMIN_EMAILS`.
+- Kontroller: 94 backendtests, inklusive fire nye regressionstests, Worker
+  dry-run og Cloudflares lokale workerd/D1/mailkø består. Sidstnævnte prøver
+  også to samtidige adgangsanmodninger og kontrollerer én korrekt mail.
+  Ingen eksterne mails er sendt under testen. Ingen historiske anmodninger
+  genudsendes. Gmail-kladder til foreningerne sendes af brugeren selv.
+- Leverance: `codex/access-request-notifications` i
+  `/workspace/scratch/8e8070a92109/teb-hjemmeside`. Udgivelse og produktionskontrol
+  pågår; Projects-piloten er ikke opdateret.
+
 ## Kun kontaktlink ved login den 25. oktober 2026
 
 - Efter brugerens godkendelse er folduddet Hjælp til login erstattet med ét
