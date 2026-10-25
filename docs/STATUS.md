@@ -3,6 +3,15 @@
 Opdateret 25. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
 
+## Kun kontaktlink ved login den 25. oktober 2026
+
+- Efter brugerens godkendelse er folduddet Hjælp til login erstattet med ét
+  Kontakt TEB-link på både mail- og kodetrinnet. Linket åbner kontaktformularen.
+- Den korte spamhenvisning og nedtællingen ved kodefeltet er bevaret.
+- Kontroller: 42 browserforløb ved desktop/390/320 px, JavaScript-syntaks,
+  fælles layout/assetversioner på 16 sider og git diff --check består.
+- Udgivelse til main er godkendt af brugeren og gennemføres i denne leverance.
+
 ## Forenklet login og udgivelsesgodkendelse den 25. oktober 2026
 
 - Brugeren har udtrykkeligt godkendt offentliggørelse af hele forenings-/loginopdateringen

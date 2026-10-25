@@ -125,9 +125,7 @@ html[data-seasonal-theme] .site-main.fa-auth-page,html[data-seasonal-theme] .sit
 .fa-login-options button[type=submit]::after{display:none}
 .fa-login-options button[type=submit]:disabled{opacity:.6;cursor:wait;text-decoration:none}
 .fa-login-help{text-align:center;margin:1.5rem 0 0;font-size:.9rem}
-.fa-login-help summary{cursor:pointer;min-height:44px;align-content:center;text-decoration:underline;text-underline-offset:4px}
-.fa-login-help[open]{text-align:left}
-.fa-login-help p{overflow-wrap:anywhere}
+.fa-login-help a{display:inline-flex;min-height:44px;align-items:center}
 .fa-login-card .fa-login-access{font-size:.88rem;color:var(--muted);margin:.6rem 0 0}
 .fa-login-card .fa-login-recipient{margin-bottom:0}
 .fa-login-card .fa-login-spam{font-size:.88rem;margin:.8rem 0 0}

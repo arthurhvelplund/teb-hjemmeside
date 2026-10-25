@@ -251,7 +251,7 @@ function loginPage() {
       <p class="fp-note fa-login-spam">Ingen mail? Tjek spam/uønsket post.</p>
       <div class="fa-login-options"><button class="fa-text-button" type="button" data-change-email>Ret e-mail</button>${formStart('resend-code')}${button('Send en ny kode')}${resultBox()}</form></div>`
     : `<h1>Log ind til din forening.</h1><p>Brug den mailadresse, der har adgang til din forening.</p>${formStart('request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="email" maxlength="254"')}${button('Send kode')}${resultBox()}</form>`;
-  const help = '<details class="fa-login-help"><summary>Hjælp til login</summary><p>Mailen kommer fra kalender@teb-tistrup.dk. Tjek også fanen Andet i din mail. Brug den nyeste kode, hvis du har bedt om flere.</p><p>Mangler du foreningsadgang? <a href="kontakt.html#form">Kontakt TEB</a>, eller log ind med koden og bed om adgang.</p></details>';
+  const help = '<p class="fa-login-help"><a href="kontakt.html#form">Kontakt TEB</a></p>';
   return `<div class="fa-login-layout"><a class="fa-back-link" href="forening.html">← Tilbage til foreningerne</a><section class="fa-login-card" aria-label="Login til din forening">${form}${localMode ? '<p class="fa-local-help">Lokal afprøvning. Find din kode i <a href="kalender-postkasse.html" target="_blank" rel="noopener">testpostkassen</a>.</p>' : ''}</section>${help}</div>`;
 }
 function loginDeliveryText(state) {
