@@ -68,5 +68,21 @@ try{
  await api('/posts',postPayload);assert.equal((await api('/events')).events.filter(e=>e.id===post.id).length,1);
  const rows=await api('/posts');assert.equal(rows.posts[0].id,post.id);assert.equal(rows.posts[0].body,'Hele historien');
  await api('/admin/posts/'+post.id,{action:'withdraw',revision:1});assert.equal((await api('/events/'+post.id)).event.state,'cancelled');
+
+ // Password derivation, node:crypto timing-safe comparison and credential guards
+ // must execute in the actual Workers runtime, not only in Node.
+ cookie=adminCookie;
+ const passwordMember=(await api('/associations/'+a.id+'/members')).members.find(m=>m.email==='manager@example.test');
+ await api('/admin/associations/'+a.id+'/members/'+passwordMember.id+'/password',{password:'Workerd password!2026'});
+ cookie='';
+ const passwordSession=await api('/auth/password/login',{email:'manager@example.test',password:'Workerd password!2026'});
+ assert.equal(passwordSession.memberships[0].associationId,a.id);
+ await api('/auth/password',{password:'Changed workerd password!2026'});
+ cookie='';
+ const bad=await mf.dispatchFetch(origin+'/api/kalender/auth/password/login',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify({email:'manager@example.test',password:'Workerd password!2026'})});
+ assert.equal(bad.status,401);
+ assert.equal((await api('/auth/password/login',{email:'manager@example.test',password:'Changed workerd password!2026'})).memberships[0].associationId,a.id);
+ console.log('Cloudflare password runtime passed: PBKDF2, constant-time comparison, assignment, login and password change.');
+
  console.log('Cloudflare local runtime passed: workerd Worker, D1 migrations/triggers/batches, OTP/invitation, direct/member/guest publishing and R2 PDF. No network mail.');
 }finally{await mf.dispose();}

@@ -118,3 +118,26 @@ test('mail code login is still available after setting a password',async t=>{
  const member=await f.loginOtp('member@example.test');
  assert.equal((await sessionData(f.env,member.auth)).memberships[0].associationId,'a');
 });
+
+test('a concurrent credential reset cannot redeem the previously verified password',async t=>{
+ const f=fixture(t),admin=await f.loginOtp('admin@example.test'),id=await f.member();
+ await setPassword(f.request(),f.env,admin.auth,{password:good},'a',id);
+ const batch=f.DB.batch.bind(f.DB);
+ f.env.DB={prepare:f.DB.prepare,batch(statements){
+  f.DB.prepare("UPDATE password_credentials SET version='concurrently-reset'").run();
+  return batch(statements);
+ }};
+ await rejects(()=>loginPassword(f.request(),f.env,{email:'member@example.test',password:good}),401);
+ assert.equal(f.DB.prepare('SELECT count(*) AS n FROM sessions').first().n,1);
+ assert.equal(f.DB.prepare('SELECT status FROM memberships WHERE id=?').bind(id).first().status,'invited');
+});
+test('membership revoked during password assignment is checked again inside the write transaction',async t=>{
+ const f=fixture(t),admin=await f.loginOtp('admin@example.test'),id=await f.member();
+ const batch=f.DB.batch.bind(f.DB);
+ f.env.DB={prepare:f.DB.prepare,batch(statements){
+  f.DB.prepare("UPDATE memberships SET status='revoked' WHERE id=?").bind(id).run();
+  return batch(statements);
+ }};
+ await rejects(()=>setPassword(f.request(),f.env,admin.auth,{password:good},'a',id),403);
+ assert.equal(f.DB.prepare('SELECT count(*) AS n FROM password_credentials').first().n,0);
+});

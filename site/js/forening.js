@@ -593,7 +593,7 @@ async function onSubmit(event) {
       loginCooldowns.set(email, Date.now() + error.retryAfterSeconds * 1000);
       if (challenge?.email === email) { challenge.retryAt = loginCooldowns.get(email); saveLoginChallenge(); }
     }
-    showMessage(box.isConnected ? box : notice, loginAction && action !== 'password-login' && error.status === 401 ? 'Koden er forkert eller udløbet. Prøv igen, eller bed om en ny kode.' : errorText(error), true);
+    showMessage(box.isConnected ? box : notice, loginAction && action !== 'password-login' && error.status === 401 ? 'Koden er forkert eller udløbet. Prøv igen, eller bed om en ny kode.' : action.includes('password') && error.status ? error.message : errorText(error), true);
     if (error.status === 401) { session = null; navigation(currentRoute.page); }
   } finally {
     delete form.dataset.pending;

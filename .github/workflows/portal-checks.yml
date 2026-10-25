@@ -36,7 +36,7 @@ jobs:
       - name: Browser integration checks
         run: npm run test:browser && node ../scripts/mailbox-content-check.mjs && node ../scripts/site-layout-browser-check.mjs && node ../scripts/det-sker-browser-check.mjs
       - name: Cloudflare build without deployment
-        run: npm run build
+        run: npm run test:cloudflare
       - name: Retain diagnostic screenshots and PDF
         if: always()
         uses: actions/upload-artifact@v4
