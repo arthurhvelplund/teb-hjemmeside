@@ -913,14 +913,24 @@ ikke produktkoden eller designvalget.
 
 ## Valgfri adgangskode den 25. oktober 2026
 
-- Leverance: `codex/association-password-login`, arbejdskopi
-  `C:/Users/dkArtPed/Documents/Codex/2026-10-25/new-chat-4/work/teb-hjemmeside`.
-- TEB kan sætte adgangskode på en eksisterende aktiv adgang eller gyldig invitation.
-  Personer kan vælge/ændre egen kode efter login. Mailkode og adgangskø bevares.
-- Tildeling sender ingen mails. Ingen produktionskonti er ændret.
-- 105 backendtests består i CI på 5705a65. Ti af dem dækker adgangskoder. Syntaks og fælles assetversioner består.
-  Første browserkørsel fandt en for bred selector til invitationsfoldud; egen kode har nu selvstændig klasse.
-  Den samlede browserkontrol og stagingudgivelse genkøres.
-- Migration 0008 anvendt i staging via Cloudflare-forbindelsen og registreret i d1_migrations.
-  GitHub deploy-token kan udgive Worker/Pages, men mangler D1-adgang. Produktionsmigration afventer udgivelse. Se `docs/PASSWORD_LOGIN.md`.
-- Produktionsudgivelse er ikke gennemført i denne leverance.
+- Udgivet via PR #5 og mergecommit `0cf2d5822753cc521da893b957f818a3b78f660a`.
+  Kodegren `codex/association-password-login`, head `8c3652e4cbc33762388ee290e0f3f922e6d66365`.
+- TEB → Foreninger → vælg forening → Personer med adgang → Sæt adgangskode.
+  Adgangskoden følger loginmailen. Personen kan vælge/ændre egen kode efter login.
+  Mailkode og adgangskø bevares; ingen mail sendes ved tildeling eller ændring.
+- Migration 0008 er anvendt og registreret i både staging og produktion gennem
+  Cloudflare-forbindelsen. GitHubs eksisterende deploy-token har ikke D1-adgang.
+- CI `40232695635`, job `121287605071`, består: 108 backendtests, 43
+  portalbrowserforløb, øvrige browser-/layoutkontroller og workerd/D1/R2 inklusive
+  PBKDF2, konstanttids-sammenligning, tildeling, login og kodeændring.
+  Mobilbilleder af login og egne kodeindstillinger er visuelt gennemgået.
+- Faktisk staging-API har bestået kodevalg, korrekt login, sikker cookie og forkert
+  kode med en midlertidig testkonto, som er fjernet. Ingen eksterne mails er sendt.
+- Produktionsudgivelse `40232909027`, job `121288256935`, er afsluttet med succes.
+  Offentlig JavaScript er byteidentisk med den testede kilde; adgangskodeendpoint
+  afviser forkert login med HTTP 401, og config viser live/aktiv indsendelse.
+  Ingen testbanner. Ingen eksisterende foreningskonti har fået tildelt en kode.
+- Merge bevarer samtidig den udgivne fjernelse af syvdagesfristen fra main
+  (`2dd9318`). Se `docs/PASSWORD_LOGIN.md`.
+- Arbejdskopi: `C:/Users/dkArtPed/Documents/Codex/2026-10-25/new-chat-4/work/teb-hjemmeside`.
+  Den historiske Projects-pilot er ikke opdateret.
