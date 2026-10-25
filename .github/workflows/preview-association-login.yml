@@ -2,7 +2,7 @@ name: Preview association login on test.teb-tistrup.dk
 
 on:
   push:
-    branches: [codex/association-login-clarity]
+    branches: [codex/association-login-clarity, codex/association-password-login]
     paths:
       - "site/**"
       - "calendar-worker/**"
@@ -36,7 +36,9 @@ jobs:
         run: npm ci && npm test
       - name: Deploy isolated staging API
         working-directory: calendar-worker
-        run: npx wrangler deploy --config wrangler.staging.jsonc --keep-vars
+        run: |
+          npx wrangler d1 migrations apply teb-kalender-staging --remote --config wrangler.staging.jsonc
+          npx wrangler deploy --config wrangler.staging.jsonc --keep-vars
       - name: Label the preview and omit local mailboxes
         shell: bash
         run: |

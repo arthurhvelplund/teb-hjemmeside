@@ -64,6 +64,7 @@ jobs:
         run: |
           npm ci
           npm test
+          npx wrangler d1 migrations apply teb-kalender-production --remote
           npm run deploy
 
       - name: Deploy form worker

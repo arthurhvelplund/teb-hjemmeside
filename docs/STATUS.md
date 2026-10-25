@@ -901,3 +901,15 @@ kontakt/indmeldelse afprøvelig i det samlede lokale preview. Dette audit ændre
 ikke produktkoden eller designvalget.
 
 [Kontrolresultater og kodehenvisninger](status/flow-audit-2026-10-20.json).
+
+## Valgfri adgangskode den 25. oktober 2026
+
+- Leverance: `codex/association-password-login`, arbejdskopi
+  `C:/Users/dkArtPed/Documents/Codex/2026-10-25/new-chat-4/work/teb-hjemmeside`.
+- TEB kan sætte adgangskode på en eksisterende aktiv adgang eller gyldig invitation.
+  Personer kan vælge/ændre egen kode efter login. Mailkode og adgangskø bevares.
+- Tildeling sender ingen mails. Ingen produktionskonti er ændret.
+- Ti lokale adgangskodetests og syntakskontroller består. Fælles assetversioner er genereret
+  og kontrolleret. De samlede CI-/browserkontroller og stagingudgivelsen afventer kørsel.
+- Migration 0008 og udgivelsesworkflow klargjort. Se `docs/PASSWORD_LOGIN.md`.
+- Produktionsudgivelse er ikke gennemført i denne leverance.
