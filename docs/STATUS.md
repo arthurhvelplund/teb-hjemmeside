@@ -15,8 +15,13 @@ Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreni
 - Kontroller: 42 browserforløb med rigtig lokal API, desktop og 320/390 px,
   JavaScript-syntaks, fælles layout/assetversioner på 16 sider og diff-check består.
   Mobilvisningen af fejl-/kodeformularen er gennemgået visuelt.
-- Udgivelse: klargjort på codex/association-login-clarity i PR #3. Produktionens
-  deploy og efterfølgende livekontrol afventer gennemførelse i denne leverance.
+- Udgivet via PR #3 og mergecommit `8a950745fe80c6d9bcbe5fc626e2588dd93122bc`.
+  GitHub Actions `40204425211`, job `121202214419`, er afsluttet med succes.
+  Produktionsdeployment `cd0a5b5d-9c14-48d4-a632-996689c677bf` er bekræftet success.
+  Livebrowseren viser den korte tekst og lukket Hjælp til login uden testbanner.
+  Produktions-JavaScript og PDF-manual er bytekontrolleret mod leverancen.
+  Login-API svarer korrekt; ingen rigtig kode er bestilt under kontrollen.
+  Den samlede CI-kontrol `40204251747` består også alle trin.
 
 ## Foreningsoprettelse og login den 24. oktober 2026
 
@@ -81,7 +86,7 @@ Gamle worktrees og lokale data bevares. Nye leverancer skal samles i Projects, f
 | Kalender | Nyt uge/månedsoverblik, kommende arrangementer, kildesammenlægning og billeder gemt i `ce5272b`. Teknisk samlet. Visuelt design afventer nyt valg. |
 | Opret arrangement | Fælles popup med billedupload og kalender/print-preview. Kun ønske om den trykte kalender kan vælges. Øvrige delingsmuligheder findes på den selvstændige infoside. |
 | Foreninger | 24 importerede udkast, 18 med billede/logo. Direkte valg mellem Billede og Liste, søgning og intet interessefilter. |
-| Login og adgang | Mailkode er live. Klar til godkendelse på codex/association-login-clarity: 60 sekunders ventetid og tydelig adgangs- og afsendelsesstatus. |
+| Login og adgang | Udgivet 25. oktober: enkelt kodeflow, 60 sekunders ventetid, tydelig adgangs- og afsendelsesstatus samt TEB-manual. |
 | Foreningsprofil og ejerens side | Kompakt offentlig profil og ejerens arrangementer. Nyhedsoprettelse og foreningsnyheder er taget ud af brugerflowet efter brugerens ønske 20. oktober. Den fælles TEB-kø og historiske data er bevaret. |
 | Trykt kalender | Det manuelle printforløb fra `1ce68e0` er integreret i `4209e48`. Hvert arrangement vælges, korrekturlæses og gemmes i en fast PDF. |
 | Staging og produktion | Live på https://teb-tistrup.dk fra 21. oktober (Worker `teb-kalender-api`, D1 `teb-kalender-production`, R2 `teb-kalender-production-pdfs`). Testversion på https://test.teb-tistrup.dk (Worker `teb-kalender-staging-api`, D1 `teb-kalender-staging`, R2 `teb-kalender-staging-pdfs`). |
