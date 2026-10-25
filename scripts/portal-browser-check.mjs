@@ -222,7 +222,6 @@ try{
 
  // Exercise password assignment through TEB's UI, then real password authentication.
  await admin.goto('/forening.html#teb?fane=foreninger&forening='+association.id);
- const assignPassword=admin.locator('form[data-action="admin-password"]').filter({has:admin.locator('[name=password]')});
  const memberRows=admin.locator('.mf-people > li').filter({hasText:memberEmail});
  const assign=memberRows.locator('form[data-action="admin-password"]');
  await memberRows.getByText('Sæt adgangskode',{exact:true}).click();
@@ -231,16 +230,17 @@ try{
  await assign.getByRole('button',{name:'Gem adgangskode'}).click();
  await assign.getByText('Adgangskoden er gemt.',{exact:false}).waitFor();
  const passwordContext=await browser.newContext({baseURL:origin,viewport:{width:320,height:844}});
- const passwordPage=await passwordContext.newPage();
+ const passwordPage=await passwordContext.newPage();pages.push(passwordPage);
  await passwordPage.goto('/forening.html#login');
  await passwordPage.getByRole('button',{name:'Log ind med adgangskode',exact:true}).click();
  const passwordLogin=passwordPage.locator('form[data-action="password-login"]');
  await fill(passwordLogin,{email:memberEmail,password:'Incorrect password!'});
- await passwordLogin.getByRole('button',{name:'Log ind',exact:true}).click();
+ await passwordLogin.locator('button[type=submit]').click();
  await passwordLogin.getByText('E-mail eller adgangskode er forkert.',{exact:false}).waitFor();
  assert.equal(await passwordPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'password login at 320px');
+ await passwordPage.screenshot({path:resolve(output,'password-login-320.png'),fullPage:true});
  await passwordLogin.locator('[name=password]').fill(initialPassword);
- await passwordLogin.getByRole('button',{name:'Log ind',exact:true}).click();
+ await passwordLogin.locator('button[type=submit]').click();
  await passwordPage.locator('.fa-membership-choices').waitFor();
  await passwordPage.getByText('Min adgangskode',{exact:true}).click();
  const ownPassword=passwordPage.locator('form[data-action="set-password"]');
@@ -255,7 +255,7 @@ try{
  await passwordPage.goto('/forening.html#login');
  await passwordPage.getByRole('button',{name:'Log ind med adgangskode',exact:true}).click();
  await fill(passwordPage.locator('form[data-action="password-login"]'),{email:memberEmail,password:changedPassword});
- await passwordPage.getByRole('button',{name:'Log ind',exact:true}).click();
+ await passwordPage.locator('form[data-action="password-login"] button[type=submit]').click();
  await passwordPage.locator('.fa-membership-choices').waitFor();
  await passwordContext.close();
  record('TEB assigns password, wrong password fails, member logs in and changes password, new password works at 320px');
