@@ -9,6 +9,7 @@ Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreni
 - Alle fire aktuelle, ikke tilbagekaldte invitationer i produktion er opdateret; tre fik ændret datoen, Tistrup Mediehus var allerede ændret. Accepterede og tilbagekaldte invitationer er ikke genåbnet.
 - Nye invitationer bruger 9999-12-31 i den eksisterende NOT NULL-kolonne, så alle eksisterende adgangs- og tilbagekaldelseskontroller fortsat virker. Invitationsmailen omtaler ikke længere syv dage.
 - Regressionstest prøver første aktivering 30 dage efter invitationen og kontrollerer, at engangskoden fortsat kun gælder i ti minutter. Produktionsworkflowet kører backendtests før udgivelse.
+- Kodecommit: `544b96130fd54fc65a0d69e53470aac6cc570afd`. Produktionsworkflow `40223801463`, job `121260832217`: backendtests og Worker-udgivelse består. Den aktive Worker er læst via API og har den nye dato uden syvdages-mailtekst. Produktions-D1 er genlæst: alle fire afventende invitationer har fristen fjernet.
 - Ingen eksterne mails er sendt under ændringen. Den eksisterende PDF-adminmanual omtaler stadig den tidligere frist og er ikke regenereret i denne leverance.
 
 ## Mail ved adgangsanmodninger den 25. oktober 2026
