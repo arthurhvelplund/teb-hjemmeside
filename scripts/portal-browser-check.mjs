@@ -253,7 +253,8 @@ try{
  await passwordPage.locator('.mf-account').getByRole('button',{name:'Log ud'}).click();
  await passwordPage.waitForURL(url=>!url.hash);
  await passwordPage.goto('/forening.html#login');
- await passwordPage.getByRole('button',{name:'Log ind med adgangskode',exact:true}).click();
+ await passwordPage.locator('.fa-login-card').waitFor();
+ if (!await passwordPage.locator('form[data-action="password-login"]').count()) await passwordPage.getByRole('button',{name:'Log ind med adgangskode',exact:true}).click();
  await fill(passwordPage.locator('form[data-action="password-login"]'),{email:memberEmail,password:changedPassword});
  await passwordPage.locator('form[data-action="password-login"] button[type=submit]').click();
  await passwordPage.locator('.fa-membership-choices').waitFor();
