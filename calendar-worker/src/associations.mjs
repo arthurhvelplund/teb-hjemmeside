@@ -107,12 +107,25 @@ export async function accessRequests(env,auth,isAdmin=false){
 export async function requestAccess(env,auth,data){
  const associationId=typeof data.associationId==='string'&&data.associationId?data.associationId:null,newName=field(data,'newAssociationName',100),name=field(data,'name',150,true),note=field(data,'roleNote',1000);
  ensure(Boolean(associationId)!==Boolean(newName),400,'Vælg en forening, eller skriv navnet på en ny.');
- if(associationId)ensure(await stmt(env,'SELECT id FROM associations WHERE id=?',associationId).first(),404,'Foreningen findes ikke.');
+ const association=associationId?await stmt(env,'SELECT name FROM associations WHERE id=?',associationId).first():null;
+ if(associationId)ensure(association,404,'Foreningen findes ikke.');
  await rate(env,'access-request:'+auth.user.id,10);
- const id=crypto.randomUUID();
- const result=await stmt(env,`INSERT OR IGNORE INTO access_requests(id,user_id,email,name,association_id,new_association_name,role_note,created_at)
- SELECT ?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM sessions WHERE hash=? AND expires_at>?)`,id,auth.user.id,auth.user.email,name,associationId,newName,note,now(),auth.sessionHash,now()).run();
- if(!result.meta.changes){const existing=await stmt(env,"SELECT id,status FROM access_requests WHERE user_id=? AND ifnull(association_id,'')=? AND new_association_name=? AND status='pending'",auth.user.id,associationId||'',newName).first();ensure(existing,401,'Log ind igen.');return json(existing);}
+ const id=crypto.randomUUID(),dedupe='access-request:'+id;
+ const recipients=[...new Set((env.ACCESS_REQUEST_EMAIL||env.TEB_ADMIN_EMAILS||'').split(',').map(email=>email.trim().toLowerCase()).filter(Boolean))];
+ ensure(recipients.length,503,'TEBs mailmodtager er ikke konfigureret. Prøv igen senere.');
+ const job=await mailStatement(env,{dedupe,to:recipients.length===1?recipients[0]:recipients,
+  subject:'Adgangsanmodning: '+(association?.name||newName),
+  text:`En person beder om adgang til en forening på TEBs hjemmeside.\n\nNavn: ${name}\nE-mail: ${auth.user.email}\nForening: ${association?.name||newName}${associationId?'':' (ny forening)'}\nRolle/besked: ${note||'Ikke oplyst'}\n\nKontrollér personens tilknytning og godkend eller afvis anmodningen i administrationen:\n${env.PUBLIC_ORIGIN}/forening.html#teb?fane=adgang\n\nAnmodningen giver ikke i sig selv adgang til foreningen.`,
+  condition:'EXISTS(SELECT 1 FROM access_requests WHERE id=? AND user_id=?)',args:[id,auth.user.id]});
+ // Persist the request and its encrypted notification together. The newly
+ // inserted request ID prevents duplicate submissions from queuing more mail.
+ const [result]=await env.DB.batch([stmt(env,`INSERT OR IGNORE INTO access_requests(id,user_id,email,name,association_id,new_association_name,role_note,created_at)
+ SELECT ?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM sessions WHERE hash=? AND expires_at>?)`,id,auth.user.id,auth.user.email,name,associationId,newName,note,now(),auth.sessionHash,now()),job]);
+ if(!result.meta.changes){
+  const existing=await stmt(env,"SELECT id,status FROM access_requests WHERE user_id=? AND ifnull(association_id,'')=? AND new_association_name=? AND status='pending'",auth.user.id,associationId||'',newName).first();
+  ensure(existing,401,'Log ind igen.');await deliverKeys(env,['access-request:'+existing.id]);return json(existing);
+ }
+ await deliverKeys(env,[dedupe]);
  return json({id,status:'pending'},201);
 }
 export async function decideAccess(env,auth,id,data){
