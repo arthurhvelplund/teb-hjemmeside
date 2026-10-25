@@ -1,3 +1,4 @@
+import { loginPassword, setPassword, ownPassword } from './passwords.mjs';
 import { HttpError, ensure, json } from './shared.mjs';
 import { local, stmt, all } from './db.mjs';
 import { identity, sessionData, requestOtp, verifyOtp, logout, requireAccess } from './auth.mjs';
@@ -33,10 +34,14 @@ async function api(request,env){
  if(storedEventImage&&method==='GET')return eventImage(env,storedEventImage[1]);
  const data=method==='POST'?await body(request,env):null;
  if(route==='/local-mail'&&method==='GET')return json(await localMailbox(request,env));
+ if(route==='/auth/password/login'&&method==='POST')return loginPassword(request,env,data);
  if(route==='/auth/request'&&method==='POST')return requestOtp(request,env,data);
  if(route==='/auth/verify'&&method==='POST')return verifyOtp(request,env,data);
  if(['/auth/logout','/admin/logout'].includes(route)&&method==='POST')return logout(request,env);
  const auth=await identity(request,env);
+ if(route==='/auth/password'&&method==='POST')return ownPassword(env,auth,data);
+ const passwordMember=route.match(/^\/admin\/associations\/([^/]+)\/members\/([^/]+)\/password$/);
+ if(passwordMember&&method==='POST')return setPassword(request,env,auth,data,passwordMember[1],passwordMember[2]);
  if(route==='/posts'||route==='/me/posts'||route.startsWith('/member/posts/')||route.startsWith('/posts/')||route.startsWith('/admin/posts'))return handlePosts(request,env,auth,route,data);
  if(route.startsWith('/experiment/'))return experiment(request,env,auth,route,data);
  if(route==='/session'&&method==='GET')return json(await sessionData(env,auth));

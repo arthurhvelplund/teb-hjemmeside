@@ -2,7 +2,7 @@ name: Preview association login on test.teb-tistrup.dk
 
 on:
   push:
-    branches: [codex/association-login-clarity]
+    branches: [codex/association-login-clarity, codex/association-password-login]
     paths:
       - "site/**"
       - "calendar-worker/**"

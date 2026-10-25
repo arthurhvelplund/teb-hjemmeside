@@ -3,7 +3,7 @@ import { stmt, all, rate, ipKey, emailAddress, local, loopback } from './db.mjs'
 import { mailStatement, secretHash, deliverKeys, mailState } from './mail.mjs';
 const duration=8*3600;
 export const cookieToken=request=>(request.headers.get('Cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('teb_calendar='))?.slice('teb_calendar='.length)||'';
-function cookie(env,value,maxAge=duration){
+export function cookie(env,value,maxAge=duration){
  ensure(env.PUBLIC_ORIGIN.startsWith('https:')||(local(env)&&loopback(env.PUBLIC_ORIGIN)),503,'Login kræver HTTPS.');
  return `teb_calendar=${value}; HttpOnly; SameSite=Strict; Path=/api/kalender; Max-Age=${maxAge}${env.PUBLIC_ORIGIN.startsWith('https:')?'; Secure':''}`;
 }
@@ -11,7 +11,7 @@ export async function identity(request,env,required=false){
  const value=cookieToken(request);
  const sessionHash=/^[a-f0-9]{64}$/.test(value)?await hash(value):'';
  const user=sessionHash?await stmt(env,`SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.hash=? AND s.expires_at>?`,sessionHash,now()).first():null;
- ensure(!required||user,401,'Log ind med en kode fra din e-mail.');
+ ensure(!required||user,401,'Log ind med adgangskode eller en kode fra din e-mail.');
  return {user,sessionHash};
 }
 export function guard(auth,associationId=null){
@@ -19,7 +19,7 @@ export function guard(auth,associationId=null){
  return {sql:`EXISTS(SELECT 1 FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.hash=? AND s.expires_at>? AND (u.is_admin=1${membership}))`,args:[auth.sessionHash,now(),...(associationId?[associationId]:[])]};
 }
 export async function requireAccess(env,auth,associationId=null){
- ensure(auth.user,401,'Log ind med en kode fra din e-mail.');
+ ensure(auth.user,401,'Log ind med adgangskode eller en kode fra din e-mail.');
  const g=guard(auth,associationId);
  ensure(await stmt(env,`SELECT 1 WHERE ${g.sql}`,...g.args).first(),403,'Du har ikke adgang til denne handling.');
  return g;

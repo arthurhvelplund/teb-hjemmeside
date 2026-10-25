@@ -12,6 +12,7 @@ let session = null;
 let challenge = null;
 let loginEmail = '';
 let loginPending = false;
+let loginMethod = 'email';
 const loginCooldowns = new Map();
 function saveLoginChallenge() {
   try {
@@ -250,7 +251,7 @@ function loginPage() {
       </form>
       <p class="fp-note fa-login-spam">Ingen mail? Tjek spam/uønsket post.</p>
       <div class="fa-login-options"><button class="fa-text-button" type="button" data-change-email>Ret e-mail</button>${formStart('resend-code')}${button('Send en ny kode')}${resultBox()}</form></div>`
-    : `<h1>Log ind til din forening.</h1><p>Brug den mailadresse, der har adgang til din forening.</p>${formStart('request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="email" maxlength="254"')}${button('Send kode')}${resultBox()}</form>`;
+    : `<h1>Log ind til din forening.</h1><p>Brug den mailadresse, der har adgang til din forening.</p>${formStart(loginMethod === 'password' ? 'password-login' : 'request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="username" maxlength="254"')}${loginMethod === 'password' ? input('password', 'Adgangskode', '', 'password', 'required autocomplete="current-password" maxlength="128"') : ''}${button(loginMethod === 'password' ? 'Log ind' : 'Send kode')}${resultBox()}</form><p><button type="button" class="fa-text-button" data-login-method>${loginMethod === 'password' ? 'Glemt adgangskode? Få kode på mail' : 'Log ind med adgangskode'}</button></p>`;
   const help = '<p class="fa-login-help"><a href="kontakt.html#form">Kontakt TEB</a></p>';
   return `<div class="fa-login-layout"><a class="fa-back-link" href="forening.html">← Tilbage til foreningerne</a><section class="fa-login-card" aria-label="Login til din forening">${form}${localMode ? '<p class="fa-local-help">Lokal afprøvning. Find din kode i <a href="kalender-postkasse.html" target="_blank" rel="noopener">testpostkassen</a>.</p>' : ''}</section>${help}</div>`;
 }
@@ -272,8 +273,13 @@ async function accessPage() {
     `<details class="mf-request-form"${pending.length ? '' : ' open'}><summary>${pending.length ? 'Bed om adgang til en anden forening' : 'Bed om adgang'}</summary>${formStart('access-request')}<label>Forening<select name="associationId" data-access-choice><option value="">Min forening er ikke i oversigten</option>${associations.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('')}</select></label><div data-new-association>${input('newAssociationName', 'Foreningens navn', '', 'text', 'required maxlength="100"')}</div>${input('name', 'Dit navn', '', 'text', 'required maxlength="100" autocomplete="name"')}${textarea('roleNote', 'Hvad laver du i foreningen?', '', 'required maxlength="1500" placeholder="Fx formand, kasserer eller træner"')}${button('Send til TEB')}${resultBox()}</form></details>` +
     accountLine() + '</section>';
 }
+function passwordForm(action, attributes = '') {
+  return formStart(action, attributes) + input('password', 'Ny adgangskode', '', 'password', 'required minlength="12" maxlength="128" autocomplete="new-password"') +
+    input('passwordAgain', 'Gentag adgangskode', '', 'password', 'required minlength="12" maxlength="128" autocomplete="new-password"') +
+    '<p class="fp-note">Mindst 12 tegn. Adgangskoden gælder for denne loginmail.</p>' + button('Gem adgangskode') + resultBox() + '</form>';
+}
 function accountLine(extra = '') {
-  return `<p class="mf-small mf-account">Logget ind som ${esc(session.user.email)}${extra}${admin() ? ' · <a href="#teb">TEBs administration</a>' : ''} · <button type="submit" form="mf-logout" class="fa-text-button">Log ud</button> · <a href="kontakt.html#form">Kontakt TEB</a></p><form id="mf-logout" data-action="logout"></form>`;
+  return `<p class="mf-small mf-account">Logget ind som ${esc(session.user.email)}${extra}${admin() ? ' · <a href="#teb">TEBs administration</a>' : ''} · <button type="submit" form="mf-logout" class="fa-text-button">Log ud</button> · <a href="kontakt.html#form">Kontakt TEB</a></p><form id="mf-logout" data-action="logout"></form><details class="mf-request-form fa-password-settings"><summary>Min adgangskode</summary>${passwordForm('set-password')}</details>`;
 }
 function profileForm(a, creating = false) {
   return formStart(creating ? 'create-association' : 'save-profile', `data-id="${esc(a.id || '')}" data-revision="${esc(a.revision ?? '')}"`) +
@@ -326,7 +332,7 @@ async function memberPage(a, isAdmin = false) {
   const { members } = await api('/associations/' + idPath(a.id) + '/members');
   const me = session.user.email.toLowerCase();
   return `<div class="mf-card-head"><h2>Personer med adgang</h2></div><p class="mf-small">Alle her kan oprette arrangementer, rette jeres side og invitere andre.</p><ul class="mf-people">` +
-    members.map(m => `<li><div><strong>${esc(m.name || m.email)}</strong><span>${esc(m.email)}${m.email.toLowerCase() === me ? ' · dig' : ''} · ${m.status === 'active' ? 'Adgang aktiv' : m.invitationExpiresAt && Date.parse(m.invitationExpiresAt) <= Date.now() ? 'Invitation udløbet - invitér igen' : 'Inviteret - afventer første login'}</span>${m.status === 'invited' && ['failed','uncertain','pending'].includes(m.invitationDeliveryState) ? '<p class="fp-note">Invitationsmailen er ikke bekræftet sendt. Personen kan åbne Log ind og bede om en kode med denne adresse.</p>' : ''}</div>` +
+    members.map(m => `<li><div><strong>${esc(m.name || m.email)}</strong><span>${esc(m.email)}${m.email.toLowerCase() === me ? ' · dig' : ''} · ${m.status === 'active' ? 'Adgang aktiv' : m.invitationExpiresAt && Date.parse(m.invitationExpiresAt) <= Date.now() ? 'Invitation udløbet - invitér igen' : 'Inviteret - afventer første login'}</span>${m.status === 'invited' && ['failed','uncertain','pending'].includes(m.invitationDeliveryState) ? '<p class="fp-note">Invitationsmailen er ikke bekræftet sendt. Personen kan åbne Log ind og bede om en kode med denne adresse.</p>' : ''}${isAdmin ? '<details class="mf-invite fa-password-settings"><summary>Sæt adgangskode</summary>'+passwordForm('admin-password', `data-association="${esc(a.id)}" data-member="${esc(m.id)}"`)+'</details>' : ''}</div>` +
       (m.email.toLowerCase() !== me ? `${formStart('revoke-member', `data-association="${esc(a.id)}" data-member="${esc(m.id)}" data-email="${esc(m.email)}"`)}<button type="submit" class="fa-text-button">Fjern</button>${resultBox()}</form>` : '') + '</li>').join('') +
     `</ul>${!members.length ? '<p class="fp-notice">Ingen personer har adgang endnu. Den offentlige kontaktmail giver ikke login. Tilføj den første person nedenfor.</p>' : ''}` +
     `<details class="mf-invite"${isAdmin && !members.length ? ' open' : ''}><summary>+ Invitér en person</summary>${formStart(isAdmin ? 'admin-member' : 'invite-member', `data-id="${esc(a.id)}"`)}${input('name', 'Navn', '', 'text', 'required maxlength="100"')}${input('email', 'E-mail', '', 'email', 'required maxlength="254"')}${isAdmin ? check('verified', 'Jeg har kontrolleret personens tilknytning til foreningen', true) : '<p class="fp-note">Personen får en mail og logger ind med denne adresse.</p>'}${button('Send invitation')}${resultBox()}</form></details>`;
@@ -438,7 +444,7 @@ async function onSubmit(event) {
   const action = form.dataset.action;
   const submitter = event.submitter;
   event.preventDefault();
-  const loginAction = ['request-code', 'resend-code', 'verify-code'].includes(action);
+  const loginAction = ['request-code', 'resend-code', 'verify-code', 'password-login'].includes(action);
   if (loginAction && loginPending) return;
   if (form.dataset.uploading === 'true') return;
   if (form.dataset.pending === 'true') return;
@@ -465,8 +471,13 @@ async function onSubmit(event) {
           document.querySelector('[name="code"]')?.focus();
           break;
         }
+        case 'password-login':
         case 'verify-code': {
-          await api('/auth/verify', { body: { challengeId: form.dataset.challenge, code: form.elements.code.value.trim() } });
+          if (action === 'password-login') {
+            loginEmail = form.elements.email.value.trim();
+            await api('/auth/password/login', { body: { email: loginEmail, password: form.elements.password.value } });
+            form.elements.password.value = '';
+          } else await api('/auth/verify', { body: { challengeId: form.dataset.challenge, code: form.elements.code.value.trim() } });
           session = await getSession();
           if (!authenticated()) throw new Error('Login kunne ikke bekræftes. Prøv igen.');
           challenge = null;
@@ -528,6 +539,16 @@ async function onSubmit(event) {
           await refresh(deliveryMessage(response, action === 'admin-member' ? 'Adgangen' : 'Invitationen'));
           break;
         }
+        case 'set-password':
+        case 'admin-password': {
+          const password = form.elements.password.value;
+          if (password !== form.elements.passwordAgain.value) throw new Error('Adgangskoderne er ikke ens.');
+          const endpoint = action === 'admin-password' ? '/admin/associations/' + idPath(form.dataset.association) + '/members/' + idPath(form.dataset.member) + '/password' : '/auth/password';
+          await api(endpoint, { body: { password } });
+          form.reset();
+          showMessage(box, 'Adgangskoden er gemt. Der er ikke sendt en mail.');
+          break;
+        }
         case 'revoke-member': {
           if (!window.confirm(`Fjern adgangen for ${form.dataset.email}? Personen kan derefter ikke redigere eller udgive for foreningen.`)) return;
           await api('/associations/' + idPath(form.dataset.association) + '/members/' + idPath(form.dataset.member) + '/revoke', { body: {} });
@@ -567,12 +588,12 @@ async function onSubmit(event) {
       }
     });
   } catch (error) {
-    if (loginAction && error.status === 429 && error.retryAfterSeconds) {
+    if (loginAction && action !== 'password-login' && error.status === 429 && error.retryAfterSeconds) {
       const email = (form.elements.email?.value || challenge?.email || '').trim().toLowerCase();
       loginCooldowns.set(email, Date.now() + error.retryAfterSeconds * 1000);
       if (challenge?.email === email) { challenge.retryAt = loginCooldowns.get(email); saveLoginChallenge(); }
     }
-    showMessage(box.isConnected ? box : notice, loginAction && error.status === 401 ? 'Koden er forkert eller udløbet. Prøv igen, eller bed om en ny kode.' : errorText(error), true);
+    showMessage(box.isConnected ? box : notice, loginAction && action !== 'password-login' && error.status === 401 ? 'Koden er forkert eller udløbet. Prøv igen, eller bed om en ny kode.' : action.includes('password') && error.status ? error.message : errorText(error), true);
     if (error.status === 401) { session = null; navigation(currentRoute.page); }
   } finally {
     delete form.dataset.pending;
@@ -658,6 +679,13 @@ document.addEventListener('change', event => {
   }
 });
 document.addEventListener('click', event => {
+  if (event.target.closest('[data-login-method]')) {
+    if (loginPending) return;
+    loginEmail = content.querySelector('input[name="email"]')?.value.trim() || loginEmail;
+    loginMethod = loginMethod === 'password' ? 'email' : 'password';
+    render().then(() => document.querySelector('input[name="email"]')?.focus());
+    return;
+  }
   if (event.target.closest('[data-change-email]')) {
     if (loginPending) return;
     challenge = null;
