@@ -10,7 +10,9 @@ Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreni
 - Den korte spamhenvisning og nedtællingen ved kodefeltet er bevaret.
 - Kontroller: 42 browserforløb ved desktop/390/320 px, JavaScript-syntaks,
   fælles layout/assetversioner på 16 sider og git diff --check består.
-- Udgivelse til main er godkendt af brugeren og gennemføres i denne leverance.
+- Udgivet på main i `d72abae85b480e37ae0b9ff3ce0c2f6e36c5aa02`.
+  GitHub Actions `40205795843` er afsluttet med succes. Den offentlige
+  JavaScript-kode er kontrolleret med det nye kontaktlink.
 
 ## Forenklet login og udgivelsesgodkendelse den 25. oktober 2026
 
