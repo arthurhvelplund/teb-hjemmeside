@@ -958,3 +958,13 @@ ikke produktkoden eller designvalget.
 
 - Udgivet via PR #7 og mergecommit `ee12a0d5c77d730092c185b43656e617e7a3b895` (rettelse `8c38c2b7b9023972ff15a1d605c2c003a50892ff`). CI `40767606646`, job `123095859647`, består: 111 backendtests, 43 portalforløb, fælles layout på 16 sider, navigation ved fem skærmstørrelser og Cloudflare runtime/dry-run.
 - Produktionsworkflow `40767948352`, job `123097089744`, er afsluttet med succes; Pages-udgivelse `5287d372`. Live CSS på `https://teb-tistrup.dk/css/style.css?v=cbf14e802104` svarer HTTP 200 og indeholder fast mobilheader, én kolonne og dynamisk menuhøjde. Fysisk Safari/iPhone-kontrol er fortsat ikke udført.
+
+
+## Login og Min forening – udgivet 28. oktober 2026
+
+- Leverance: PR #8, mergecommit 7c14a331c40a5779f21fb7adddaecfc29eefeac4. E-mail-først login med engangskode/adgangskode efter kontoens opsætning, Husk mig på begge trin og valgfri adgangskode efter OTP med Fortsæt som primær handling.
+- Min forening: kompakte kalenderkort med eksisterende fotos eller datofelt, alle kommende arrangementer i et gitter og tidligere sammenfoldet. Samlet boks med Opret arrangement øverst til højre; profil-/besøgsvisning i topmenu; kortere personoversigt med invitation, navneredigering og fjern adgang.
+- Arrangementer har Rediger, Aflys og Slet i en menu med tre prikker. Adgang og revision kontrolleres ved mutation. Sletning fjerner offentlig event og tilknyttet opslag, bevarer privat historik og registrerer withdrawal i print-historikken. Aflyste arrangementer genaktiveres ikke ved almindelig redigering.
+- CI 40773161132, job 123115752602: 118 backendtests, 45 komplette API/UI-forløb, herunder 20 arrangementer/foto/sletning, 16 sider ved tre bredder, mobilnavigation ved fem størrelser og Cloudflare build/runtime består. Ingen eksterne mails fra testene.
+- Produktionsworkflow 40773587068, andet forsøg/job 123117564377, består. Første forsøg stoppede efter API-upload med Cloudflares interne route-fejl 10500; genkørsel lykkedes. Worker-version f7773e47-cb1e-4253-b747-f5f034b34e6d, Pages b3302367.
+- Livesiden https://teb-tistrup.dk/forening#login er åbnet og visuelt bekræftet med e-mail-først og Husk mig. Ingen rigtig loginmail bestilt eller produktionsarrangement slettet under kontrollen. Lokale testforeninger/databaser er ikke overført. Arbejdskopi: new-chat-3/work/teb-login-design; den historiske Projects-pilot er ikke opdateret.
