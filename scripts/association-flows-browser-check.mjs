@@ -3,10 +3,32 @@ import assert from 'node:assert/strict';
 export async function checkAssociationFlows({member,guest,association,record}) {
  await member.goto('/forening.html#min-forening?forening='+association.id);
  await member.getByRole('heading',{name:'Jeres arrangementer',exact:true}).waitFor();
- for(const name of ['Jeres side','Personer med adgang'])await member.getByRole('heading',{name,exact:true}).waitFor();
+ await member.getByRole('heading',{name:'Personer med adgang',exact:true}).waitFor();
+ await member.locator('.mf-header summary[aria-label="Foreningens muligheder"]').click();
+ await member.getByRole('link',{name:'Rediger foreningens side',exact:true}).waitFor();await member.getByRole('link',{name:'Se siden som besøgende',exact:true}).waitFor();
+ await member.keyboard.press('Escape');
  assert.equal(await member.getByRole('link',{name:/Skriv.*nyhed/}).count(),0);
- assert.equal(await member.locator('.mf-events li').filter({hasText:'Foreningens direkte arrangement'}).count(),1);
- record('Min forening shows events, the public page and people with access on one page without news creation');
+ assert.equal(await member.locator('.mf-event-grid li').filter({hasText:'Foreningens direkte arrangement'}).count(),1);
+ record('Min forening groups events and access with public-profile editing in the header menu');
+ const liveProfile=await (await member.request.get('/api/kalender/associations/'+association.id)).json();
+ await member.route('**/api/kalender/me/events',async route=>{
+  const response=await route.fetch(),body=await response.json();
+  body.events.push(...Array.from({length:20},(_,i)=>({id:'twenty-test-'+i,associationId:association.id,revision:1,status:'approved',published:{state:'approved'},data:{title:'Tyve arrangementer '+i,date:'2099-01-01',time:'12:00',location:'Teststed',state:'approved',...(i===0?{image:liveProfile.association.imageUrl}:{})}})));
+  await route.fulfill({response,json:body});
+ });
+ await member.reload();await member.locator('.mf-event-grid > li').filter({hasText:'Tyve arrangementer'}).last().waitFor();
+ assert.equal(await member.locator('.mf-event-grid > li').filter({hasText:'Tyve arrangementer'}).count(),20);
+ assert.equal(await member.locator('.mf-event-grid > li').filter({hasText:'Tyve arrangementer 0'}).locator('.mf-event-visual > img').getAttribute('src'),liveProfile.association.imageUrl);
+ await member.unroute('**/api/kalender/me/events');await member.reload();
+ record('All twenty upcoming events render in the compact grid and an existing photo appears');
+ const origin=new URL(member.url()).origin;
+ const disposable=await member.request.post('/api/kalender/events',{headers:{Origin:origin},data:{requestKey:crypto.randomUUID(),associationId:association.id,event:{title:'Sletning via menu',date:new Date(Date.now()+7*86400000).toISOString().slice(0,10),time:'12:00',location:'Teststed',description:'Isoleret slettetest'}}});
+ assert.ok(disposable.ok());const temporary=await disposable.json();await member.reload();
+ const removalCard=member.locator('.mf-event-grid > li').filter({hasText:'Sletning via menu'});await removalCard.locator('summary').click();
+ await removalCard.getByRole('button',{name:'Slet arrangement',exact:true}).click();
+ await member.getByText('Arrangementet er slettet.',{exact:true}).waitFor();assert.equal((await member.request.get('/api/kalender/events/'+temporary.id)).status(),404);
+ assert.equal(await member.locator('.mf-event-grid > li').filter({hasText:'Sletning via menu'}).count(),0);
+ record('Delete from the three-dot menu removes an isolated event from workspace and public calendar');
  await guest.goto('/nyt.html');await guest.locator('#nyheder-heading').waitFor();
  assert.equal(await guest.locator('#association-news-feed, #foreningsnyt-heading, a[href*="#skriv"]').count(),0);
  assert.ok(await guest.getByRole('link',{name:/Tistrup Nyt/}).count());
@@ -28,7 +50,7 @@ export async function checkAssociationFlows({member,guest,association,record}) {
  await guest.unroute('**/api/kalender/events?from=2000-01-01');
  for(const width of [390,320]){
   await member.setViewportSize({width,height:844});await guest.setViewportSize({width,height:844});
-  await member.goto('/forening.html#min-forening?forening='+association.id);await member.locator('.mf-events').waitFor();
+  await member.goto('/forening.html#min-forening?forening='+association.id);await member.locator('.mf-event-grid').waitFor();
   assert.equal(await member.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'owner workspace at '+width);
   await guest.goto('/forening.html?id='+association.id);await guest.locator('.fa-public-identity').waitFor();
   assert.equal(await guest.locator('.fa-public-news').count(),0);

@@ -1,13 +1,13 @@
 import { ensure, now, token, hash, json } from './shared.mjs';
 import { stmt, rate, ipKey, emailAddress } from './db.mjs';
-import { identity, sessionData, requireAccess, cookie, sessionDuration } from './auth.mjs';
+import { identity, sessionData, requireAccess, cookie, sessionDuration, requestOtp } from './auth.mjs';
 import { secretHash } from './mail.mjs';
 import { timingSafeEqual } from 'node:crypto';
 
 // Workers caps a single PBKDF2 invocation at 100,000 iterations. A server-side
 // pepper also keeps a stolen database from being sufficient for offline guesses.
 const iterations=100000;
-const invalid='E-mail eller adgangskode er forkert. Brug eventuelt en mailkode.';
+const invalid='E-mail eller adgangskode er forkert. Brug eventuelt en engangskode.';
 function passwordValue(value){
  ensure(typeof value==='string'&&value.length>=12&&value.length<=128,400,'Brug en adgangskode på 12–128 tegn.');
  return value;
@@ -18,6 +18,18 @@ async function derive(env,password,salt){
  return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',iterations,salt:new TextEncoder().encode(salt)},key,256));
 }
 const hex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+// Email-first discovery returns only the next login method, never profile/access data.
+export async function startLogin(request,env,data){
+ const email=emailAddress(data.email);
+ await rate(env,'login-start-ip:'+await ipKey(request),30,15);
+ await rate(env,'login-start-email:'+await hash(email),12,15);
+ await rate(env,'login-start-global',150,15);
+ const credential=await stmt(env,'SELECT 1 FROM password_credentials p JOIN users u ON u.id=p.user_id WHERE u.email=?',email).first();
+ if(credential)return json({method:'password'});
+ const response=await requestOtp(request,env,{email});
+ if(!response.ok)return response;
+ return json({method:'email',...await response.json()});
+}
 export async function loginPassword(request,env,data){
  await rate(env,'password-ip:'+await ipKey(request),30,15);
  const email=emailAddress(data.email);

@@ -13,7 +13,7 @@ export async function identity(request,env,required=false){
  const value=cookieToken(request);
  const sessionHash=/^[a-f0-9]{64}$/.test(value)?await hash(value):'';
  const user=sessionHash?await stmt(env,`SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.hash=? AND s.expires_at>?`,sessionHash,now()).first():null;
- ensure(!required||user,401,'Log ind med adgangskode eller en kode fra din e-mail.');
+ ensure(!required||user,401,'Log ind med adgangskode eller en engangskode fra din e-mail.');
  return {user,sessionHash};
 }
 export function guard(auth,associationId=null){
@@ -21,7 +21,7 @@ export function guard(auth,associationId=null){
  return {sql:`EXISTS(SELECT 1 FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.hash=? AND s.expires_at>? AND (u.is_admin=1${membership}))`,args:[auth.sessionHash,now(),...(associationId?[associationId]:[])]};
 }
 export async function requireAccess(env,auth,associationId=null){
- ensure(auth.user,401,'Log ind med adgangskode eller en kode fra din e-mail.');
+ ensure(auth.user,401,'Log ind med adgangskode eller en engangskode fra din e-mail.');
  const g=guard(auth,associationId);
  ensure(await stmt(env,`SELECT 1 WHERE ${g.sql}`,...g.args).first(),403,'Du har ikke adgang til denne handling.');
  return g;
@@ -49,7 +49,7 @@ export async function requestOtp(request,env,data){
  if(!reserved){
   const row=await stmt(env,'SELECT expires_at FROM rate_limits WHERE key=?',cooldownKey).first();
   const retryAfterSeconds=Math.max(1,Math.ceil((Date.parse(row.expires_at)-Date.now())/1000));
-  return json({error:`Vent ${retryAfterSeconds} sekunder, før du beder om en ny kode. Den seneste kode gælder stadig.`,retryAfterSeconds},429,{'Retry-After':String(retryAfterSeconds)});
+  return json({error:`Vent ${retryAfterSeconds} sekunder, før du beder om en ny engangskode. Den seneste engangskode gælder stadig.`,retryAfterSeconds},429,{'Retry-After':String(retryAfterSeconds)});
  }
  await rate(env,'otp-send-email:'+emailHash,3,10);await rate(env,'otp-send-global',100,10);
  const admins=(env.TEB_ADMIN_EMAILS||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
@@ -59,7 +59,7 @@ export async function requestOtp(request,env,data){
  UNION ALL SELECT 1 FROM memberships m WHERE m.email=? AND (m.status='active' OR
  (m.status='invited' AND EXISTS(SELECT 1 FROM invitations i WHERE i.id=m.invitation_id AND i.accepted_at IS NULL AND i.revoked_at IS NULL AND i.expires_at>?))) LIMIT 1`,email,email,now()).first());
  const id=crypto.randomUUID(),code=randomCode(),stamp=now(),expiry=new Date(Date.now()+600000).toISOString(),dedupe='otp:'+id;
- const job=await mailStatement(env,{dedupe,to:email,subject:'Din engangskode til TEB',text:`Din kode er ${code}\n\nKoden gælder i ti minutter og kan bruges én gang. Hvis du ikke bad om en kode, kan du se bort fra mailen.`,expiresAt:expiry});
+ const job=await mailStatement(env,{dedupe,to:email,subject:'Din engangskode til TEB',text:`Din engangskode er ${code}\n\nEngangskoden gælder i ti minutter og kan bruges én gang. Hvis du ikke bad om en engangskode, kan du se bort fra mailen.`,expiresAt:expiry});
  await env.DB.batch([
   stmt(env,`UPDATE mail_jobs SET state='cancelled',updated_at=? WHERE state IN ('pending','failed') AND dedupe_key IN (SELECT 'otp:'||id FROM otp_challenges WHERE email=? AND consumed_at IS NULL)`,stamp,email),
   stmt(env,'UPDATE otp_challenges SET consumed_at=? WHERE email=? AND consumed_at IS NULL',stamp,email),
@@ -71,7 +71,7 @@ export async function requestOtp(request,env,data){
 }
 export async function verifyOtp(request,env,data){
  await rate(env,'otp-verify-ip:'+await ipKey(request),50,10);
- ensure(typeof data.challengeId==='string'&&data.challengeId.length===36,401,'Koden er ugyldig eller udløbet.');
+ ensure(typeof data.challengeId==='string'&&data.challengeId.length===36,401,'Engangskoden er ugyldig eller udløbet.');
  await rate(env,'otp-verify-challenge:'+data.challengeId,8,10);
  const challenge=await stmt(env,'SELECT email FROM otp_challenges WHERE id=?',data.challengeId).first();
  if(challenge)await rate(env,'otp-verify-email:'+await hash(challenge.email),25,10);
@@ -94,7 +94,7 @@ export async function verifyOtp(request,env,data){
   stmt(env,`UPDATE invitations SET accepted_at=? WHERE id IN (SELECT oi.invitation_id FROM otp_invitations oi JOIN otp_challenges c ON c.id=oi.challenge_id WHERE c.id=? AND c.redemption_hash=?)
    AND revoked_at IS NULL AND accepted_at IS NULL AND expires_at>?`,stamp,data.challengeId,sessionHash,stamp)
  ]);
- ensure(results[2].meta.changes===1,401,'Koden er ugyldig, brugt eller udløbet.');
+ ensure(results[2].meta.changes===1,401,'Engangskoden er ugyldig, brugt eller udløbet.');
  const auth=await identity(new Request(request.url,{headers:{Cookie:'teb_calendar='+value}}),env,true);
  return json(await sessionData(env,auth),200,{'Set-Cookie':cookie(env,value,maxAge)});
 }

@@ -148,3 +148,15 @@ export async function decideAccess(env,auth,id,data){
  if(invitation)await deliverKeys(env,['invitation:'+invitation.id]);
  return json({saved:true,status,...(invitation?{deliveryState:await mailState(env,'invitation:'+invitation.id)}:{})});
 }
+
+// A display-name change never changes the login address, role or invitation.
+export async function updateMember(env,auth,associationId,memberId,data){
+ const g=await requireAccess(env,auth,associationId),name=field(data,'name',100,true);
+ ensure(typeof data.previousName==='string',400,'Genindlæs personen før du gemmer.');
+ const target=await stmt(env,"SELECT name FROM memberships WHERE id=? AND association_id=? AND status IN ('active','invited')",memberId,associationId).first();
+ ensure(target,404,'Personen findes ikke.');
+ ensure(target.name===data.previousName,409,'Navnet er ændret. Genindlæs siden.');
+ const result=await stmt(env,`UPDATE memberships SET name=? WHERE id=? AND association_id=? AND name=? AND status IN ('active','invited') AND ${g.sql}`,name,memberId,associationId,data.previousName,...g.args).run();
+ ensure(result.meta.changes>0,409,'Personen er ændret, eller din adgang er ophørt.');
+ return json({saved:true});
+}

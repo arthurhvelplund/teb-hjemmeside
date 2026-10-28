@@ -43,7 +43,7 @@ const server=http.createServer(async(req,res)=>{
   if(![`localhost:${port}`,`127.0.0.1:${port}`,`[::1]:${port}`].includes(host)){res.writeHead(403);res.end('Kun lokal adgang.');return;}
   const request=new Request(`http://${host}${req.url}`,{method:req.method,headers:req.headers,...(!['GET','HEAD'].includes(req.method)?{body:Buffer.concat(parts),duplex:'half'}:{})});
   const pathname=new URL(request.url).pathname;
-  const response=pathname==='/api/kalender'||pathname.startsWith('/api/kalender/')?await worker.fetch(request,env):await assets.fetch(request);
+  const response=pathname==='/api/kalender'||pathname.startsWith('/api/kalender/')?await worker.fetch(request,{...env,PUBLIC_ORIGIN:new URL(request.url).origin}):await assets.fetch(request);
   res.writeHead(response.status,Object.fromEntries(response.headers));res.end(req.method==='HEAD'?undefined:Buffer.from(await response.arrayBuffer()));
  }catch{res.writeHead(500);res.end('Der opstod en fejl.');}
 });
