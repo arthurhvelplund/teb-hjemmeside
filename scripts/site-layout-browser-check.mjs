@@ -56,6 +56,7 @@ try {
         const bounds=hero.getBoundingClientRect(),decorBounds=hero.querySelector('[data-seasonal-decor]').getBoundingClientRect();
         return {
           theme: document.documentElement.dataset.seasonalTheme, decor: document.querySelectorAll('[data-seasonal-decor]').length,
+          accountEntrances:document.querySelectorAll('[data-account-entry]').length, doubleArrows:[...document.querySelectorAll('.btn')].filter(n=>n.getClientRects().length&&/[→↗]/.test(n.textContent)&&/[→↗]/.test(getComputedStyle(n,'::after').content)).map(n=>n.textContent.trim()),
           header: document.querySelectorAll('.site-header').length, footer: document.querySelectorAll('.site-footer').length,
           overflow: document.documentElement.scrollWidth > innerWidth, collisions,
           contained:['left','top','width','height'].every(key=>Math.abs(bounds[key]-decorBounds[key])<1),
@@ -63,7 +64,7 @@ try {
         };
       });
       assert.equal(result.theme, 'halloween', name);assert.equal(result.decor, 1, name);
-      assert.equal(result.header, 1);assert.equal(result.footer, 1);
+      assert.equal(result.header, 1);assert.equal(result.footer, 1);assert.equal(result.accountEntrances,1,name+' account entrance');assert.deepEqual(result.doubleArrows,[],name+' duplicate arrows');
       assert.ok(result.contained,name+' decoration must stay inside its own heading');
       if (result.overflow) {
         console.log(await page.evaluate(() => [...document.querySelectorAll('main *')].filter(node => node.getBoundingClientRect().right > innerWidth + 1).map(node => ({tag:node.tagName,class:node.className,right:Math.round(node.getBoundingClientRect().right)})).slice(0,12)));

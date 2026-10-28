@@ -220,3 +220,6 @@ html[data-seasonal-theme] .site-main.fa-auth-page,html[data-seasonal-theme] .sit
 .fa-login-password-option>.btn{width:100%;justify-content:center;white-space:normal;border:1px solid var(--forest)}
 .fa-login-password-option>.btn::after{display:none}
 .fa-login-password-option>.fp-note{margin:.6rem 0 0;text-align:center;font-size:.8rem;line-height:1.5}
+
+.fa-admin-heading>div:first-child{min-width:0}.fa-admin-heading h1{font-size:clamp(1.7rem,4vw,2.5rem)}.fa-admin-heading .eyebrow{margin:0 0 .35rem}.fa-admin-heading .mf-header-actions{display:flex;gap:.6rem;align-items:center;flex-shrink:0}
+@media(max-width:560px){.fa-admin-heading{align-items:flex-start;gap:.7rem}.fa-admin-heading .btn{padding:.45rem .7rem;font-size:.75rem}}

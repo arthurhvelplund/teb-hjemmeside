@@ -1,3 +1,4 @@
+import './account-entry-check.mjs';
 // End-to-end against the real local API, isolated database and local mail adapter.
 import assert from 'node:assert/strict';
 import {checkAssociationFlows} from './association-flows-browser-check.mjs';
@@ -97,7 +98,12 @@ try{
  for(const context of [adminContext,memberContext,guestContext,editorContext]) await context.route('**/api/kalender/kilder/*',route=>route.fulfill({json:{items:[],events:[],stale:false,fetchedAt:new Date().toISOString()}}));
  const [admin,member,guest,editor]=await Promise.all([adminContext.newPage(),memberContext.newPage(),guestContext.newPage(),editorContext.newPage()]);
  pages.push(admin,member,guest,editor);for(const page of pages){page.setDefaultTimeout(20000);page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());}
- await login(admin,adminEmail,true);record('Two-step login, email correction, resend and wrong-code recovery use the real API');
+ await login(admin,adminEmail,true);
+ await admin.goto('/kalender.html');await admin.locator('[data-account-entry]').click();await admin.waitForURL(url=>url.hash==='#teb');await admin.getByRole('heading',{name:'TEB-administration',exact:true}).waitFor();
+ await admin.goto('/forening.html?return=kalender.html#login');await admin.waitForURL(url=>url.hash==='#teb');assert.equal(new URL(admin.url()).searchParams.has('return'),false);
+ await guest.goto('/kalender.html');assert.equal(await guest.locator('[data-account-entry]').count(),1);assert.equal(await guest.locator('#calendar-login').count(),0);await guest.locator('[data-account-entry]').click();await guest.locator('form[data-action="login-start"]').waitFor();
+ record('One shared entrance opens TEB directly for admins, login for guests and resolves legacy calendar login loops');
+ record('Two-step login, email correction, resend and wrong-code recovery use the real API');
  await admin.goto('/forening.html#teb?fane=foreninger&forening=ny');
  const create=admin.locator('form[data-action="create-association"]');await fill(create,{name:'Integrationens eksempelforening',category:'Fællesskab',description:'Kun testdata i en isoleret database.',chair:'Eksempel Formand',email:'kontakt@example.org',phone:'12 34 56 78',place:'Eksempelhallen'});
  let creationAttempt=0;const creationKeys=[];
@@ -119,7 +125,7 @@ try{
  const membership=admin.locator('form[data-action="admin-member"]');await fill(membership,{name:'Foreningsperson',email:memberEmail});await membership.locator('[name="verified"]').check();
  await membership.locator('button').click();await admin.getByText('Adgangen er gemt.',{exact:false}).waitFor();
  await login(member,memberEmail);const memberSession=await json(memberContext,'/session');record('Invited person gains only assigned association',memberSession.memberships.length===1&&memberSession.memberships[0].associationId===association.id);
- await member.locator('.mf-header h1').waitFor();assert.equal(await member.locator('.mf-header h1').innerText(),association.name);
+ await member.goto('/kalender.html');await member.locator('[data-account-entry]').click();await member.waitForURL(url=>url.hash==='#min-forening');await member.locator('.mf-header h1').waitFor();assert.equal(await member.locator('.mf-header h1').innerText(),association.name);
  assert.equal(await member.locator('#forening-nav').isVisible(),false);assert.equal(await member.locator('.fa-more').count(),0);record('Single-association login opens its own overview without TEB administration');
  await member.locator('.mf-header summary[aria-label="Foreningens muligheder"]').click();await member.getByRole('link',{name:'Rediger foreningens side',exact:true}).click();await member.waitForURL(/fane=profil/);
  const profile=member.locator('form[data-action="save-profile"]');await fill(profile,{description:'Profil ændret gennem den rigtige API.'});

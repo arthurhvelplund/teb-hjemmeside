@@ -2275,3 +2275,16 @@ main { display: block; }
     object-position: center top;
   }
 }
+
+/* The same account entrance is visible on every page, including mobile. */
+.header-account{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;flex:0 0 auto;min-height:42px;padding:.45rem .65rem;border:1px solid var(--forest);border-radius:99px;font-size:.8rem;font-weight:600;text-decoration:none;white-space:nowrap}
+.header-account svg{width:18px;height:18px;flex-shrink:0}
+.header-account:hover{background:var(--forest);color:var(--paper-soft)}
+.header-account:focus-visible{outline:3px solid var(--forest);outline-offset:3px}
+body.fa-account-screen .header-account{margin-left:auto}
+@media(min-width:1101px){.header-inner{gap:.8rem}}
+@media(max-width:520px){.header-account{font-size:.72rem;padding:.4rem .5rem;gap:.25rem}.header-account svg{width:16px;height:16px}.nav-toggle{padding-inline:.7rem}}
+
+@media(min-width:1101px) and (max-width:1350px){.logo-word em{display:none}}
+
+@media(max-width:380px){.logo-word{display:none}}
