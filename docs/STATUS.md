@@ -934,3 +934,10 @@ ikke produktkoden eller designvalget.
   (`2dd9318`). Se `docs/PASSWORD_LOGIN.md`.
 - Arbejdskopi: `C:/Users/dkArtPed/Documents/Codex/2026-10-25/new-chat-4/work/teb-hjemmeside`.
   Den historiske Projects-pilot er ikke opdateret.
+
+## Husk mig – 28. oktober 2026
+
+- Leverance: tilvalg af 30 dages fast loginperiode på både mailkode- og adgangskodelogin; ellers otte timer.
+- Browsercookie og serverudløb følger samme validerede boolean-valg. Logout og tilbagekaldelse/password-reset virker fortsat.
+- Kontroller: 111 backendtests og 43 browserforløb består, inklusive normal/forlænget session, udløb, logout, passwordændring, genindlæsning af kodetrinnet og genbrug af cookie i en ny browserkontekst. Fælles layout/assetversioner og Worker dry-run består. Lokal testserver bruger nu platformskorrekte filstier, så Windows også understøttes.
+- Arbejdskopi: Windows-chatten referenced-chatgpt-conversation-this-is-an/work/teb-hjemmeside. Commit identificeres af denne leverances Git-historik. Udgivelses- og CI-status følges i PR; fuld live-login-test er endnu ikke afsluttet.
