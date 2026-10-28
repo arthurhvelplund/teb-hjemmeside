@@ -15,7 +15,7 @@ let loginPending = false;
 let loginMethod = 'email';
 let rememberMe = false;
 function rememberMeField() {
-  return `<label class="fa-remember-me"><input type="checkbox" name="rememberMe" ${rememberMe ? 'checked' : ''} aria-describedby="remember-me-help"> Husk mig i 30 dage</label><p id="remember-me-help" class="fp-note">Brug kun på din egen enhed. Ellers varer login 8 timer.</p>`;
+  return `<label class="fa-remember-me"><input type="checkbox" name="rememberMe" ${rememberMe ? 'checked' : ''}> Husk mig</label>`;
 }
 const loginCooldowns = new Map();
 function saveLoginChallenge() {
@@ -252,11 +252,11 @@ function loginPage() {
       ${formStart('verify-code', `data-challenge="${esc(challenge.id)}"`)}
         ${input('code', 'Kode fra din mail', '', 'text', 'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" aria-describedby="login-code-help"')}
         <p id="login-code-help" class="fp-note">6 cifre · gælder i 10 minutter.</p>
-        ${rememberMeField()}${button('Log ind')}${resultBox()}
+        ${button('Log ind')}${rememberMeField()}${resultBox()}
       </form>
       <p class="fp-note fa-login-spam">Ingen mail? Tjek spam/uønsket post.</p>
       <div class="fa-login-options"><button class="fa-text-button" type="button" data-change-email>Ret e-mail</button>${formStart('resend-code')}${button('Send en ny kode')}${resultBox()}</form></div>`
-    : `<h1>Log ind til din forening.</h1><p>Brug den mailadresse, der har adgang til din forening.</p>${formStart(loginMethod === 'password' ? 'password-login' : 'request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="username" maxlength="254"')}${loginMethod === 'password' ? input('password', 'Adgangskode', '', 'password', 'required autocomplete="current-password" maxlength="128"') : ''}${rememberMeField()}${button(loginMethod === 'password' ? 'Log ind' : 'Send kode')}${resultBox()}</form><p><button type="button" class="fa-text-button" data-login-method>${loginMethod === 'password' ? 'Glemt adgangskode? Få kode på mail' : 'Log ind med adgangskode'}</button></p>`;
+    : `<h1>Log ind til din forening.</h1><p>Brug den mailadresse, der har adgang til din forening.</p>${formStart(loginMethod === 'password' ? 'password-login' : 'request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="username" maxlength="254"')}${loginMethod === 'password' ? input('password', 'Adgangskode', '', 'password', 'required autocomplete="current-password" maxlength="128"') : ''}${button(loginMethod === 'password' ? 'Log ind' : 'Send kode')}${rememberMeField()}${resultBox()}</form><p><button type="button" class="fa-text-button" data-login-method>${loginMethod === 'password' ? 'Glemt adgangskode? Få kode på mail' : 'Log ind med adgangskode'}</button></p>`;
   const help = '<p class="fa-login-help"><a href="kontakt.html#form">Kontakt TEB</a></p>';
   return `<div class="fa-login-layout"><a class="fa-back-link" href="forening.html">← Tilbage til foreningerne</a><section class="fa-login-card" aria-label="Login til din forening">${form}${localMode ? '<p class="fa-local-help">Lokal afprøvning. Find din kode i <a href="kalender-postkasse.html" target="_blank" rel="noopener">testpostkassen</a>.</p>' : ''}</section>${help}</div>`;
 }

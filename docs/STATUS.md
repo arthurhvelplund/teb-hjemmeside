@@ -941,3 +941,8 @@ ikke produktkoden eller designvalget.
 - Browsercookie og serverudløb følger samme validerede boolean-valg. Logout og tilbagekaldelse/password-reset virker fortsat.
 - Kontroller: 111 backendtests og 43 browserforløb består, inklusive normal/forlænget session, udløb, logout, passwordændring, genindlæsning af kodetrinnet og genbrug af cookie i en ny browserkontekst. Fælles layout/assetversioner og Worker dry-run består. Lokal testserver bruger nu platformskorrekte filstier, så Windows også understøttes.
 - Arbejdskopi: Windows-chatten referenced-chatgpt-conversation-this-is-an/work/teb-hjemmeside. Commit identificeres af denne leverances Git-historik. Udgivelses- og CI-status følges i PR; fuld live-login-test er endnu ikke afsluttet.
+
+## Kortere Husk mig – 28. oktober 2026
+
+- Efter brugerens ønske står kun Husk mig ved afkrydsningsfeltet, placeret under login-/send kode-knappen på begge loginmetoder og kodetrinnet.
+- Loginperioden og serverlogikken er uændret. JavaScript-syntaks og fælles layout/assetversioner kontrolleres før udgivelse.
