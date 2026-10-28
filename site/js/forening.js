@@ -1,3 +1,4 @@
+import {accountHome, accountContinueLabel} from './account-entry.js';
 import {installEventComposer} from './event-composer.js';
 installEventComposer();
 document.addEventListener('teb:event-saved', () => { if (currentRoute?.page === 'min-forening') render(); });
@@ -106,7 +107,8 @@ function returnTarget() {
   const target = new URL(raw, location.href);
   const expected = new URL(raw.split(/[?#]/)[0], location.href);
   if (target.origin !== location.origin || target.pathname !== expected.pathname) return null;
-  if (target.pathname.endsWith('/forening.html') && (target.hash.startsWith('#login') || target.searchParams.get('side') === 'login' || target.searchParams.has('return'))) return null;
+  if (target.pathname.endsWith('/kalender.html') && !target.search && !target.hash) return null;
+  if (target.pathname.endsWith('/forening.html') && (target.hash.startsWith('#login') || target.hash.startsWith('#min-side') || target.searchParams.get('side') === 'login' || target.searchParams.has('return'))) return null;
   return target.href;
 }
 function heading(title, text = '') { return `<h2>${esc(title)}</h2>${text ? `<p>${esc(text)}</p>` : ''}`; }
@@ -114,7 +116,7 @@ function loginNeeded() {
   return loginPage();
 }
 function navigation(page) {
-  const account = ['login', 'min-forening', 'teb'].includes(page);
+  const account = ['login', 'min-side', 'min-forening', 'teb'].includes(page);
   const loginScreen = account && !authenticated();
   document.body.classList.toggle('fa-account-screen', account);
   document.querySelector('#forening-main').classList.toggle('fa-auth-page', loginScreen);
@@ -123,17 +125,9 @@ function navigation(page) {
   document.querySelector('.fa-heading h1').textContent = 'Foreninger og institutioner';
   document.querySelector('#forening-main').classList.toggle('fa-compact-page', page !== 'oversigt');
   document.querySelector('#forening-main').classList.toggle('fa-profile-page', page === 'profil');
-  // Kun TEB har en fanebjælke. En forening har alt samlet på Min forening.
-  nav.hidden = page !== 'teb' || !admin();
-  const tebOnly = admin() && !memberships().length;
-  const workspaceLink = document.querySelector('#forening-workspace-link');
-  workspaceLink.textContent = authenticated() ? tebOnly ? 'TEB' : 'Min forening' : 'Log ind';
-  workspaceLink.href = authenticated() ? tebOnly ? '#teb' : '#min-forening' : '#login';
-  const links = [['oversigt', 'Alle foreninger', 'forening.html']];
-  if (memberships().length) links.push(['min-forening', 'Min forening', '#min-forening']);
-  links.push(['teb', 'TEB', '#teb']);
-  nav.innerHTML = links.map(([key, label, href]) => `<a href="${href}"${page === key ? ' aria-current="page"' : ''}>${label}</a>`).join('') +
-    (authenticated() ? `<form data-action="logout"><button type="submit" class="btn btn-secondary">Log ud</button></form>` : '<a href="#login"' + (page === 'login' ? ' aria-current="page"' : '') + '>Log ind</a>');
+  // One public account entrance; each workspace supplies its own tools.
+  nav.hidden = true;
+  nav.replaceChildren();
 }
 async function render() {
   disposePrintEditor?.(); disposePrintEditor = null;
@@ -148,6 +142,17 @@ async function render() {
     let html;
     if (!session) session = await getSession();
     if (sequence !== renderNumber) return;
+    // Min side is a single entrance, not another screen. Existing login bookmarks
+    // also open the authenticated area directly, while fresh OTP completion stays visible.
+    if (r.page === 'min-side' || (r.page === 'login' && authenticated() && !loginCompletion)) {
+      const actionTarget = r.page === 'login' ? returnTarget() : null;
+      if (authenticated() && actionTarget) { location.assign(actionTarget); return; }
+      r.page = accountHome(session).page;
+      const destination = new URL(location.href);
+      destination.searchParams.delete('return');
+      destination.hash = '#' + r.page;
+      history.replaceState(null, '', destination.href);
+    }
     navigation(r.page);
     switch (r.page) {
       case 'oversigt': html = await directoryPage(); break;
@@ -232,7 +237,7 @@ async function publicProfile(id) {
     '<header class="fa-public-identity">'+associationPhoto(a,'fa-profile-mark',true)+'<div><h1>'+esc(a.name)+'</h1><p class="fp-note">'+esc([a.category,a.place].filter(Boolean).join(' · '))+'</p></div></header>'+
     '<p class="fa-public-intro">'+esc(a.description||'Kontakt foreningen for at høre mere om fællesskabet.')+'</p>'+
     '<div class="fp-actions fa-public-actions">'+(contact?'<a class="btn" href="'+esc(contact)+'"'+(!email&&!phone?' target="_blank" rel="noopener noreferrer"':'')+'>'+(email||phone?'Kontakt foreningen':'Besøg hjemmesiden')+'</a>':link('Spørg TEB om kontakt','kontakt.html#form',true))+
-    (website&&(email||phone)?'<a class="btn btn-secondary" href="'+esc(website)+'" target="_blank" rel="noopener noreferrer">Besøg hjemmeside ↗</a>':'')+'</div>'+
+    (website&&(email||phone)?'<a class="btn btn-secondary" href="'+esc(website)+'" target="_blank" rel="noopener noreferrer">Besøg hjemmeside</a>':'')+'</div>'+
     '<div class="fa-public-columns"><div><section aria-labelledby="association-events-heading"><h2 id="association-events-heading">Kommende arrangementer</h2>'+publicEvents(upcoming)+(past.length?'<details class="fa-past-events"><summary>Tidligere arrangementer ('+past.length+')</summary>'+publicEvents(past)+'</details>':'')+'</section>'+
     (draft?'<p class="fp-note fa-source">Profiludkast · Oplysningerne afventer foreningens bekræftelse. Kilde: <a href="'+esc(draft.sourceUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(new URL(draft.sourceUrl).hostname.replace(/^www\./,''))+'</a>.'+(draft.imageCredit&&a.imageUrl===draft.imageUrl?' Billede/logo: '+esc(draft.imageCredit)+'.':'')+'</p>':'')+'</div>'+
     '<aside class="fa-public-contact"><h2>Tag kontakt</h2><dl class="fa-details">'+(details.filter(([,v])=>v).map(([k,v])=>'<dt>'+k+'</dt><dd>'+v+'</dd>').join('')||'<dd>Kontaktoplysninger er ikke tilføjet endnu.</dd>')+'</dl></aside></div>';
@@ -249,10 +254,10 @@ function loginPage() {
   const frame = form => `<div class="fa-login-layout"><a class="fa-back-link" href="forening.html">← Tilbage til foreningerne</a><section class="fa-login-card" aria-label="Login til din forening">${form}${localMode ? '<p class="fa-local-help">Lokal afprøvning. Find din engangskode i <a href="kalender-postkasse.html" target="_blank" rel="noopener">testpostkassen</a>.</p>' : ''}</section><p class="fa-login-help"><a href="kontakt.html#form">Kontakt TEB</a></p></div>`;
   if (authenticated()) {
     if (loginCompletion) {
-      const destinationLabel = admin() && !memberships().length ? 'Fortsæt til TEB' : 'Fortsæt til Min forening';
+      const destinationLabel = accountContinueLabel(session, returnTarget());
       return frame(`<h1>Du er logget ind.</h1><p>Du kan fortsætte med engangskoder eller vælge en adgangskode.</p><div class="fa-login-finish"><button type="button" class="btn" data-continue-login>${destinationLabel}</button></div>${loginPasswordSaved ? '<p class="fp-note" role="status">Din adgangskode er oprettet.</p>' : loginSetup ? '<section class="fa-login-setup"><h2>Opret adgangskode</h2>' + passwordForm('login-set-password') + '<button type="button" class="fa-text-button" data-close-password-setup>Fortryd</button></section>' : '<div class="fa-login-password-option"><button type="button" class="btn btn-secondary" data-open-password-setup>Opret adgangskode</button><p class="fp-note">Valgfrit – du kan stadig logge ind med engangskoder.</p></div>'}`);
     }
-    return frame(`<h1>Du er logget ind.</h1><p>${esc(session.user.email)}</p><button type="button" class="btn" data-continue-login>Fortsæt til Min forening</button>`);
+    return frame(`<h1>Du er logget ind.</h1><p>${esc(session.user.email)}</p><button type="button" class="btn" data-continue-login>${accountContinueLabel(session, returnTarget())}</button>`);
   }
   const emailLine = `<div class="fa-login-recipient"><strong>${esc(loginEmail)}</strong><button type="button" class="fa-text-button" data-change-email>Ret e-mail</button></div>`;
   const showChallenge = loginMethod === 'email' && challenge && challenge.expiresAt > Date.now() && challenge.email === loginEmail.trim().toLowerCase();
@@ -285,7 +290,7 @@ function continueLogin() {
   loginCompletion = false; loginSetup = false;
   const target = returnTarget();
   if (target) { location.assign(target); return; }
-  const destination = admin() && !memberships().length ? '#teb' : '#min-forening';
+  const destination = '#' + accountHome(session).page;
   if (location.hash === destination) render();
   else location.hash = destination;
 }
@@ -398,8 +403,9 @@ async function adminMemberPage(a, isAdmin = true) {
 }
 async function adminPage(r) {
   const tab=r.params.get('fane')||'afventer';
-  const tabs=[['afventer','Til godkendelse'],['arrangementer','Indhold'],['foreninger','Foreninger'],['print','Print']];
-  const top='<div class="fp-row fa-admin-heading"><h1>TEB</h1><button class="btn btn-secondary" type="button" data-reload>Opdatér kø</button></div><nav class="fp-tabs" aria-label="TEB administration">'+tabs.map(([key,label])=>'<a href="'+esc(adminURL(key))+'"'+(tab===key?' aria-current="page"':'')+'>'+label+'</a>').join('')+'</nav>';
+  const tabs=[['afventer','Til godkendelse'],['arrangementer','Arrangementer'],['foreninger','Foreninger og adgang'],['print','Printkalender']];
+  const top='<div class="fp-row fa-admin-heading"><div><span class="eyebrow">Min side</span><h1>TEB-administration</h1></div><div class="mf-header-actions"><button class="btn btn-secondary" type="button" data-reload>Opdatér</button>'+moreMenu('Min konto',link('Min adgangskode',adminURL('konto'))+(memberships().length?link('Min forening','#min-forening'):'')+formStart('logout')+'<button type="submit">Log ud</button>'+resultBox()+'</form>')+'</div></div><nav class="fp-tabs" aria-label="TEB administration">'+tabs.map(([key,label])=>'<a href="'+esc(adminURL(key))+'"'+(tab===key?' aria-current="page"':'')+'>'+label+'</a>').join('')+'</nav>';
+  if(tab==='konto')return top+'<section class="mf-start"><h2>Min adgangskode</h2><p class="mf-small">'+esc(session.user.email)+'</p>'+passwordForm('set-password')+'</section>';
   if(tab==='adgang')return top+await adminAccess();
   if(tab==='foreninger')return top+await adminAssociations(r.params.get('forening'));
   if(tab==='print')return top+await printPage();

@@ -12,7 +12,7 @@ module.exports = async function checkMobileNavigation() {
  try {
  const page=await browser.newPage();
  await page.route('**/*',route=>route.abort());
- for(const [width,height] of [[320,568],[393,852],[852,393],[1100,800],[1440,1000]]) {
+ for(const [width,height] of [[320,568],[393,852],[852,393],[1100,800],[1101,800],[1280,800],[1440,1000]]) {
  await page.setViewportSize({width,height});
  await page.setContent(html.replace(/<script\b[\s\S]*?<\/script>/g,'').replace(/<link\b[^>]*>/g,''));
  await page.addStyleTag({content:css.replace(/@import[^;]+;/g,'')+'\n'+layout});
@@ -20,6 +20,9 @@ module.exports = async function checkMobileNavigation() {
  await page.waitForFunction(()=>document.documentElement.style.getPropertyValue('--site-header-height'));
  const header=page.locator('.site-header');
  const closedHeight=(await header.boundingBox()).height;
+ const bar=await page.locator('.header-inner > *').evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right};}));
+ assert.ok(bar.every((box,i)=>!i||box.left>=bar[i-1].right-1),'header controls must not overlap at '+width);
+ assert.equal(await page.locator('[data-account-entry]').count(),1,'one account entrance at '+width);
  assert.ok(Math.abs((await header.boundingBox()).y)<1,'header starts at viewport top');
  if(width<=1100) {
  await page.locator('.nav-toggle').click();
