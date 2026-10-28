@@ -977,3 +977,12 @@ ikke produktkoden eller designvalget.
 - JavaScript-syntaks, fælles layout/assetversioner på 16 sider og separat spec-/standardgennemgang består. Leverancen er en lille visuel justering oven på den fuldt testede PR #8.
 
 - Udgivet med commit 4cd57fb6e8f121ef142377937b2b0d32391fddc1; produktionsworkflow 40774548473 består. Livesidens indloggede Fortsæt-knap er visuelt verificeret med præcis én pil (output/live-login-single-arrow.jpg). Adgangskodevalgets tekst/klasse og hierarki er gennemgået; ingen legitimationsoplysninger eller loginlogik er ændret.
+
+
+## Én Min side-indgang og direkte administration – udgivet 28. oktober 2026
+
+- Fejl reproduceret: kalenderen ændrede kun teksten på kontolinket, men beholdt login med retur til kalenderen. Rettelsen er PR #9, merge 710886dd7bc965e5a883f5ce728be4ef6e8ef1fd. Én Min side-knap i den fælles header på 16 sider; separate kalender-/foreningsindgange fjernet. Administratorer går direkte til #teb, andre indloggede til #min-forening, gæster til login. Gamle generiske kalenderreturlinks kommer også direkte ind. Konkrete handlingsreturlinks og valgfri adgangskodeopsætning efter frisk OTP bevares.
+- TEB-administrationen har Til godkendelse, Arrangementer, Foreninger og adgang samt Printkalender. Kontomenuen bevarer adgangskode, logout og adgang til egen forening. Dobbelt topnavigation og en ekstra indskrevet pil på Besøg hjemmeside er fjernet.
+- Målrettet scripts/account-entry-check.mjs gik fra rød til grøn og dækker roller, gammelt kalenderlink, konkret returhandling, frisk OTP og en indgang pr. side. CI 40778191450/job 123132831464 består: 118 backendtests, 46 API/UI-forløb, 16 sider ved tre bredder med pilekontrol, navigation ved syv størrelser inkl. 1101 og 1280px, Cloudflare build/runtime. Kodegennemgangens fund om generisk returtekst og smal header er rettet.
+- Produktionsworkflow 40779017536/job 123135653400 er gennemført med succes. Live browserkontrol med brugerens eksisterende login: kalenderens Min side går direkte til TEB-administration uden loginbekræftelse eller returløkke; de fire faner og kontomenu er verificeret. Screenshot output/live-min-side-admin.jpg. Ingen mails sendt, adgang ændret eller produktionsindhold ændret under kontrollen.
+- Historisk lokal pilot er ikke opdateret. Aktuel arbejdskopi er new-chat-3/work/teb-login-design. Lokal server blev utilgængelig sidst i mobilkontrollen; den samlede CI og livesiden er verificeret. Browserens midlertidige viewport er nulstillet.
