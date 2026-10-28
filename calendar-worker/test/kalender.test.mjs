@@ -515,3 +515,60 @@ test('an invitation still activates after thirty days with a fresh ten-minute OT
  await ok(await c.verify(challenge));
  assert.equal((await ok(await c.call('/session'))).memberships[0].associationId,a.id);
 });
+
+
+test('member deletes own event with revision/access checks and keeps historical data',async t=>{
+ const f=fixture(t),{a,user}=await f.member(),s=await f.memberEvent(user,a);
+ const outsider=f.client();await outsider.login('outsider@example.test');
+ const path='/member/events/'+s.id;
+ assert.equal((await outsider.call(path,{data:{action:'delete',revision:1}})).status,403);
+ assert.equal((await user.call(path,{data:{action:'delete',revision:9}})).status,409);
+ assert.equal((await f.publicEvents()).some(e=>e.id===s.id),true);
+ const deleted=await ok(await user.call(path,{data:{action:'delete',revision:1}}));assert.equal(deleted.deleted,true);
+ assert.equal((await f.publicEvents()).some(e=>e.id===s.id),false);
+ assert.equal((await f.guest.call('/events/'+s.id)).status,404);
+ assert.equal((await ok(await user.call('/me/events'))).events.some(e=>e.id===s.id),false);
+ const stored=await f.DB.prepare('SELECT * FROM events WHERE id=?').bind(s.id).first();
+ const snap=await snapshot(f.env,{start:month+'-01',end:month+'-28',deadline:copenhagenDate()});
+ assert.equal(snap.events.some(e=>e.id===s.id),false);
+ const history=await f.DB.prepare('SELECT data_json FROM publications WHERE event_id=? ORDER BY revision DESC').bind(s.id).all();
+ assert.equal(JSON.parse(history.results[0].data_json).state,'withdrawn');assert.equal(JSON.parse(history.results[1].data_json).state,'approved');
+ assert.equal(stored.status,'withdrawn');assert.equal(stored.published_json,null);assert.equal(JSON.parse(stored.pending_json).title,s.payload.event.title);
+ assert.equal((await user.call(path,{data:{action:'edit',revision:2,event:s.payload.event}})).status,409);
+ assert.equal((await user.call(path,{data:{action:'delete',revision:2}})).status,409);
+});
+
+test('editing a cancelled member event preserves its cancellation',async t=>{
+ const f=fixture(t),{a,user}=await f.member(),s=await f.memberEvent(user,a),path='/member/events/'+s.id;
+ await ok(await user.call(path,{data:{action:'cancel',revision:1}}));
+ const edited=await ok(await user.call(path,{data:{action:'edit',revision:2,event:{...s.payload.event,title:'Ny titel på aflyst arrangement'}}}));
+ assert.equal(edited.published.state,'cancelled');assert.equal(edited.published.title,'Ny titel på aflyst arrangement');
+ assert.equal((await f.publicEvents()).find(e=>e.id===s.id).state,'cancelled');
+});
+
+
+test('member display-name edits preserve login and prevent stale/cross-association changes',async t=>{
+ const f=fixture(t),{a,user}=await f.member();
+ const {members}=await ok(await user.call('/associations/'+a.id+'/members'));const person=members[0];
+ const path='/associations/'+a.id+'/members/'+person.id;
+ const outsider=f.client();await outsider.login('other@example.test');
+ assert.equal((await outsider.call(path,{data:{name:'Andet navn',previousName:person.name}})).status,403);
+ assert.equal((await user.call(path,{data:{name:'',previousName:person.name}})).status,400);
+ await ok(await user.call(path,{data:{name:'Nyt navn',previousName:person.name,email:'evil@example.test',role:'admin'}}));
+ assert.equal((await user.call(path,{data:{name:'Gammelt forsøg',previousName:person.name}})).status,409);
+ const current=(await ok(await user.call('/associations/'+a.id+'/members'))).members.find(m=>m.id===person.id);
+ assert.equal(current.name,'Nyt navn');assert.equal(current.email,person.email);assert.equal(current.role,person.role);assert.equal(current.status,'active');
+ assert.equal((await ok(await user.call('/session'))).authenticated,true);
+});
+
+
+test('workspace includes linked-post photos and deleting event withdraws its public post',async t=>{
+ const f=fixture(t),{a,user}=await f.member();
+ const created=await ok(await user.call('/posts',{data:{requestKey:crypto.randomUUID(),associationId:a.id,post:{kind:'both',title:'Fotoarrangement',description:'Et eksempel',image:'https://example.test/photo.jpg',date:month+'-15',time:'18:00',location:'Huset',print:true}}}),201);
+ const own=(await ok(await user.call('/me/events'))).events.find(e=>e.id===created.id);
+ assert.equal(own.data.image,'https://example.test/photo.jpg');
+ await ok(await user.call('/member/events/'+own.id,{data:{action:'delete',revision:own.revision}}));
+ assert.equal((await f.guest.call('/posts/'+own.id)).status,404);
+ assert.equal((await ok(await f.guest.call('/posts'))).posts.some(p=>p.id===own.id),false);
+ assert.equal((await snapshot(f.env,{start:month+'-01',end:month+'-28',deadline:copenhagenDate()})).events.some(e=>e.id===own.id),false);
+});

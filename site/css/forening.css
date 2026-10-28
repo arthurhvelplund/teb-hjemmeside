@@ -201,3 +201,16 @@ html[data-seasonal-theme] .site-main.fa-auth-page,html[data-seasonal-theme] .sit
 
 .fa-login-card .fa-remember-me { display:flex; align-items:center; gap:10px; min-height:44px; cursor:pointer; }
 .fa-remember-me input[type="checkbox"] { width:20px; height:20px; flex:0 0 20px; margin:0; }
+
+
+/* E-mail først: én primær handling pr. trin. */
+.fa-login-card .fa-login-recipient{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin:1rem 0}
+.fa-login-recipient strong{overflow-wrap:anywhere;min-width:0}
+.fa-login-alternative{margin-top:1.4rem;padding-top:1rem;border-top:1px solid var(--line);text-align:center}
+.fa-login-alternative .fp-form{margin-top:0}
+.fa-login-alternative button[type=submit]{background:transparent;color:var(--forest);border:1px solid var(--forest);font-size:.9rem;white-space:normal;line-height:1.4}
+.fa-login-alternative button[type=submit]::after{display:none}
+.fa-login-finish{margin-top:1.5rem}
+.fa-login-finish>.btn{width:100%;justify-content:center;white-space:normal}
+.fa-login-setup{margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--line)}
+.fa-login-setup h2{font-size:1.5rem}

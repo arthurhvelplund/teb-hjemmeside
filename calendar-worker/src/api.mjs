@@ -1,8 +1,8 @@
-import { loginPassword, setPassword, ownPassword } from './passwords.mjs';
+import { startLogin, loginPassword, setPassword, ownPassword } from './passwords.mjs';
 import { HttpError, ensure, json } from './shared.mjs';
 import { local, stmt, all } from './db.mjs';
 import { identity, sessionData, requestOtp, verifyOtp, logout, requireAccess } from './auth.mjs';
-import { associations, saveAssociation, createAssociation, members, invite, revoke, accessRequests, requestAccess, decideAccess } from './associations.mjs';
+import { associations, saveAssociation, createAssociation, members, invite, revoke, updateMember, accessRequests, requestAccess, decideAccess } from './associations.mjs';
 import { publicEvents, createEvent, author, privateData, guestUpdate, memberUpdate, review, myEvents, adminEvents } from './events.mjs';
 import { editionCandidates, previewEdition, finalizeEdition, listEditions, editionPdf } from './editions.mjs';
 import { localMailbox, flushMail } from './mail.mjs';
@@ -34,6 +34,7 @@ async function api(request,env){
  if(storedEventImage&&method==='GET')return eventImage(env,storedEventImage[1]);
  const data=method==='POST'?await body(request,env):null;
  if(route==='/local-mail'&&method==='GET')return json(await localMailbox(request,env));
+ if(route==='/auth/start'&&method==='POST')return startLogin(request,env,data);
  if(route==='/auth/password/login'&&method==='POST')return loginPassword(request,env,data);
  if(route==='/auth/request'&&method==='POST')return requestOtp(request,env,data);
  if(route==='/auth/verify'&&method==='POST')return verifyOtp(request,env,data);
@@ -54,6 +55,8 @@ async function api(request,env){
  if(match&&method==='POST')return invite(env,auth,match[1],data);
  match=route.match(/^\/associations\/([^/]+)\/members\/([^/]+)\/revoke$/);
  if(match&&method==='POST')return revoke(env,auth,match[1],match[2]);
+ match=route.match(/^\/associations\/([^/]+)\/members\/([^/]+)$/);
+ if(match&&method==='POST')return updateMember(env,auth,match[1],match[2],data);
  if(route==='/admin/associations'&&method==='POST')return createAssociation(env,auth,data);
  match=route.match(/^\/admin\/associations\/([^/]+)\/members$/);
  if(match&&method==='POST')return invite(env,auth,match[1],data,true);

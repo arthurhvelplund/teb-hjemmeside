@@ -87,7 +87,19 @@ export async function memberUpdate(env,auth,id,data){
  // Guest submissions remain TEB-owned even if they name a real association.
  const g=await requireAccess(env,auth,row.association_id);
  ensure(data.revision===row.revision,409,'Arrangementet er ændret. Genindlæs siden.');
- ensure(['update','edit','cancel'].includes(data.action),400,'Vælg rettelse eller aflysning.');
+ ensure(row.status!=='withdrawn',409,'Arrangementet er slettet.');
+ ensure(['update','edit','cancel','delete'].includes(data.action),400,'Vælg rettelse, aflysning eller sletning.');
+ if(data.action==='delete'){
+  const stamp=now();
+  // Keep private data and publication history; remove the live event and its linked post atomically.
+  const result=await env.DB.batch([
+   stmt(env,`UPDATE events SET pending_json=COALESCE(pending_json,published_json),published_json=NULL,pending_kind=NULL,status='withdrawn',revision=revision+1,updated_at=? WHERE id=? AND revision=? AND ${g.sql}`,stamp,id,row.revision,...g.args),
+   stmt(env,`INSERT INTO publications(event_id,revision,data_json,published_at) SELECT id,revision,?,? FROM events WHERE id=? AND revision=? AND status='withdrawn' AND updated_at=?`,JSON.stringify({...JSON.parse(row.published_json||row.pending_json||'{}'),state:'withdrawn'}),stamp,id,row.revision+1,stamp),
+   stmt(env,`UPDATE posts SET status='withdrawn',revision=revision+1,updated_at=? WHERE id=? AND EXISTS(SELECT 1 FROM events WHERE id=? AND revision=? AND status='withdrawn' AND updated_at=?)`,stamp,id,id,row.revision+1,stamp)
+  ]);
+  ensure(result[0].meta.changes>0,409,'Arrangementet er ændret, eller din adgang er ophørt.');
+  return json({saved:true,deleted:true});
+ }
  ensure(data.action!=='cancel'||row.published_json,400,'Arrangementet er endnu ikke offentligt.');
  const associationId=data.associationId||row.association_id;
  ensure(associationId===row.association_id||auth.user.is_admin,403,'Arrangementet kan ikke flyttes til en anden forening.');
@@ -96,7 +108,7 @@ export async function memberUpdate(env,auth,id,data){
  const event=data.action==='cancel'?JSON.parse(row.published_json):validateEvent({...data.event,...(a?{association:a.name}:{})},{allowPast:true});
  if(associationId)event.associationId=associationId;
  if(row.published_json){const previous=JSON.parse(row.published_json);if(previous.postId){event.postId=previous.postId;if(event.printRequested===undefined)event.printRequested=previous.printRequested;}}
- event.state=data.action==='cancel'?'cancelled':'approved';
+ event.state=data.action==='cancel'||JSON.parse(row.published_json||'{}').state==='cancelled'?'cancelled':'approved';
  const result=await stmt(env,`UPDATE events SET published_json=?,pending_json=NULL,pending_kind=NULL,status=?,moderation_note='',revision=revision+1,association_id=?,updated_at=? WHERE id=? AND revision=? AND ${g.sql}`,
  JSON.stringify(event),event.state==='cancelled'?'approved':event.state,associationId,now(),id,row.revision,...g.args).run();
  ensure(result.meta.changes>0,409,'Arrangementet er ændret, eller din adgang er ophørt.');
@@ -122,8 +134,8 @@ export async function review(env,auth,id,data){
  await deliverKeys(env,mail.keys);return json({saved:true,status});
 }
 export async function myEvents(env,auth){
- const rows=await all(stmt(env,`SELECT e.* FROM events e WHERE EXISTS(SELECT 1 FROM memberships m WHERE m.association_id=e.association_id AND m.user_id=? AND m.status='active') ORDER BY e.updated_at DESC`,auth.user.id));
- return json({events:rows.map(privateData)});
+ const rows=await all(stmt(env,`SELECT e.*,p.data_json AS post_json FROM events e LEFT JOIN posts p ON p.id=e.id WHERE e.status!='withdrawn' AND EXISTS(SELECT 1 FROM memberships m WHERE m.association_id=e.association_id AND m.user_id=? AND m.status='active') ORDER BY e.updated_at DESC`,auth.user.id));
+ return json({events:rows.map(row=>{const event=privateData(row);if(row.post_json){const post=JSON.parse(row.post_json);if(post.image)event.data.image=post.image;}return event;})});
 }
 export async function adminEvents(env,auth){
  await requireAccess(env,auth);

@@ -32,19 +32,20 @@ function expireCooldowns(){const db=new DatabaseSync(resolve(runtime,'calendar.s
 async function login(page,email,exerciseSteps=false){
  expireCooldowns();
  await page.goto('/forening.html#login');
- const request=page.locator('form[data-action="request-code"]');await request.waitFor();await fill(request,{email});
- if(exerciseSteps) await request.locator('[name=rememberMe]').check();
- const response=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');
+ const request=page.locator('form[data-action="login-start"]');await request.waitFor();await fill(request,{email});
+
+ const response=page.waitForResponse(r=>r.url().endsWith('/auth/start')&&r.request().method()==='POST');
  await request.locator('button[type="submit"]').click();assert.ok((await response).ok());
  await page.locator('form[data-action="verify-code"]').waitFor();
  assert.ok((await page.locator('.fa-login-card').innerText()).includes('spam/uønsket post'));
- if(email===memberEmail)assert.ok((await page.locator('.fa-login-card').innerText()).includes('Mailadressen har adgang.'));
+
  assert.equal(await page.locator('form[data-action="request-code"]').count(),0,'Email and code are separate steps');
  if(exerciseSteps){
+  await page.locator('form[data-action="verify-code"] [name=rememberMe]').check();
   assert.equal(await page.locator('form[data-action="resend-code"] button').isDisabled(),true);
   await page.clock.install();await page.clock.fastForward(61000);expireCooldowns();
   await page.locator('[data-change-email]').click();await request.waitFor();assert.equal(await request.locator('[name="email"]').inputValue(),email);
-  const next=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');await request.locator('button[type="submit"]').click();assert.ok((await next).ok());
+  const next=page.waitForResponse(r=>r.url().endsWith('/auth/start')&&r.request().method()==='POST');await request.locator('button[type="submit"]').click();assert.ok((await next).ok());
   const resend=page.locator('form[data-action="resend-code"]');await resend.waitFor();
   assert.equal(await resend.locator('button').isDisabled(),true);await page.clock.fastForward(61000);expireCooldowns();
   const resent=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');await resend.locator('button[type="submit"]').click();assert.ok((await resent).ok());await page.locator('form[data-action="verify-code"]').waitFor();
@@ -60,8 +61,17 @@ async function login(page,email,exerciseSteps=false){
   assert.equal(await page.locator('form[data-action="verify-code"] [name=rememberMe]').isChecked(),true,'Remember choice survives code-page reload');
  }
  const verify=page.locator('form[data-action="verify-code"]');await verify.waitFor();
- if(exerciseSteps){await fill(verify,{code:code==='000000'?'111111':'000000'});await verify.locator('button').click();await page.getByText('Koden er forkert eller udløbet.',{exact:false}).waitFor();}
+ if(exerciseSteps){await fill(verify,{code:code==='000000'?'111111':'000000'});await verify.locator('button').click();await page.getByText('Engangskoden er forkert eller udløbet.',{exact:false}).waitFor();}
  await fill(verify,{code});await verify.locator('button').click();
+ await page.waitForFunction(()=>document.querySelector('[data-continue-login]')||!location.hash.startsWith('#login'));
+ if(await page.locator('[data-continue-login]').count()){
+  assert.ok((await page.locator('[data-continue-login]').innerText()).startsWith('Fortsæt'));
+  await page.locator('[data-open-password-setup]').click();
+  await page.locator('form[data-action="login-set-password"]').waitFor();
+  await page.locator('[data-close-password-setup]').click();
+  assert.equal(await page.locator('form[data-action="login-set-password"]').count(),0);
+  await page.locator('[data-continue-login]').click();
+ }
  await page.waitForURL(url=>!url.hash.startsWith('#login'));
  const session=await json(page.context(),'/session');assert.equal(session.user.email.toLowerCase(),email.toLowerCase());
  const cookie=(await page.context().cookies()).find(c=>c.name==='teb_calendar');
@@ -208,11 +218,11 @@ try{
  assert.equal((await published(guestContext,direct.id)).state,'cancelled');await member.getByRole('button',{name:'Færdig'}).click();await member.waitForURL(url=>!url.search.includes('ret='));record('Direct edit links open the popup, and cancelling there takes effect immediately');assert.equal((await published(guestContext,direct.id)).title,'Rettet efter print');const pdf2=await (await guestContext.request.get('/api/kalender/editions/'+editions[0].id+'/pdf')).body();assert.ok(pdf1.equals(pdf2));record('Published PDF bytes remain unchanged after event edit');
  await member.goto('/forening.html#arbejdsrum');await member.locator('.mf-header').waitFor();assert.ok(member.url().endsWith('#arbejdsrum'));await member.locator('.mf-header img').evaluate(image=>image.decode());await member.screenshot({path:resolve(output,'min-forening-desktop.png'),fullPage:true});
  await member.goto('/forening.html#min-forening?forening='+association.id+'&fane=profil');await member.locator('[data-profile-image]').waitFor();await member.screenshot({path:resolve(output,'profil-desktop.png'),fullPage:true});
- await guest.goto('/forening.html#login');await guest.locator('form[data-action="request-code"]').waitFor();await guest.screenshot({path:resolve(output,'login-desktop.png'),fullPage:true});
+ await guest.goto('/forening.html#login');await guest.locator('form[data-action="login-start"]').waitFor();await guest.screenshot({path:resolve(output,'login-desktop.png'),fullPage:true});
  for(const width of [390,320]){
   await member.setViewportSize({width,height:844});await guest.setViewportSize({width,height:844});
   for(const tab of ['','profil']){await member.goto('/forening.html#min-forening?forening='+association.id+(tab?'&fane='+tab:''));await member.locator('.mf-header').waitFor();assert.equal(await member.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,tab+' at '+width);}
-  await guest.goto('/forening.html#login');await guest.locator('form[data-action="request-code"]').waitFor();assert.equal(await guest.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'login at '+width);
+  await guest.goto('/forening.html#login');await guest.locator('form[data-action="login-start"]').waitFor();assert.equal(await guest.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'login at '+width);
  }
  record('Login, Min forening and profile editor fit 390px and 320px');
  await member.setViewportSize({width:1440,height:1000});await guest.setViewportSize({width:1440,height:1000});
@@ -245,9 +255,10 @@ try{
  const passwordContext=await browser.newContext({baseURL:origin,viewport:{width:320,height:844}});
  const passwordPage=await passwordContext.newPage();pages.push(passwordPage);
  await passwordPage.goto('/forening.html#login');
- await passwordPage.getByRole('button',{name:'Log ind med adgangskode',exact:true}).click();
+ await fill(passwordPage.locator('form[data-action="login-start"]'),{email:memberEmail});
+ await passwordPage.locator('form[data-action="login-start"] button[type=submit]').click();
  const passwordLogin=passwordPage.locator('form[data-action="password-login"]');
- await fill(passwordLogin,{email:memberEmail,password:'Incorrect password!'});
+ await fill(passwordLogin,{password:'Incorrect password!'});
  await passwordLogin.locator('button[type=submit]').click();
  await passwordLogin.getByText('E-mail eller adgangskode er forkert.',{exact:false}).waitFor();
  assert.equal(await passwordPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'password login at 320px');
@@ -270,8 +281,8 @@ try{
  await passwordPage.waitForURL(url=>!url.hash);
  await passwordPage.goto('/forening.html#login');
  await passwordPage.locator('.fa-login-card').waitFor();
- if (!await passwordPage.locator('form[data-action="password-login"]').count()) await passwordPage.getByRole('button',{name:'Log ind med adgangskode',exact:true}).click();
- await fill(passwordPage.locator('form[data-action="password-login"]'),{email:memberEmail,password:changedPassword});
+ if (!await passwordPage.locator('form[data-action="password-login"]').count()) {await fill(passwordPage.locator('form[data-action="login-start"]'),{email:memberEmail});await passwordPage.locator('form[data-action="login-start"] button[type=submit]').click();await passwordPage.locator('form[data-action="password-login"]').waitFor();}
+ await fill(passwordPage.locator('form[data-action="password-login"]'),{password:changedPassword});
  await passwordPage.locator('form[data-action="password-login"] button[type=submit]').click();
  await passwordPage.locator('.fa-membership-choices').waitFor();
  await passwordContext.close();
@@ -284,18 +295,18 @@ try{
  const longEmail='a-long-association-email-for-testing-layout@example.org';
  for(const state of ['failed','uncertain','pending']){
   await loginPage.evaluate(()=>sessionStorage.clear()).catch(()=>{});
-  await loginContext.route('**/api/kalender/auth/request',route=>route.fulfill({json:{challengeId:crypto.randomUUID(),mode:'live',deliveryState:state,accessState:'unlinked',resendAfterSeconds:60}}));
+  await loginContext.route('**/api/kalender/auth/start',route=>route.fulfill({json:{method:'email',challengeId:crypto.randomUUID(),mode:'live',deliveryState:state,accessState:'unlinked',resendAfterSeconds:60}}));
   await loginPage.goto('/forening.html?login-state='+state+'#login');
-  const form=loginPage.locator('form[data-action="request-code"]');await form.waitFor();await fill(form,{email:longEmail});await form.locator('button').click();
+  const form=loginPage.locator('form[data-action="login-start"]');await form.waitFor();await fill(form,{email:longEmail});await form.locator('button').click();
   await loginPage.locator('form[data-action="verify-code"]').waitFor();
-  const text=await loginPage.locator('.fa-login-card').innerText();assert.ok(text.includes('Ingen foreningsadgang på denne mail.'));assert.ok(!text.includes('Koden er sendt.'));
+  const text=await loginPage.locator('.fa-login-card').innerText();assert.ok(text.includes('Du kan bede TEB om foreningsadgang efter login.'));assert.ok(!text.includes('Koden er sendt.'));
   assert.equal(await loginPage.locator('form[data-action="resend-code"] button').isDisabled(),true);
   assert.equal(await loginPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'code state '+state+' on 320px');
   await loginPage.reload();await loginPage.locator('form[data-action="verify-code"]').waitFor();
   assert.equal(await loginPage.locator('form[data-action="resend-code"] button').isDisabled(),true);
   await loginPage.clock.fastForward(61000);assert.equal(await loginPage.locator('form[data-action="resend-code"] button').isDisabled(),false);
   if(state==='failed')await loginPage.screenshot({path:resolve(output,'login-failed-320.png'),fullPage:true});
-  await loginContext.unroute('**/api/kalender/auth/request');
+  await loginContext.unroute('**/api/kalender/auth/start');
  }
  record('Failed, uncertain and pending delivery never claims a sent code; unknown-email guidance and countdown survive reload on 320px');
  await loginContext.route('**/api/kalender/auth/request',route=>route.fulfill({status:429,headers:{'Retry-After':'120'},json:{error:'For mange forsøg. Vent lidt, og prøv igen.',retryAfterSeconds:120}}));
