@@ -99,10 +99,11 @@ try{
  const [admin,member,guest,editor]=await Promise.all([adminContext.newPage(),memberContext.newPage(),guestContext.newPage(),editorContext.newPage()]);
  pages.push(admin,member,guest,editor);for(const page of pages){page.setDefaultTimeout(20000);page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());}
  await login(admin,adminEmail,true);
- await admin.goto('/kalender.html');await admin.locator('[data-account-entry]').click();await admin.waitForURL(url=>url.hash==='#teb');await admin.getByRole('heading',{name:'TEB-administration',exact:true}).waitFor();
- await admin.goto('/forening.html?return=kalender.html#login');await admin.waitForURL(url=>url.hash==='#teb');assert.equal(new URL(admin.url()).searchParams.has('return'),false);
+ await admin.goto('/kalender.html');await admin.locator('[data-account-entry]').click();await admin.waitForURL(url=>url.hash==='#min-forening');await admin.locator('[data-admin-entry]').click();await admin.waitForURL(url=>url.hash==='#teb');await admin.getByRole('heading',{name:'TEB-administration',exact:true}).waitFor();
+ await admin.goto('/forening.html?return=kalender.html#login');await admin.waitForURL(url=>url.hash==='#min-forening');assert.equal(new URL(admin.url()).searchParams.has('return'),false);
  await guest.goto('/kalender.html');assert.equal(await guest.locator('[data-account-entry]').count(),1);assert.equal(await guest.locator('#calendar-login').count(),0);await guest.locator('[data-account-entry]').click();await guest.locator('form[data-action="login-start"]').waitFor();
- record('One shared entrance opens TEB directly for admins, login for guests and resolves legacy calendar login loops');
+ assert.equal(await guest.locator('[data-admin-entry]').isVisible(),false);await guest.goto('/forening.html');await guest.locator('#forening-workspace-link').waitFor();assert.equal(await guest.locator('#forening-workspace-link').innerText(),'Log ind');await guest.locator('#forening-workspace-link').click();await guest.locator('form[data-action="login-start"]').waitFor();
+ record('Association access is the default for admins and members, with independent administration and familiar directory login');
  record('Two-step login, email correction, resend and wrong-code recovery use the real API');
  await admin.goto('/forening.html#teb?fane=foreninger&forening=ny');
  const create=admin.locator('form[data-action="create-association"]');await fill(create,{name:'Integrationens eksempelforening',category:'Fællesskab',description:'Kun testdata i en isoleret database.',chair:'Eksempel Formand',email:'kontakt@example.org',phone:'12 34 56 78',place:'Eksempelhallen'});
@@ -127,6 +128,12 @@ try{
  await login(member,memberEmail);const memberSession=await json(memberContext,'/session');record('Invited person gains only assigned association',memberSession.memberships.length===1&&memberSession.memberships[0].associationId===association.id);
  await member.goto('/kalender.html');await member.locator('[data-account-entry]').click();await member.waitForURL(url=>url.hash==='#min-forening');await member.locator('.mf-header h1').waitFor();assert.equal(await member.locator('.mf-header h1').innerText(),association.name);
  assert.equal(await member.locator('#forening-nav').isVisible(),false);assert.equal(await member.locator('.fa-more').count(),0);record('Single-association login opens its own overview without TEB administration');
+ await member.locator('.mf-account-menu summary').click();assert.ok((await member.locator('.mf-account-menu summary').innerText()).includes('Min profil'));
+ await member.getByRole('link',{name:'Rediger min profil',exact:true}).click();await member.getByRole('heading',{name:'Min profil',exact:true}).waitFor();
+ const personalProfile=member.locator('form[data-action="edit-member"]');await personalProfile.locator('[name=name]').fill('Mit navn i foreningen');await personalProfile.locator('button[type=submit]').click();await member.getByText('Navnet er gemt.',{exact:true}).waitFor();
+ assert.equal(await personalProfile.locator('[name=name]').inputValue(),'Mit navn i foreningen');assert.equal((await json(memberContext,'/session')).user.email,memberEmail);
+ await member.getByRole('link',{name:'← Tilbage til Min forening',exact:true}).click();
+ record('Visible Min profil opens personal editing and saves the membership name without changing login email');
  await member.locator('.mf-header summary[aria-label="Foreningens muligheder"]').click();await member.getByRole('link',{name:'Rediger foreningens side',exact:true}).click();await member.waitForURL(/fane=profil/);
  const profile=member.locator('form[data-action="save-profile"]');await fill(profile,{description:'Profil ændret gennem den rigtige API.'});
  const imageUpload=member.waitForResponse(r=>r.url().endsWith('/associations/'+association.id+'/image')&&r.request().method()==='POST');
@@ -227,7 +234,7 @@ try{
  await guest.goto('/forening.html#login');await guest.locator('form[data-action="login-start"]').waitFor();await guest.screenshot({path:resolve(output,'login-desktop.png'),fullPage:true});
  for(const width of [390,320]){
   await member.setViewportSize({width,height:844});await guest.setViewportSize({width,height:844});
-  for(const tab of ['','profil']){await member.goto('/forening.html#min-forening?forening='+association.id+(tab?'&fane='+tab:''));await member.locator('.mf-header').waitFor();assert.equal(await member.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,tab+' at '+width);}
+  for(const tab of ['','profil','konto']){await member.goto('/forening.html#min-forening?forening='+association.id+(tab?'&fane='+tab:''));await member.locator('.mf-header').waitFor();assert.equal(await member.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,tab+' at '+width);}
   await guest.goto('/forening.html#login');await guest.locator('form[data-action="login-start"]').waitFor();assert.equal(await guest.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'login at '+width);
  }
  record('Login, Min forening and profile editor fit 390px and 320px');

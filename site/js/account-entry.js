@@ -1,9 +1,10 @@
-// One role-aware destination for the site's single account entrance.
+// Everyone starts in their association area; administration has its own entrance.
 export function accountHome(session) {
   if (!session?.authenticated) return {page:'login',label:'Log ind'};
-  return session.user?.isAdmin ? {page:'teb',label:'TEB-administration'} : {page:'min-forening',label:'Min forening'};
+  return {page:'min-forening',label:'Min forening'};
 }
 export function accountContinueLabel(session, target = null) {
+  if (target && /forening\.html#teb(?:[?]|$)/.test(target)) return 'Fortsæt til TEB-administration';
   if (target) return /(?:^|\/)kalender\.html(?:[?#]|$)/.test(target) ? 'Fortsæt til arrangementet' : 'Fortsæt';
-  return session?.user?.isAdmin ? 'Fortsæt til TEB' : 'Fortsæt til Min forening';
+  return 'Fortsæt til Min forening';
 }

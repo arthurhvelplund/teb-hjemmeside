@@ -113,9 +113,17 @@ function returnTarget() {
 }
 function heading(title, text = '') { return `<h2>${esc(title)}</h2>${text ? `<p>${esc(text)}</p>` : ''}`; }
 function loginNeeded() {
+  if (currentRoute.page === 'teb') {
+    const destination = new URL(location.href);
+    destination.searchParams.set('return', 'forening.html#' + location.hash.slice(1));
+    history.replaceState(null, '', destination.href);
+  }
   return loginPage();
 }
 function navigation(page) {
+  document.dispatchEvent(new CustomEvent('teb:session', {detail:session}));
+  const shortcut = document.querySelector('#forening-workspace-link');
+  if (shortcut) { shortcut.textContent = authenticated() ? 'Min forening' : 'Log ind'; shortcut.href = '#min-side'; }
   const account = ['login', 'min-side', 'min-forening', 'teb'].includes(page);
   const loginScreen = account && !authenticated();
   document.body.classList.toggle('fa-account-screen', account);
@@ -159,7 +167,6 @@ async function render() {
       case 'profil': html = await publicProfile(r.query.get('id') || r.params.get('id') || r.query.get('forening')); break;
       case 'login': html = loginPage(); break;
       case 'min-forening':
-        if (admin() && !memberships().length) { location.replace('#teb'); return; }
         html = authenticated() ? await workspace(r) : loginNeeded(); break;
       case 'teb': html = admin() ? await adminPage(r) : authenticated() ? heading('Kun for TEB', 'Dit login giver ikke adgang til TEBs administration.') : loginNeeded(); break;
       default: html = heading('Siden findes ikke') + link('Se alle foreninger', 'forening.html');
@@ -323,7 +330,7 @@ function passwordForm(action, attributes = '') {
     '<p class="fp-note">Mindst 12 tegn. Adgangskoden gælder for denne loginmail.</p>' + button('Gem adgangskode') + resultBox() + '</form>';
 }
 function accountLine(extra = '') {
-  return `<p class="mf-small mf-account">Logget ind som ${esc(session.user.email)}${extra}${admin() ? ' · <a href="#teb">TEBs administration</a>' : ''} · <button type="submit" form="mf-logout" class="fa-text-button">Log ud</button> · <a href="kontakt.html#form">Kontakt TEB</a></p><form id="mf-logout" data-action="logout"></form><details class="mf-request-form fa-password-settings"><summary>Min adgangskode</summary>${passwordForm('set-password')}</details>`;
+  return `<p class="mf-small mf-account">Logget ind som ${esc(session.user.email)}${extra} · <button type="submit" form="mf-logout" class="fa-text-button">Log ud</button> · <a href="kontakt.html#form">Kontakt TEB</a></p><form id="mf-logout" data-action="logout"></form><details class="mf-request-form fa-password-settings"><summary>Min adgangskode</summary>${passwordForm('set-password')}</details>`;
 }
 function profileForm(a, creating = false) {
   return formStart(creating ? 'create-association' : 'save-profile', `data-id="${esc(a.id || '')}" data-revision="${esc(a.revision ?? '')}"`) +
@@ -348,10 +355,15 @@ async function workspace(r) {
   const id=r.params.get('forening')||memberships()[0].associationId;
   if(!memberships().some(m=>m.associationId===id))return accessPage();
   const {association:a}=await api('/associations/'+idPath(id));
-  const account='<details class="mf-menu mf-account-menu"><summary aria-label="Min konto"><span aria-hidden="true">'+initials(session.user.email)+'</span></summary><div class="mf-menu-panel"><p class="mf-small">'+esc(session.user.email)+'</p>'+link('Min adgangskode',workURL(id,'konto'))+(memberships().length>1?link('Skift forening','#min-forening'):'')+(admin()?link('TEBs administration','#teb'):'')+link('Kontakt TEB','kontakt.html#form')+formStart('logout')+'<button type="submit">Log ud</button>'+resultBox()+'</form></div></details>';
+  const account='<details class="mf-menu mf-account-menu"><summary aria-label="Min profil"><span class="mf-account-avatar" aria-hidden="true">'+initials(session.user.email)+'</span><span>Min profil</span></summary><div class="mf-menu-panel"><p class="mf-small">'+esc(session.user.email)+'</p>'+link('Rediger min profil',workURL(id,'konto'))+link('Min adgangskode',workURL(id,'konto')+'&adgangskode=1')+(memberships().length>1?link('Skift forening','#min-forening'):'')+link('Kontakt TEB','kontakt.html#form')+formStart('logout')+'<button type="submit">Log ud</button>'+resultBox()+'</form></div></details>';
   const top='<p class="mf-back">'+link('← Alle foreninger','forening.html')+'</p><header class="mf-header">'+associationPhoto(a,'fa-profile-mark',true)+'<div><span class="eyebrow">Min forening</span><h1>'+esc(a.name)+'</h1></div><div class="mf-header-actions">'+moreMenu('Foreningens muligheder',link('Rediger foreningens side',workURL(id,'profil'))+link('Se siden som besøgende',publicURL(id)))+account+'</div></header>';
   if(r.params.get('fane')==='profil')return top+'<p>'+link('← Tilbage til Min forening',workURL(id))+'</p><section class="fa-profile-editor"><h2>Rediger foreningens side</h2>'+profileForm(a)+'</section>';
-  if(r.params.get('fane')==='konto')return top+'<p>'+link('← Tilbage til Min forening',workURL(id))+'</p><section class="mf-start"><h2>Min adgangskode</h2><p class="mf-small">'+esc(session.user.email)+'</p>'+passwordForm('set-password')+'</section>';
+  if(r.params.get('fane')==='konto') {
+    const {members}=await api('/associations/'+idPath(id)+'/members');
+    const person=members.find(m=>m.email.toLowerCase()===session.user.email.toLowerCase());
+    const editor=person?formStart('edit-member','data-association="'+esc(id)+'" data-member="'+esc(person.id)+'" data-previous-name="'+esc(person.name)+'"')+input('name','Dit navn',person.name,'text','required maxlength="100"')+'<p class="fp-note">Loginmail: '+esc(session.user.email)+'</p>'+button('Gem profil')+resultBox()+'</form>':'<p>'+esc(session.user.email)+'</p>';
+    return top+'<p>'+link('← Tilbage til Min forening',workURL(id))+'</p><section class="mf-start"><h2>Min profil</h2>'+editor+'<details class="mf-request-form fa-password-settings"'+(r.params.get('adgangskode')==='1'?' open':'')+'><summary>Min adgangskode</summary>'+passwordForm('set-password')+'</details></section>';
+  }
   const {events}=await api('/me/events');
   const ownEvents=events.filter(e=>(e.associationId||e.data?.associationId)===id);
   const date=e=>(e.data||e.published||{}).date||'';
@@ -388,7 +400,7 @@ async function memberPage(a, isAdmin = false) {
   return '<div class="mf-card-head"><h2>Personer med adgang</h2><button type="button" class="btn btn-secondary" data-toggle-invite="'+esc(inviteId)+'" aria-expanded="false" aria-controls="'+esc(inviteId)+'">＋ Tilføj person</button></div><ul class="mf-people">'+members.map(m=>{
     const self=m.email.toLowerCase()===me;
     const state=m.status==='active'?'':m.invitationExpiresAt&&Date.parse(m.invitationExpiresAt)<=Date.now()?'Invitation udløbet':'Inviteret';
-    const actions='<button type="button" data-edit-person="'+esc(m.id)+'">Rediger navn</button>'+(self?link('Min adgangskode',workURL(a.id,'konto')):formStart('revoke-member','data-association="'+esc(a.id)+'" data-member="'+esc(m.id)+'" data-email="'+esc(m.email)+'"')+'<button type="submit" class="mf-danger">Fjern adgang</button>'+resultBox()+'</form>');
+    const actions='<button type="button" data-edit-person="'+esc(m.id)+'">Rediger navn</button>'+(self?link('Min adgangskode',workURL(a.id,'konto')+'&adgangskode=1'):formStart('revoke-member','data-association="'+esc(a.id)+'" data-member="'+esc(m.id)+'" data-email="'+esc(m.email)+'"')+'<button type="submit" class="mf-danger">Fjern adgang</button>'+resultBox()+'</form>');
     return '<li><span class="mf-avatar" aria-hidden="true">'+initials(m.name||m.email)+'</span><div class="mf-person"><strong>'+esc(m.name||m.email)+(self?' <small>Dig</small>':'')+'</strong><span>'+esc(m.email)+(state?' · '+state:'')+'</span>'+(m.status==='invited'&&['failed','uncertain','pending'].includes(m.invitationDeliveryState)?'<p class="mf-small">Invitationsmailen er ikke bekræftet sendt. Personen kan logge ind med en engangskode på denne adresse.</p>':'')+'</div>'+moreMenu('Muligheder for '+(m.name||m.email),actions)+'<div class="mf-person-editor" id="mf-person-'+esc(m.id)+'" hidden>'+formStart('edit-member','data-association="'+esc(a.id)+'" data-member="'+esc(m.id)+'" data-previous-name="'+esc(m.name)+'"')+input('name','Navn',m.name,'text','required maxlength="100"')+'<p class="fp-note">Loginmail: '+esc(m.email)+'</p><div class="fp-actions">'+button('Gem navn')+'<button type="button" class="fa-text-button" data-edit-person="'+esc(m.id)+'">Fortryd</button></div>'+resultBox()+'</form></div></li>';
   }).join('')+'</ul>'+(!members.length?'<p class="mf-small">Tilføj den første person for at give adgang.</p>':'')+'<div id="'+esc(inviteId)+'" class="mf-invite-panel" hidden><h3>Tilføj person</h3>'+formStart('invite-member','data-id="'+esc(a.id)+'"')+input('name','Navn','','text','required maxlength="100"')+input('email','E-mail','','email','required maxlength="254"')+'<p class="fp-note">Personen får en invitation og samme adgang som dig.</p><div class="fp-actions">'+button('Send invitation')+'<button type="button" class="fa-text-button" data-toggle-invite="'+esc(inviteId)+'">Fortryd</button></div>'+resultBox()+'</form></div>';
 }
@@ -404,7 +416,7 @@ async function adminMemberPage(a, isAdmin = true) {
 async function adminPage(r) {
   const tab=r.params.get('fane')||'afventer';
   const tabs=[['afventer','Til godkendelse'],['arrangementer','Arrangementer'],['foreninger','Foreninger og adgang'],['print','Printkalender']];
-  const top='<div class="fp-row fa-admin-heading"><div><span class="eyebrow">Min side</span><h1>TEB-administration</h1></div><div class="mf-header-actions"><button class="btn btn-secondary" type="button" data-reload>Opdatér</button>'+moreMenu('Min konto',link('Min adgangskode',adminURL('konto'))+(memberships().length?link('Min forening','#min-forening'):'')+formStart('logout')+'<button type="submit">Log ud</button>'+resultBox()+'</form>')+'</div></div><nav class="fp-tabs" aria-label="TEB administration">'+tabs.map(([key,label])=>'<a href="'+esc(adminURL(key))+'"'+(tab===key?' aria-current="page"':'')+'>'+label+'</a>').join('')+'</nav>';
+  const top='<div class="fp-row fa-admin-heading"><div><span class="eyebrow">Administration</span><h1>TEB-administration</h1></div><div class="mf-header-actions"><button class="btn btn-secondary" type="button" data-reload>Opdatér</button>'+moreMenu('Min konto',link('Min adgangskode',adminURL('konto'))+formStart('logout')+'<button type="submit">Log ud</button>'+resultBox()+'</form>')+'</div></div><nav class="fp-tabs" aria-label="TEB administration">'+tabs.map(([key,label])=>'<a href="'+esc(adminURL(key))+'"'+(tab===key?' aria-current="page"':'')+'>'+label+'</a>').join('')+'</nav>';
   if(tab==='konto')return top+'<section class="mf-start"><h2>Min adgangskode</h2><p class="mf-small">'+esc(session.user.email)+'</p>'+passwordForm('set-password')+'</section>';
   if(tab==='adgang')return top+await adminAccess();
   if(tab==='foreninger')return top+await adminAssociations(r.params.get('forening'));

@@ -2288,3 +2288,6 @@ body.fa-account-screen .header-account{margin-left:auto}
 @media(min-width:1101px) and (max-width:1350px){.logo-word em{display:none}}
 
 @media(max-width:380px){.logo-word{display:none}}
+
+.header-admin-tools{max-width:1480px;margin:0 auto;padding:0 1.5rem .4rem;text-align:right;font-size:.72rem;line-height:1.6}.header-admin-tools[hidden]{display:none}.header-admin-tools a{display:inline-flex;align-items:center;min-height:28px}
+@media(max-width:520px){.header-admin-tools{padding-inline:1rem}}
