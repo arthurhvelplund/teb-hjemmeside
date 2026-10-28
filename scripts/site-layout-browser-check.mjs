@@ -106,3 +106,6 @@ try {
   }
   await rm(runtime, { recursive: true, force: true });
 }
+
+const { default: checkMobileNavigation } = await import('./mobile-navigation-check.cjs');
+await checkMobileNavigation();
