@@ -214,3 +214,9 @@ html[data-seasonal-theme] .site-main.fa-auth-page,html[data-seasonal-theme] .sit
 .fa-login-finish>.btn{width:100%;justify-content:center;white-space:normal}
 .fa-login-setup{margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--line)}
 .fa-login-setup h2{font-size:1.5rem}
+
+/* Make optional password creation visible beneath the primary Continue action. */
+.fa-login-password-option{margin-top:1rem}
+.fa-login-password-option>.btn{width:100%;justify-content:center;white-space:normal;border:1px solid var(--forest)}
+.fa-login-password-option>.btn::after{display:none}
+.fa-login-password-option>.fp-note{margin:.6rem 0 0;text-align:center;font-size:.8rem;line-height:1.5}

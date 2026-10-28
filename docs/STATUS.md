@@ -968,3 +968,10 @@ ikke produktkoden eller designvalget.
 - CI 40773161132, job 123115752602: 118 backendtests, 45 komplette API/UI-forløb, herunder 20 arrangementer/foto/sletning, 16 sider ved tre bredder, mobilnavigation ved fem størrelser og Cloudflare build/runtime består. Ingen eksterne mails fra testene.
 - Produktionsworkflow 40773587068, andet forsøg/job 123117564377, består. Første forsøg stoppede efter API-upload med Cloudflares interne route-fejl 10500; genkørsel lykkedes. Worker-version f7773e47-cb1e-4253-b747-f5f034b34e6d, Pages b3302367.
 - Livesiden https://teb-tistrup.dk/forening#login er åbnet og visuelt bekræftet med e-mail-først og Husk mig. Ingen rigtig loginmail bestilt eller produktionsarrangement slettet under kontrollen. Lokale testforeninger/databaser er ikke overført. Arbejdskopi: new-chat-3/work/teb-login-design; den historiske Projects-pilot er ikke opdateret.
+
+
+## Tydelig adgangskodeknap og én pil – 28. oktober 2026
+
+- Fjernet den indskrevne pil på begge Fortsæt-knapper efter login; fælles .btn-design viser fortsat én pil.
+- Valgfri Opret adgangskode vises som en tydelig, fuld bredde sekundær knap med grøn kant og forklaring om fortsat mulighed for engangskoder. Fortsæt er stadig primær handling; loginlogikken er uændret.
+- JavaScript-syntaks, fælles layout/assetversioner på 16 sider og separat spec-/standardgennemgang består. Leverancen er en lille visuel justering oven på den fuldt testede PR #8.

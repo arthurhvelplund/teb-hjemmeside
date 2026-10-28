@@ -250,9 +250,9 @@ function loginPage() {
   if (authenticated()) {
     if (loginCompletion) {
       const destinationLabel = admin() && !memberships().length ? 'Fortsæt til TEB' : 'Fortsæt til Min forening';
-      return frame(`<h1>Du er logget ind.</h1><p>Du kan fortsætte med engangskoder eller vælge en adgangskode.</p><div class="fa-login-finish"><button type="button" class="btn" data-continue-login>${destinationLabel} →</button></div>${loginPasswordSaved ? '<p class="fp-note" role="status">Din adgangskode er oprettet.</p>' : loginSetup ? '<section class="fa-login-setup"><h2>Opret adgangskode</h2>' + passwordForm('login-set-password') + '<button type="button" class="fa-text-button" data-close-password-setup>Fortryd</button></section>' : '<div class="fa-login-alternative"><button type="button" class="fa-text-button" data-open-password-setup>Opret adgangskode <span class="fp-note">· valgfrit</span></button></div>'}`);
+      return frame(`<h1>Du er logget ind.</h1><p>Du kan fortsætte med engangskoder eller vælge en adgangskode.</p><div class="fa-login-finish"><button type="button" class="btn" data-continue-login>${destinationLabel}</button></div>${loginPasswordSaved ? '<p class="fp-note" role="status">Din adgangskode er oprettet.</p>' : loginSetup ? '<section class="fa-login-setup"><h2>Opret adgangskode</h2>' + passwordForm('login-set-password') + '<button type="button" class="fa-text-button" data-close-password-setup>Fortryd</button></section>' : '<div class="fa-login-password-option"><button type="button" class="btn btn-secondary" data-open-password-setup>Opret adgangskode</button><p class="fp-note">Valgfrit – du kan stadig logge ind med engangskoder.</p></div>'}`);
     }
-    return frame(`<h1>Du er logget ind.</h1><p>${esc(session.user.email)}</p><button type="button" class="btn" data-continue-login>Fortsæt til Min forening →</button>`);
+    return frame(`<h1>Du er logget ind.</h1><p>${esc(session.user.email)}</p><button type="button" class="btn" data-continue-login>Fortsæt til Min forening</button>`);
   }
   const emailLine = `<div class="fa-login-recipient"><strong>${esc(loginEmail)}</strong><button type="button" class="fa-text-button" data-change-email>Ret e-mail</button></div>`;
   const showChallenge = loginMethod === 'email' && challenge && challenge.expiresAt > Date.now() && challenge.email === loginEmail.trim().toLowerCase();
