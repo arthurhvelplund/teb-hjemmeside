@@ -13,6 +13,10 @@ let challenge = null;
 let loginEmail = '';
 let loginPending = false;
 let loginMethod = 'email';
+let rememberMe = false;
+function rememberMeField() {
+  return `<label class="fa-remember-me"><input type="checkbox" name="rememberMe" ${rememberMe ? 'checked' : ''} aria-describedby="remember-me-help"> Husk mig i 30 dage</label><p id="remember-me-help" class="fp-note">Brug kun på din egen enhed. Ellers varer login 8 timer.</p>`;
+}
 const loginCooldowns = new Map();
 function saveLoginChallenge() {
   try {
@@ -25,6 +29,7 @@ try {
   if (saved && typeof saved.id === 'string' && typeof saved.email === 'string' && saved.expiresAt > Date.now()) {
     challenge = saved;
     loginEmail = saved.email;
+    rememberMe = saved.rememberMe === true;
     loginCooldowns.set(saved.email, saved.retryAt || 0);
   }
 } catch { /* No saved challenge. */ }
@@ -247,11 +252,11 @@ function loginPage() {
       ${formStart('verify-code', `data-challenge="${esc(challenge.id)}"`)}
         ${input('code', 'Kode fra din mail', '', 'text', 'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" aria-describedby="login-code-help"')}
         <p id="login-code-help" class="fp-note">6 cifre · gælder i 10 minutter.</p>
-        ${button('Log ind')}${resultBox()}
+        ${rememberMeField()}${button('Log ind')}${resultBox()}
       </form>
       <p class="fp-note fa-login-spam">Ingen mail? Tjek spam/uønsket post.</p>
       <div class="fa-login-options"><button class="fa-text-button" type="button" data-change-email>Ret e-mail</button>${formStart('resend-code')}${button('Send en ny kode')}${resultBox()}</form></div>`
-    : `<h1>Log ind til din forening.</h1><p>Brug den mailadresse, der har adgang til din forening.</p>${formStart(loginMethod === 'password' ? 'password-login' : 'request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="username" maxlength="254"')}${loginMethod === 'password' ? input('password', 'Adgangskode', '', 'password', 'required autocomplete="current-password" maxlength="128"') : ''}${button(loginMethod === 'password' ? 'Log ind' : 'Send kode')}${resultBox()}</form><p><button type="button" class="fa-text-button" data-login-method>${loginMethod === 'password' ? 'Glemt adgangskode? Få kode på mail' : 'Log ind med adgangskode'}</button></p>`;
+    : `<h1>Log ind til din forening.</h1><p>Brug den mailadresse, der har adgang til din forening.</p>${formStart(loginMethod === 'password' ? 'password-login' : 'request-code')}${input('email', 'Din e-mail', loginEmail, 'email', 'required autocomplete="username" maxlength="254"')}${loginMethod === 'password' ? input('password', 'Adgangskode', '', 'password', 'required autocomplete="current-password" maxlength="128"') : ''}${rememberMeField()}${button(loginMethod === 'password' ? 'Log ind' : 'Send kode')}${resultBox()}</form><p><button type="button" class="fa-text-button" data-login-method>${loginMethod === 'password' ? 'Glemt adgangskode? Få kode på mail' : 'Log ind med adgangskode'}</button></p>`;
   const help = '<p class="fa-login-help"><a href="kontakt.html#form">Kontakt TEB</a></p>';
   return `<div class="fa-login-layout"><a class="fa-back-link" href="forening.html">← Tilbage til foreningerne</a><section class="fa-login-card" aria-label="Login til din forening">${form}${localMode ? '<p class="fa-local-help">Lokal afprøvning. Find din kode i <a href="kalender-postkasse.html" target="_blank" rel="noopener">testpostkassen</a>.</p>' : ''}</section>${help}</div>`;
 }
@@ -462,7 +467,7 @@ async function onSubmit(event) {
           loginEmail = email;
           const response = await api('/auth/request', { body: { email } });
           if (!response.challengeId) throw new Error('Der kom ingen loginanmodning fra serveren. Prøv igen.');
-          challenge = { id: response.challengeId, email: email.toLowerCase(), accessState: response.accessState, deliveryState: response.deliveryState, expiresAt: Date.now() + 600000, retryAt: Date.now() + (response.resendAfterSeconds || 60) * 1000 };
+          challenge = { rememberMe, id: response.challengeId, email: email.toLowerCase(), accessState: response.accessState, deliveryState: response.deliveryState, expiresAt: Date.now() + 600000, retryAt: Date.now() + (response.resendAfterSeconds || 60) * 1000 };
           loginCooldowns.set(email.toLowerCase(), challenge.retryAt);
           saveLoginChallenge();
           localMode = localMode || response.mode === 'local';
@@ -475,9 +480,9 @@ async function onSubmit(event) {
         case 'verify-code': {
           if (action === 'password-login') {
             loginEmail = form.elements.email.value.trim();
-            await api('/auth/password/login', { body: { email: loginEmail, password: form.elements.password.value } });
+            await api('/auth/password/login', { body: { email: loginEmail, password: form.elements.password.value, rememberMe } });
             form.elements.password.value = '';
-          } else await api('/auth/verify', { body: { challengeId: form.dataset.challenge, code: form.elements.code.value.trim() } });
+          } else await api('/auth/verify', { body: { challengeId: form.dataset.challenge, code: form.elements.code.value.trim(), rememberMe } });
           session = await getSession();
           if (!authenticated()) throw new Error('Login kunne ikke bekræftes. Prøv igen.');
           challenge = null;
@@ -738,4 +743,11 @@ showMode().then(async config => {
     } catch { /* The normal directory and login remain usable without draft metadata. */ }
   }
   render();
+});
+
+content.addEventListener('change', event => {
+  if (event.target.matches('input[name="rememberMe"]')) {
+    rememberMe = event.target.checked;
+    if (challenge) { challenge.rememberMe = rememberMe; saveLoginChallenge(); }
+  }
 });

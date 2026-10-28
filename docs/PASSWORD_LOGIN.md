@@ -24,3 +24,13 @@ HMAC-pepper via den eksisterende MAIL_ENCRYPTION_KEY. Bevar nøglen i backup/rot
 Der bruges konstanttids-sammenligning, grænser per IP/mail/globalt og eksisterende HttpOnly/Secure-cookies.
 Nulstilling afslutter øvrige sessioner. Versionskontrol i samme D1-batch forhindrer en
 samtidig nulstilling i at udstede en session fra den gamle kode.
+
+## Husk mig
+
+På både mailkode- og adgangskodelogin kan brugeren vælge Husk mig i 30 dage.
+Valget er som udgangspunkt slået fra. Uden markering varer login fortsat otte timer.
+Ved mailkode bevares valget mellem mail- og kodetrinnet og ved genindlæsning af kodetrinnet.
+Både serverens session og browserens HttpOnly-cookie får samme faste udløbstid; aktivitet forlænger ikke perioden.
+Log ud afslutter sessionen straks, og adgangskodeændring afslutter fortsat øvrige sessioner.
+Brug kun Husk mig på egen enhed. Rydning af cookies eller privat browsing kan afslutte login tidligere.
+Ingen databaseændring er nødvendig; eksisterende sessioner beholder deres hidtidige udløb.

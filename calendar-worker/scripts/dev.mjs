@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
-import { resolve, extname } from 'node:path';
+import { resolve, extname, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { database } from './sqlite.mjs';
 import { localR2 } from './r2.mjs';
 import { token } from '../src/shared.mjs';
@@ -9,8 +10,8 @@ import { syncSite } from '../../scripts/sync-site.mjs';
 // Always prepare the same static files that will later be published.
 await syncSite();
 const port=Number(process.env.PORT||8787);
-const root=resolve(new URL('../../site/',import.meta.url).pathname);
-const runtime=resolve(process.env.CALENDAR_DATA_DIR||new URL('../.wrangler/local-portal/',import.meta.url).pathname);
+const root=resolve(fileURLToPath(new URL('../../site/',import.meta.url)));
+const runtime=resolve(process.env.CALENDAR_DATA_DIR||fileURLToPath(new URL('../.wrangler/local-portal/',import.meta.url)));
 await mkdir(runtime,{recursive:true});
 const DB=database(resolve(runtime,'calendar.sqlite'));
 const secretFile=resolve(runtime,'mail-key');
@@ -20,14 +21,14 @@ const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8',
 const assets={async fetch(request){
  try{
   const url=new URL(request.url);let path=decodeURIComponent(url.pathname);if(path.endsWith('/'))path+='index.html';
-  const file=resolve(root,'.'+path);if(!file.startsWith(root+'/'))return new Response('Siden findes ikke.',{status:404});
+  const file=resolve(root,'.'+path);if(!file.startsWith(root+sep))return new Response('Siden findes ikke.',{status:404});
   return new Response(await readFile(file),{headers:{'Content-Type':mime[extname(file)]||'application/octet-stream','Cache-Control':'no-store'}});
  }catch{return new Response('Siden findes ikke.',{status:404});}
 }};
 const editorEmail=process.env.EDITOR_EMAIL||'tistrup.kalender@gmail.com';
-const printRoot=resolve(new URL('../assets/',import.meta.url).pathname);
+const printRoot=resolve(fileURLToPath(new URL('../assets/',import.meta.url)));
 const printAssets={async fetch(request){
- try{const file=resolve(printRoot,'.'+decodeURIComponent(new URL(request.url).pathname));if(!file.startsWith(printRoot+'/'))return new Response(null,{status:404});return new Response(await readFile(file),{headers:{'Content-Type':mime[extname(file)]||'application/octet-stream'}});}catch{return new Response(null,{status:404});}
+ try{const file=resolve(printRoot,'.'+decodeURIComponent(new URL(request.url).pathname));if(!file.startsWith(printRoot+sep))return new Response(null,{status:404});return new Response(await readFile(file),{headers:{'Content-Type':mime[extname(file)]||'application/octet-stream'}});}catch{return new Response(null,{status:404});}
 }};
 const env={DB,PDFS:localR2(resolve(runtime,'r2')),LOCAL_PREVIEW:'true',PUBLIC_ORIGIN:`http://localhost:${port}`,EDITOR_EMAIL:editorEmail,EMAIL_FROM:'kalender@example.test',TEB_ADMIN_EMAILS:process.env.TEB_ADMIN_EMAILS||editorEmail,MAIL_ENCRYPTION_KEY:mailKey,ASSETS:printAssets};
 const server=http.createServer(async(req,res)=>{

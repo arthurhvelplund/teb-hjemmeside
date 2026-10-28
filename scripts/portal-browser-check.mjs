@@ -33,6 +33,7 @@ async function login(page,email,exerciseSteps=false){
  expireCooldowns();
  await page.goto('/forening.html#login');
  const request=page.locator('form[data-action="request-code"]');await request.waitFor();await fill(request,{email});
+ if(exerciseSteps) await request.locator('[name=rememberMe]').check();
  const response=page.waitForResponse(r=>r.url().endsWith('/auth/request')&&r.request().method()==='POST');
  await request.locator('button[type="submit"]').click();assert.ok((await response).ok());
  await page.locator('form[data-action="verify-code"]').waitFor();
@@ -54,11 +55,23 @@ async function login(page,email,exerciseSteps=false){
  await message.locator('summary').click();
  const code=(await message.innerText()).match(/\b\d{6}\b/)?.[0];
  assert.ok(code,'Requested OTP is readable through the actual local mailbox page');await mailbox.close();
+ if(exerciseSteps){
+  await page.reload();
+  assert.equal(await page.locator('form[data-action="verify-code"] [name=rememberMe]').isChecked(),true,'Remember choice survives code-page reload');
+ }
  const verify=page.locator('form[data-action="verify-code"]');await verify.waitFor();
  if(exerciseSteps){await fill(verify,{code:code==='000000'?'111111':'000000'});await verify.locator('button').click();await page.getByText('Koden er forkert eller udløbet.',{exact:false}).waitFor();}
  await fill(verify,{code});await verify.locator('button').click();
  await page.waitForURL(url=>!url.hash.startsWith('#login'));
  const session=await json(page.context(),'/session');assert.equal(session.user.email.toLowerCase(),email.toLowerCase());
+ const cookie=(await page.context().cookies()).find(c=>c.name==='teb_calendar');
+ const seconds=exerciseSteps?2592000:28800;
+ assert.ok(Math.abs(cookie.expires-Date.now()/1000-seconds)<120,'OTP cookie duration matches remember choice');
+ if(exerciseSteps){
+  const reopened=await browser.newContext({baseURL:origin,storageState:await page.context().storageState()});
+  assert.equal((await json(reopened,'/session')).authenticated,true,'Remembered cookie works in a fresh browser context');
+  await reopened.close();
+ }
 }
 async function mainForm(page){const form=page.locator('form').filter({has:page.locator('[name="title"]')}).first();await form.waitFor();return form;}
 async function published(context,id){return (await json(context,'/events/'+id)).event;}
@@ -240,8 +253,11 @@ try{
  assert.equal(await passwordPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'password login at 320px');
  await passwordPage.screenshot({path:resolve(output,'password-login-320.png'),fullPage:true});
  await passwordLogin.locator('[name=password]').fill(initialPassword);
+ await passwordLogin.locator('[name=rememberMe]').check();
  await passwordLogin.locator('button[type=submit]').click();
  await passwordPage.locator('.fa-membership-choices').waitFor();
+ const rememberedPasswordCookie=(await passwordContext.cookies()).find(c=>c.name==='teb_calendar');
+ assert.ok(Math.abs(rememberedPasswordCookie.expires-Date.now()/1000-2592000)<120,'Password remember choice sets 30-day cookie');
  await passwordPage.getByText('Min adgangskode',{exact:true}).click();
  const ownPassword=passwordPage.locator('form[data-action="set-password"]');
  const changedPassword='Changed browser password!2026';

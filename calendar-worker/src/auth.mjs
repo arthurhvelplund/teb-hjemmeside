@@ -2,6 +2,8 @@ import { ensure, now, token, hash, json } from './shared.mjs';
 import { stmt, all, rate, ipKey, emailAddress, local, loopback } from './db.mjs';
 import { mailStatement, secretHash, deliverKeys, mailState } from './mail.mjs';
 const duration=8*3600;
+// Opt-in, fixed lifetime; activity never silently extends the session.
+export const sessionDuration=data=>data.rememberMe===true?30*24*3600:duration;
 export const cookieToken=request=>(request.headers.get('Cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('teb_calendar='))?.slice('teb_calendar='.length)||'';
 export function cookie(env,value,maxAge=duration){
  ensure(env.PUBLIC_ORIGIN.startsWith('https:')||(local(env)&&loopback(env.PUBLIC_ORIGIN)),503,'Login kræver HTTPS.');
@@ -73,6 +75,7 @@ export async function verifyOtp(request,env,data){
  await rate(env,'otp-verify-challenge:'+data.challengeId,8,10);
  const challenge=await stmt(env,'SELECT email FROM otp_challenges WHERE id=?',data.challengeId).first();
  if(challenge)await rate(env,'otp-verify-email:'+await hash(challenge.email),25,10);
+ const maxAge=sessionDuration(data);
  const value=token(),sessionHash=await hash(value),stamp=now(),code=typeof data.code==='string'&&/^\d{6}$/.test(data.code)?data.code:'invalid';
  const codeHash=await secretHash(env,data.challengeId+':'+code);
  const admins=(env.TEB_ADMIN_EMAILS||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
@@ -84,7 +87,7 @@ export async function verifyOtp(request,env,data){
    WHERE id=? AND consumed_at IS NULL AND expires_at>? AND attempts<5`,codeHash,stamp,codeHash,stamp,codeHash,sessionHash,data.challengeId,stamp),
   stmt(env,`INSERT INTO users(id,email,is_admin,created_at) SELECT ?,email,?,? FROM otp_challenges WHERE id=? AND redemption_hash=?
    ON CONFLICT(email) DO UPDATE SET is_admin=CASE WHEN excluded.is_admin=1 THEN 1 ELSE users.is_admin END`,crypto.randomUUID(),challenge&&admins.includes(challenge.email)?1:0,stamp,data.challengeId,sessionHash),
-  stmt(env,`INSERT INTO sessions(hash,user_id,created_at,expires_at) SELECT ?,u.id,?,? FROM users u JOIN otp_challenges c ON c.email=u.email WHERE c.id=? AND c.redemption_hash=?`,sessionHash,stamp,new Date(Date.now()+duration*1000).toISOString(),data.challengeId,sessionHash),
+  stmt(env,`INSERT INTO sessions(hash,user_id,created_at,expires_at) SELECT ?,u.id,?,? FROM users u JOIN otp_challenges c ON c.email=u.email WHERE c.id=? AND c.redemption_hash=?`,sessionHash,stamp,new Date(Date.now()+maxAge*1000).toISOString(),data.challengeId,sessionHash),
   stmt(env,`UPDATE memberships SET status='active',user_id=(SELECT u.id FROM users u JOIN otp_challenges c ON c.email=u.email WHERE c.id=? AND c.redemption_hash=?),activated_at=?
    WHERE status='invited' AND id IN (SELECT i.membership_id FROM invitations i JOIN otp_invitations oi ON oi.invitation_id=i.id JOIN otp_challenges c ON c.id=oi.challenge_id
    WHERE c.id=? AND c.redemption_hash=? AND i.email=c.email AND i.accepted_at IS NULL AND i.revoked_at IS NULL AND i.expires_at>?)`,data.challengeId,sessionHash,stamp,data.challengeId,sessionHash,stamp),
@@ -93,7 +96,7 @@ export async function verifyOtp(request,env,data){
  ]);
  ensure(results[2].meta.changes===1,401,'Koden er ugyldig, brugt eller udløbet.');
  const auth=await identity(new Request(request.url,{headers:{Cookie:'teb_calendar='+value}}),env,true);
- return json(await sessionData(env,auth),200,{'Set-Cookie':cookie(env,value)});
+ return json(await sessionData(env,auth),200,{'Set-Cookie':cookie(env,value,maxAge)});
 }
 export async function logout(request,env){
  await stmt(env,'DELETE FROM sessions WHERE hash=?',await hash(cookieToken(request))).run();

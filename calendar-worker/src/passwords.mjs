@@ -1,6 +1,6 @@
 import { ensure, now, token, hash, json } from './shared.mjs';
 import { stmt, rate, ipKey, emailAddress } from './db.mjs';
-import { identity, sessionData, requireAccess, cookie } from './auth.mjs';
+import { identity, sessionData, requireAccess, cookie, sessionDuration } from './auth.mjs';
 import { secretHash } from './mail.mjs';
 import { timingSafeEqual } from 'node:crypto';
 
@@ -29,10 +29,11 @@ export async function loginPassword(request,env,data){
  const candidate=await derive(env,supplied,row?.salt||'00000000000000000000000000000000');
  const expected=row?Uint8Array.from(row.password_hash.match(/../g),v=>parseInt(v,16)):new Uint8Array(32);
  ensure(timingSafeEqual(candidate,expected)&&row,401,invalid);
+ const maxAge=sessionDuration(data);
  const value=token(),sessionHash=await hash(value),stamp=now();
  const validCredential='EXISTS(SELECT 1 FROM password_credentials p WHERE p.user_id=? AND p.version=?)';
  const results=await env.DB.batch([
-  stmt(env,`INSERT INTO sessions(hash,user_id,created_at,expires_at) SELECT ?,?,?,? WHERE ${validCredential}`,sessionHash,row.user_id,stamp,new Date(Date.now()+8*3600000).toISOString(),row.user_id,row.version),
+  stmt(env,`INSERT INTO sessions(hash,user_id,created_at,expires_at) SELECT ?,?,?,? WHERE ${validCredential}`,sessionHash,row.user_id,stamp,new Date(Date.now()+maxAge*1000).toISOString(),row.user_id,row.version),
   // Only an invitation explicitly assigned by TEB may be accepted without OTP.
   stmt(env,`UPDATE memberships SET status='active',user_id=?,activated_at=?
    WHERE id=? AND email=? AND status='invited' AND ${validCredential}
@@ -44,7 +45,7 @@ export async function loginPassword(request,env,data){
  ]);
  ensure(results[0].meta.changes===1,401,invalid);
  const auth=await identity(new Request(request.url,{headers:{Cookie:'teb_calendar='+value}}),env,true);
- return json(await sessionData(env,auth),200,{'Set-Cookie':cookie(env,value)});
+ return json(await sessionData(env,auth),200,{'Set-Cookie':cookie(env,value,maxAge)});
 }
 export async function setPassword(request,env,auth,data,associationId=null,memberId=null){
  const g=await requireAccess(env,auth);
