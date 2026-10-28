@@ -946,3 +946,12 @@ ikke produktkoden eller designvalget.
 
 - Efter brugerens ønske står kun Husk mig ved afkrydsningsfeltet, placeret under login-/send kode-knappen på begge loginmetoder og kodetrinnet.
 - Loginperioden og serverlogikken er uændret. JavaScript-syntaks og fælles layout/assetversioner kontrolleres før udgivelse.
+
+## Mobilnavigation – 28. oktober 2026
+
+- Leverance på `codex/mobile-navigation`, PR #7. Arbejdskopi: `C:/Users/dkArtPed/Documents/Codex/2026-10-28/new-chat-7/work/teb-mobile`. Den historiske Projects-pilot er ikke opdateret.
+- Mobilmenuen skifter fra to kolonner til én lodret liste. Menuen ligger under en fast mobilheader, har højde begrænset til den dynamiske viewport og kan rulles selvstændigt, også i liggende visning. Sidens indhold får plads svarende til den målte headerhøjde. Desktop beholder eksisterende navigation.
+- CSS-versioner er ajourført gennem fælles synkronisering på 16 sider.
+- Regressionstesten i `scripts/mobile-navigation-check.cjs` køres i den eksisterende browserkontrol. Den oprindelige kode fejler reproducerbart med `mobile menu must use one column at 320` i GitHub Actions 40767164397; de øvrige layout- og portalchecks bestod frem til denne nye kontrol.
+- Nye kontroller dækker 320x568, iPhone 16-format 393x852, liggende 852x393, 1100x800 og desktop 1440x1000: lodret menu, ingen overlap, nåbart sidste punkt, stabil headerhøjde ved åbning, lukning og navigation ved overkanten efter rulning. Den konkrete Safari-fejl på fysisk iPhone er ikke reproduceret; den faste mobilheader erstatter sticky-positionering for at undgå afhængigheden af Safaris sticky-rulning.
+- Lokal CSS-/assetsynkronisering og JavaScript-syntaks består. Lokal testbrowser kunne ikke startes (spawn UNKNOWN); browserkontrol køres i GitHub Actions. Ny CI og publicering følges i PR #7.
