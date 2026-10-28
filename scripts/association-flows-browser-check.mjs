@@ -22,10 +22,10 @@ export async function checkAssociationFlows({member,guest,association,record}) {
  await member.unroute('**/api/kalender/me/events');await member.reload();
  record('All twenty upcoming events render in the compact grid and an existing photo appears');
  const origin=new URL(member.url()).origin;
- const disposable=await member.request.post('/api/kalender/events',{headers:{Origin:origin},data:{requestKey:crypto.randomUUID(),associationId:association.id,event:{title:'Sletning via menu',date:'2099-01-02',time:'12:00',location:'Teststed',description:'Isoleret slettetest'}}});
+ const disposable=await member.request.post('/api/kalender/events',{headers:{Origin:origin},data:{requestKey:crypto.randomUUID(),associationId:association.id,event:{title:'Sletning via menu',date:new Date(Date.now()+7*86400000).toISOString().slice(0,10),time:'12:00',location:'Teststed',description:'Isoleret slettetest'}}});
  assert.ok(disposable.ok());const temporary=await disposable.json();await member.reload();
  const removalCard=member.locator('.mf-event-grid > li').filter({hasText:'Sletning via menu'});await removalCard.locator('summary').click();
- member.once('dialog',dialog=>dialog.accept());await removalCard.getByRole('button',{name:'Slet arrangement',exact:true}).click();
+ await removalCard.getByRole('button',{name:'Slet arrangement',exact:true}).click();
  await member.getByText('Arrangementet er slettet.',{exact:true}).waitFor();assert.equal((await member.request.get('/api/kalender/events/'+temporary.id)).status(),404);
  assert.equal(await member.locator('.mf-event-grid > li').filter({hasText:'Sletning via menu'}).count(),0);
  record('Delete from the three-dot menu removes an isolated event from workspace and public calendar');
