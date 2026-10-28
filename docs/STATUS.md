@@ -975,3 +975,5 @@ ikke produktkoden eller designvalget.
 - Fjernet den indskrevne pil på begge Fortsæt-knapper efter login; fælles .btn-design viser fortsat én pil.
 - Valgfri Opret adgangskode vises som en tydelig, fuld bredde sekundær knap med grøn kant og forklaring om fortsat mulighed for engangskoder. Fortsæt er stadig primær handling; loginlogikken er uændret.
 - JavaScript-syntaks, fælles layout/assetversioner på 16 sider og separat spec-/standardgennemgang består. Leverancen er en lille visuel justering oven på den fuldt testede PR #8.
+
+- Udgivet med commit 4cd57fb6e8f121ef142377937b2b0d32391fddc1; produktionsworkflow 40774548473 består. Livesidens indloggede Fortsæt-knap er visuelt verificeret med præcis én pil (output/live-login-single-arrow.jpg). Adgangskodevalgets tekst/klasse og hierarki er gennemgået; ingen legitimationsoplysninger eller loginlogik er ændret.
