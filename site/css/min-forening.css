@@ -153,3 +153,5 @@
  .mf-event-visual{height:115px}
  .mf-event-visual>.mf-menu>summary{width:40px;height:40px}
 }
+
+.mf-account-menu>summary{width:auto;gap:.45rem;border-radius:99px;padding:0 .8rem 0 .4rem;font-size:.8rem;letter-spacing:0}.mf-account-avatar{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#ffffff18;font-size:.7rem}.mf-account-menu>summary>span:last-child{white-space:nowrap}

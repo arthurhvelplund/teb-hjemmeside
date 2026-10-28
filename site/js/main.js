@@ -14,6 +14,19 @@
     });
   }
 
+  // Administration stays independent from the ordinary association entrance.
+  var adminTools = document.querySelector('[data-admin-tools]');
+  if (adminTools) {
+    var sessionRevision = 0;
+    function updateAdminTools(session) { adminTools.hidden = !(session && session.authenticated && session.user && session.user.isAdmin); }
+    document.addEventListener('teb:session', function (event) { sessionRevision += 1; updateAdminTools(event.detail); });
+    var initialRevision = sessionRevision;
+    fetch('/api/kalender/session', { credentials: 'same-origin', signal: AbortSignal.timeout(10000) })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (session) { if (initialRevision === sessionRevision) updateAdminTools(session); })
+      .catch(function () { /* The ordinary account entrance remains available. */ });
+  }
+
   var stationYears = document.querySelector('[data-station-years]');
   if (stationYears) {
     var now = new Date();
