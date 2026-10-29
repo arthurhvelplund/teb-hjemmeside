@@ -997,3 +997,9 @@ ikke produktkoden eller designvalget.
 - CI 40780768619/job 123141591385 består: 118 backendtests, 47 komplette API/UI-forløb inkl. administratorens standard, separat adminindgang, kendt oversigtslogin og personlig navneredigering, fælles layout/assetversioner på 16 sider, responsiv navigation og Cloudflare build/runtime. Spec-/standardgennemgang uden udestående fund.
 - Produktionsworkflow 40781084960 er gennemført med succes. Direkte live-browserkontrol/skærmbillede kunne ikke gennemføres, fordi computer-/browserforbindelsen var lukket; genstart af værktøjssessionen fejlede også. Den samlede CI-browserkontrol og den gennemførte produktionsudgivelse er verificeret. Ingen rigtig mail sendt, adgang ændret eller produktionsindhold redigeret under kontrollen.
 - Arbejdskopi: new-chat-3/work/teb-login-design. Historisk Projects-pilot er ikke opdateret. Lokale testdata og loginmateriale er ikke overført.
+
+## Synlige trepriksmenuer - 29. oktober 2026
+
+- Fælles menuknap har lys grøn baggrund, mørke prikker og tydelig grøn kant. Hvid ring og diskret skygge adskiller knappen fra arrangementsbilleder. Hover/åben menu er mørkegrøn med hvide prikker; tastaturfokus bevares.
+- Arrangementets knap er 40px på alle skærme. Samme fælles design gælder for personer og foreningens menu ved Min profil. Profilens tekstknap bevarer sin mørke flade. Ingen funktioner eller adgangsforhold ændret.
+- Afventer layoutkontrol, review og produktionsudgivelse.
