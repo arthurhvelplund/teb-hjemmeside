@@ -1009,3 +1009,8 @@ ikke produktkoden eller designvalget.
 - PR #11, merge 5639db7eb046a2e0be6e7a013501743087fa0644: fælles trepriksknapper har lys grøn flade, mørkere kant/prikker samt hvid ring og skygge over billeder. Hover/åben menu har mørkegrøn flade og hvide prikker. Personmenuens spans arver nu korrekt kontrast. Arrangementsknapper er 40px på alle bredder; tastaturfokus og profilens tekstknap bevares.
 - Spec- og standardreview afsluttet; fund om personmenuens tekstfarve er rettet. Layout/assetkontrol består. CI 40826577833/job 123291284117 og produktionsworkflow 40826943868 er gennemført med succes, inkl. backend-, browser-, responsivt layout- og Cloudflare-runtimekontrol. Ingen funktioner, rettigheder eller produktionsindhold ændret.
 - Direkte livekontrol på brugerens eksisterende Min forening: forening, arrangementsbillede og personmenu viser de nye knapper. Åben personmenu har verificeret hvide prikker på mørkegrøn baggrund; Escape lukker menuen. Visuel dokumentation: output/live-visible-menus.jpg.
+
+## Yderligere kontrast på menuknapper - 29. oktober 2026
+
+- Brugeren ønskede endnu tydeligere differentiering. Trepriksknapper har nu massiv mørkegrøn baggrund (#354e37), hvide prikker, mørk kant og tydeligere skygge. Hover/åben tilstand er dybere grøn (#203a2a). Hvid ring, størrelser, fokusmarkering og farvearv på personmenuer bevares. Ingen funktionelle ændringer.
+- Layout/assetkontrol består; CI og udgivelse følger.
