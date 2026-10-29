@@ -1014,3 +1014,5 @@ ikke produktkoden eller designvalget.
 
 - Brugeren ønskede endnu tydeligere differentiering. Trepriksknapper har nu massiv mørkegrøn baggrund (#354e37), hvide prikker, mørk kant og tydeligere skygge. Hover/åben tilstand er dybere grøn (#203a2a). Hvid ring, størrelser, fokusmarkering og farvearv på personmenuer bevares. Ingen funktionelle ændringer.
 - Layout/assetkontrol består; CI og udgivelse følger.
+
+- Udgivet via PR #12, merge 4e6545b47d2772d8ad51a315514931cc16deec51. Spec- og standardreview uden fund. CI 40827334756 og produktionsworkflow 40827550918 består. Livevisning kontrolleres ved aflevering.
