@@ -1003,3 +1003,9 @@ ikke produktkoden eller designvalget.
 - Fælles menuknap har lys grøn baggrund, mørke prikker og tydelig grøn kant. Hvid ring og diskret skygge adskiller knappen fra arrangementsbilleder. Hover/åben menu er mørkegrøn med hvide prikker; tastaturfokus bevares.
 - Arrangementets knap er 40px på alle skærme. Samme fælles design gælder for personer og foreningens menu ved Min profil. Profilens tekstknap bevarer sin mørke flade. Ingen funktioner eller adgangsforhold ændret.
 - Afventer layoutkontrol, review og produktionsudgivelse.
+
+## Tydelige trepriksmenuer - udgivet 29. oktober 2026
+
+- PR #11, merge 5639db7eb046a2e0be6e7a013501743087fa0644: fælles trepriksknapper har lys grøn flade, mørkere kant/prikker samt hvid ring og skygge over billeder. Hover/åben menu har mørkegrøn flade og hvide prikker. Personmenuens spans arver nu korrekt kontrast. Arrangementsknapper er 40px på alle bredder; tastaturfokus og profilens tekstknap bevares.
+- Spec- og standardreview afsluttet; fund om personmenuens tekstfarve er rettet. Layout/assetkontrol består. CI 40826577833/job 123291284117 og produktionsworkflow 40826943868 er gennemført med succes, inkl. backend-, browser-, responsivt layout- og Cloudflare-runtimekontrol. Ingen funktioner, rettigheder eller produktionsindhold ændret.
+- Direkte livekontrol på brugerens eksisterende Min forening: forening, arrangementsbillede og personmenu viser de nye knapper. Åben personmenu har verificeret hvide prikker på mørkegrøn baggrund; Escape lukker menuen. Visuel dokumentation: output/live-visible-menus.jpg.
