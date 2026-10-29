@@ -91,6 +91,7 @@
 .mf-menu{position:relative;flex:none}
 .mf-menu>summary{display:flex;align-items:center;justify-content:center;list-style:none;width:42px;height:42px;border:1px solid #657963;border-radius:50%;background:#e4eadf;color:#203a2a;box-shadow:0 0 0 2px #fff,0 2px 5px #20352726;cursor:pointer;font-size:1rem;font-weight:700;letter-spacing:.08em;user-select:none}
 .mf-menu>summary::-webkit-details-marker{display:none}
+.mf-menu>summary>span{color:inherit}
 .mf-menu>summary:hover,.mf-menu[open]>summary{background:#354e37;border-color:#354e37;color:#fff}
 .mf-menu>summary:focus-visible{outline:3px solid var(--forest);outline-offset:3px}
 .mf-account-menu>summary{font-size:.75rem;background:var(--forest);color:var(--paper-soft);letter-spacing:0}
