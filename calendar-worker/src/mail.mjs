@@ -45,7 +45,7 @@ export async function deliverMail(env,id){
   if(local(env)){state='local';}
   else if(!env.TEB_EMAIL||!env.EMAIL_FROM){state='failed';}
   else {
-   const result=await env.TEB_EMAIL.send({from:{email:env.EMAIL_FROM,name:'TEB – Tistrup'},to:message.to,...(env.REPLY_TO?{replyTo:env.REPLY_TO}:{}),subject:message.subject,text:message.text,
+   const result=await env.TEB_EMAIL.send({from:{email:env.EMAIL_FROM,name:'TEB-Tistrup'},to:message.to,...(env.REPLY_TO?{replyTo:env.REPLY_TO}:{}),subject:message.subject,text:message.text,
     html:`<html lang="da"><body><div style="font:18px/1.6 system-ui,sans-serif;max-width:620px">${escapeHtml(message.text).replace(/\n/g,'<br>')}</div></body></html>`});
    state=result?.messageId?'sent':'uncertain';providerId=result?.messageId||null;
   }

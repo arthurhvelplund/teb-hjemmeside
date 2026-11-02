@@ -1028,3 +1028,8 @@ ikke produktkoden eller designvalget.
 - Arbejdskopi: Windows 2026-11-02/new-chat/work/teb-source/arthurhvelplund-teb-hjemmeside-04c7bb0. Historisk Projects-pilot er ikke opdateret.
 
 - Udgivet via PR #13, merge e2e9a4649fa6905dff31587f697175e5efa859f8 (kodecommit 8d8d1f8096511588a40976dac882f919d54bbdaa). CI 41505322629/job 125483017160 består: 118 backendtests, 47 API/UI-forløb, fælles/responsivt layout og Cloudflare runtime/build. Produktionsworkflow 41505703472/job 125484357042 er gennemført med succes. Live HTML/JavaScript svarer HTTP 200 med ny assetversion og afsenderhjælp; aktiv Worker-kode er genlæst med nyt afsendernavn, loginforklaring og TEB-signatur. Ingen eksterne mails er sendt under kontrollen.
+
+
+## Kort afsendernavn – 2. november 2026
+
+- Efter brugerens ønske hedder afsenderen nu TEB-Tistrup. Login-sidens afsenderhjælp bruger samme navn. Mailadresse og loginfunktioner er uændrede.

@@ -275,7 +275,7 @@ function loginPage() {
         ${input('code', 'Engangskode fra din mail', '', 'text', 'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" aria-describedby="login-code-help"')}
         <p id="login-code-help" class="fp-note">6 cifre · kan bruges én gang · gælder i 10 minutter.</p>
         ${button('Log ind')}${rememberMeField()}${resultBox()}
-      </form><p class="fp-note fa-login-spam">Ingen mail? Tjek spam/uønsket post og eventuelt Andet.<br>Afsender: TEB – Tistrup · kalender@teb-tistrup.dk</p>
+      </form><p class="fp-note fa-login-spam">Ingen mail? Tjek spam/uønsket post og eventuelt Andet.<br>Afsender: TEB-Tistrup · kalender@teb-tistrup.dk</p>
       <div class="fa-login-options"><button class="fa-text-button" type="button" data-change-email>Ret e-mail</button>${formStart('resend-code')}${button('Send en ny engangskode')}${resultBox()}</form></div>
       ${loginHasPassword ? '<div class="fa-login-alternative"><button type="button" class="fa-text-button" data-use-password>Brug adgangskode i stedet</button></div>' : ''}`);
   }
