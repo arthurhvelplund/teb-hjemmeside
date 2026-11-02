@@ -1033,3 +1033,11 @@ ikke produktkoden eller designvalget.
 ## Kort afsendernavn – 2. november 2026
 
 - Efter brugerens ønske hedder afsenderen nu TEB-Tistrup. Login-sidens afsenderhjælp bruger samme navn. Mailadresse og loginfunktioner er uændrede.
+
+
+## Papirkalender november–december – 2. november 2026
+
+- Efter brugerens godkendelse opdateres Kalenderen på papir med den leverede november–december 2026-PDF og et miniaturebillede renderet fra samme PDF. Perioden står synligt i boksen.
+- September–oktober 2026 bevares på sin eksisterende adresse og under Ældre udgaver; den allerede klargjorte arkivstruktur er bevaret.
+- Kontroller før udgivelse: PDF åbnet og renderet (én side), begge måneder visuelt bekræftet, ny PDF-/billedsti og eksisterende arkivlink kontrolleret. Ingen backend- eller kalenderarrangementer ændret. Produktionsworkflowets layoutkontroller og liveverifikation følges efter commit.
+- Leverance: Git-historikken for denne statusopdatering; arbejdskopi Windows 2026-11-02/new-chat-10. Den historiske Projects-pilot er ikke opdateret.
