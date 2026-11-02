@@ -59,7 +59,7 @@ export async function requestOtp(request,env,data){
  UNION ALL SELECT 1 FROM memberships m WHERE m.email=? AND (m.status='active' OR
  (m.status='invited' AND EXISTS(SELECT 1 FROM invitations i WHERE i.id=m.invitation_id AND i.accepted_at IS NULL AND i.revoked_at IS NULL AND i.expires_at>?))) LIMIT 1`,email,email,now()).first());
  const id=crypto.randomUUID(),code=randomCode(),stamp=now(),expiry=new Date(Date.now()+600000).toISOString(),dedupe='otp:'+id;
- const job=await mailStatement(env,{dedupe,to:email,subject:'Din engangskode til TEB',text:`Din engangskode er ${code}\n\nEngangskoden gælder i ti minutter og kan bruges én gang. Hvis du ikke bad om en engangskode, kan du se bort fra mailen.`,expiresAt:expiry});
+ const job=await mailStatement(env,{dedupe,to:email,subject:'Din engangskode til TEB',text:`Du har bedt om en engangskode til at logge ind på teb-tistrup.dk.\n\nDin engangskode er ${code}\n\nIndtast engangskoden på den loginside, du allerede har åben. Den gælder i ti minutter og kan bruges én gang. Del ikke engangskoden med andre.\n\nHvis du ikke bad om en engangskode, kan du se bort fra mailen.\n\nVenlig hilsen\nTistrup Erhvervs- og Borgerforening (TEB)`,expiresAt:expiry});
  await env.DB.batch([
   stmt(env,`UPDATE mail_jobs SET state='cancelled',updated_at=? WHERE state IN ('pending','failed') AND dedupe_key IN (SELECT 'otp:'||id FROM otp_challenges WHERE email=? AND consumed_at IS NULL)`,stamp,email),
   stmt(env,'UPDATE otp_challenges SET consumed_at=? WHERE email=? AND consumed_at IS NULL',stamp,email),

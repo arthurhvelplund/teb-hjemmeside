@@ -1016,3 +1016,13 @@ ikke produktkoden eller designvalget.
 - Layout/assetkontrol består; CI og udgivelse følger.
 
 - Udgivet via PR #12, merge 4e6545b47d2772d8ad51a315514931cc16deec51. Spec- og standardreview uden fund. CI 40827334756 og produktionsworkflow 40827550918 består. Livevisning kontrolleres ved aflevering.
+
+
+## Engangskodemails og spam – 2. november 2026
+
+- Cloudflares aktuelle DNS-kontrol melder ready uden fejl: SPF på cf-bounce, DKIM med cf-bounce-selector og DMARC p=reject. Kontostatus er healthy (ingen registreret evaluering). Ingen DNS-ændringer var nødvendige. En eksisterende formularmail modtaget i Gmail 27. oktober består SPF, DKIM og DMARC; det er ikke en modtagerkontrol af Kims kodemail.
+- Kims svar 29. oktober bekræfter spamplacering. Cloudflare viser tre kodemails til Møllehuset leveret til modtagerserveren samme dag. Udgående logfelter med none og isSpam=0 dokumenterer ikke modtagerens godkendelse eller indbakkeplacering. Den oprindelige modtagne kodemails headers mangler fortsat til præcis årsagsanalyse.
+- Fælles afsendernavn ændret fra Tistrup Kalenderen til TEB – Tistrup; afsenderadressen kalender@teb-tistrup.dk bevares. Kodemailen forklarer loginformålet og hjemmesiden, viser koden på egen linje, bevarer ti minutters gyldighed/engangsbrug og har TEB-signatur. HTML og ren tekst bevares uden billeder eller tracking.
+- Den eksisterende korte spamhenvisning ved kodefeltet nævner nu også Andet og viser afsendernavn og mailadresse. Loginregler, udløb og adgangsforhold er uændrede. Ingen mails er sendt til foreningerne under kontrollen.
+- Lokal syntaks- og fælles layout/assetkontrol består. Backend- og browserkontroller samt udgivelsesstatus registreres efter CI.
+- Arbejdskopi: Windows 2026-11-02/new-chat/work/teb-source/arthurhvelplund-teb-hjemmeside-04c7bb0. Historisk Projects-pilot er ikke opdateret.
