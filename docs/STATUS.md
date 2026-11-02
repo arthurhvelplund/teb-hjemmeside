@@ -1041,3 +1041,5 @@ ikke produktkoden eller designvalget.
 - September–oktober 2026 bevares på sin eksisterende adresse og under Ældre udgaver; den allerede klargjorte arkivstruktur er bevaret.
 - Kontroller før udgivelse: PDF åbnet og renderet (én side), begge måneder visuelt bekræftet, ny PDF-/billedsti og eksisterende arkivlink kontrolleret. Ingen backend- eller kalenderarrangementer ændret. Produktionsworkflowets layoutkontroller og liveverifikation følges efter commit.
 - Leverance: Git-historikken for denne statusopdatering; arbejdskopi Windows 2026-11-02/new-chat-10. Den historiske Projects-pilot er ikke opdateret.
+
+- Verificeret udgivet: kodecommit `4ed25735180725a8e1816455b9456cc131431607`, produktionsworkflow `41523900839` afsluttet med succes inkl. fælles layoutkontroller. Livebrowseren viser november–december, det røde miniaturebillede og september–oktober under Ældre udgaver. Begge PDF-adresser svarer HTTP 200/application/pdf; den nye PDF er byteidentisk med brugerens kilde (3.543.638 bytes). Screenshot: `TEB-kalender-opdateret.jpg` i arbejdskopien.
