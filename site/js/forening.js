@@ -594,8 +594,10 @@ async function onSubmit(event) {
           const data = values(form, ['associationId', 'newAssociationName', 'name', 'roleNote']);
           if (data.associationId) delete data.newAssociationName;
           else delete data.associationId;
-          await api('/access-requests', { body: data });
-          await refresh('Din anmodning er gemt hos TEB. Du får først adgang, når den er godkendt.');
+          const { status } = await api('/access-requests', { body: data });
+          await refresh(status === 'already_granted'
+            ? 'Du har allerede adgang til foreningen.'
+            : 'Din anmodning er gemt hos TEB. Du får først adgang, når den er godkendt.');
           break;
         }
         case 'save-profile': {
