@@ -28,18 +28,6 @@ export async function requireAccess(env,auth,associationId=null){
 }
 export async function sessionData(env,auth){
  if(!auth.user)return {authenticated:false,user:null,memberships:[]};
- const stamp=now();
- const eligible=`m.email=? AND m.status='invited' AND i.revoked_at IS NULL AND i.accepted_at IS NULL AND i.expires_at>?`;
- const session=`EXISTS(SELECT 1 FROM sessions WHERE hash=? AND user_id=? AND expires_at>?)`;
- if(await stmt(env,`SELECT 1 FROM memberships m JOIN invitations i ON i.id=m.invitation_id WHERE ${eligible} LIMIT 1`,auth.user.email,stamp).first()){
-  await env.DB.batch([
-   stmt(env,`UPDATE memberships SET status='active',user_id=?,activated_at=? WHERE id IN (
-    SELECT m.id FROM memberships m JOIN invitations i ON i.id=m.invitation_id WHERE ${eligible}) AND ${session}`,
-    auth.user.id,stamp,auth.user.email,stamp,auth.sessionHash,auth.user.id,stamp),
-   stmt(env,`UPDATE invitations SET accepted_at=? WHERE accepted_at IS NULL AND revoked_at IS NULL AND id IN (
-    SELECT invitation_id FROM memberships WHERE user_id=? AND status='active' AND activated_at=?)`,stamp,auth.user.id,stamp)
-  ]);
- }
  const rows=await all(stmt(env,`SELECT a.*,m.id AS membership_id,m.association_id,m.role AS membership_role FROM memberships m JOIN associations a ON a.id=m.association_id WHERE m.user_id=? AND m.status='active' ORDER BY a.name`,auth.user.id));
  return {authenticated:true,user:{id:auth.user.id,email:auth.user.email,isAdmin:Boolean(auth.user.is_admin)},memberships:rows.map(row=>({id:row.membership_id,associationId:row.association_id,role:row.membership_role,association:associationData(row)}))};
 }
