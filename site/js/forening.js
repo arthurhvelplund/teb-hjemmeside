@@ -596,7 +596,7 @@ async function onSubmit(event) {
           else delete data.associationId;
           const { status } = await api('/access-requests', { body: data });
           await refresh(status === 'already_granted'
-            ? 'Du har allerede adgang til foreningen.'
+            ? 'Du har allerede fået adgang til foreningen. Hvis den ikke vises under Min forening, så log ud og log ind igen med samme e-mailadresse.'
             : 'Din anmodning er gemt hos TEB. Du får først adgang, når den er godkendt.');
           break;
         }
