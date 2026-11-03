@@ -24,8 +24,13 @@ export async function startLogin(request,env,data){
  await rate(env,'login-start-ip:'+await ipKey(request),30,15);
  await rate(env,'login-start-email:'+await hash(email),12,15);
  await rate(env,'login-start-global',150,15);
- const credential=await stmt(env,'SELECT 1 FROM password_credentials p JOIN users u ON u.id=p.user_id WHERE u.email=?',email).first();
- if(credential)return json({method:'password'});
+ const credential=await stmt(env,'SELECT p.assigned_membership_id FROM password_credentials p JOIN users u ON u.id=p.user_id WHERE u.email=?',email).first();
+ if(credential){
+  const needsEmailVerification=await stmt(env,`SELECT 1 FROM memberships m JOIN invitations i ON i.id=m.invitation_id
+   WHERE m.email=? AND m.status='invited' AND m.id IS NOT ? AND i.email=m.email
+   AND i.accepted_at IS NULL AND i.revoked_at IS NULL AND i.expires_at>? LIMIT 1`,email,credential.assigned_membership_id,now()).first();
+  if(!needsEmailVerification)return json({method:'password'});
+ }
  const response=await requestOtp(request,env,{email});
  if(!response.ok)return response;
  return json({method:'email',...await response.json()});

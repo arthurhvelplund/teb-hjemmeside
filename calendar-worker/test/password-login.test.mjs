@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { database } from '../scripts/sqlite.mjs';
 import { token, hash } from '../src/shared.mjs';
 import { requestOtp, verifyOtp, identity, sessionData } from '../src/auth.mjs';
-import { loginPassword, setPassword, ownPassword } from '../src/passwords.mjs';
+import { requestAccess } from '../src/associations.mjs';
+import { startLogin, loginPassword, setPassword, ownPassword } from '../src/passwords.mjs';
 const origin='https://teb.example.test';
 function fixture(t){
  const DB=database();t.after(()=>DB.close());const messages=[];
@@ -140,4 +141,21 @@ test('membership revoked during password assignment is checked again inside the 
  }};
  await rejects(()=>setPassword(f.request(),f.env,admin.auth,{password:good},'a',id),403);
  assert.equal(f.DB.prepare('SELECT count(*) AS n FROM password_credentials').first().n,0);
+});
+
+test('existing password account activates a new invitation through login without requesting access again',async t=>{
+ const f=fixture(t),email='member@example.test',member=await f.loginOtp(email);
+ await ownPassword(f.env,member.auth,{password:good});
+ await f.member(email);
+ const duplicate=()=>requestAccess(f.env,member.auth,{associationId:'a',name:'Member'});
+ assert.equal((await (await duplicate()).json()).status,'already_granted');
+ f.DB.prepare("DELETE FROM rate_limits WHERE key LIKE 'otp-cooldown:%'").run();
+ const challenge=await (await startLogin(f.request(),f.env,{email})).json();
+ assert.equal(challenge.method,'email');
+ const code=f.messages.findLast(m=>m.to===email).text.match(/\b\d{6}\b/)[0];
+ const verified=await (await verifyOtp(f.request(),f.env,{challengeId:challenge.challengeId,code})).json();
+ assert.deepEqual(verified.memberships.map(m=>m.associationId),['a']);
+ assert.equal((await (await duplicate()).json()).status,'already_granted');
+ assert.equal(f.DB.prepare('SELECT count(*) AS n FROM access_requests').first().n,0);
+ assert.equal(f.messages.some(m=>m.subject.startsWith('Adgangsanmodning:')),false);
 });

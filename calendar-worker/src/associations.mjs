@@ -52,7 +52,7 @@ export async function members(env,auth,id){
  return json({members:rows});
 }
 // Invitationer har ingen aktiveringsfrist. Den eksisterende NOT NULL-datokolonne bruger en fjern slutdato.
-export async function invitationStatements(env,{associationId,email,name,role,g,replaceRole=false,associationName='',condition='1',args=[]}){
+export async function invitationStatements(env,{associationId,email,name,role,g,associationName='',condition='1',args=[]}){
  const id=crypto.randomUUID(),membershipId=crypto.randomUUID(),stamp=now(),expiry='9999-12-31T23:59:59.999Z';
  const conditionSql=`${g.sql} AND (${condition})`;
  const conditionArgs=[...g.args,...args];
@@ -63,7 +63,7 @@ export async function invitationStatements(env,{associationId,email,name,role,g,
  return {id,membershipId,statements:[
   stmt(env,`INSERT INTO memberships(id,association_id,email,name,role,status,invited_at,invitation_id) SELECT ?,?,?,?,?,'invited',?,? WHERE ${conditionSql}
   ON CONFLICT(association_id,email) DO UPDATE SET name=excluded.name,role=excluded.role,status='invited',invited_at=excluded.invited_at,invitation_id=excluded.invitation_id,revoked_at=NULL,user_id=NULL,activated_at=NULL
-  WHERE memberships.status='revoked' OR (memberships.status='invited' AND NOT EXISTS(SELECT 1 FROM invitations WHERE membership_id=memberships.id AND accepted_at IS NULL AND revoked_at IS NULL AND expires_at>?)) OR (?=1 AND memberships.role!=excluded.role)`,membershipId,associationId,email,name,role,stamp,id,...conditionArgs,stamp,replaceRole?1:0),
+  WHERE memberships.status='revoked' OR (memberships.status='invited' AND NOT EXISTS(SELECT 1 FROM invitations WHERE membership_id=memberships.id AND accepted_at IS NULL AND revoked_at IS NULL AND expires_at>?))`,membershipId,associationId,email,name,role,stamp,id,...conditionArgs,stamp),
   stmt(env,`UPDATE mail_jobs SET state='cancelled',updated_at=? WHERE state IN ('pending','failed') AND dedupe_key IN (SELECT 'invitation:'||id FROM invitations WHERE membership_id IN (SELECT id FROM memberships WHERE association_id=? AND email=? AND invitation_id=?))`,stamp,...activeArgs),
   stmt(env,`UPDATE invitations SET revoked_at=? WHERE accepted_at IS NULL AND revoked_at IS NULL AND membership_id IN (SELECT id FROM memberships WHERE association_id=? AND email=? AND invitation_id=?)`,stamp,...activeArgs),
   stmt(env,`INSERT INTO invitations(id,membership_id,email,created_at,expires_at) SELECT ?,id,?,?,? FROM memberships WHERE association_id=? AND email=? AND invitation_id=?`,id,email,stamp,expiry,...activeArgs),job
@@ -110,6 +110,10 @@ export async function requestAccess(env,auth,data){
  ensure(Boolean(associationId)!==Boolean(newName),400,'Vælg en forening, eller skriv navnet på en ny.');
  const association=associationId?await stmt(env,'SELECT name FROM associations WHERE id=?',associationId).first():null;
  if(associationId)ensure(association,404,'Foreningen findes ikke.');
+ const existingAccess=stmt(env,`SELECT 1 FROM memberships m WHERE m.association_id=? AND m.email=?
+ AND (m.status='active' OR (m.status='invited' AND EXISTS(
+ SELECT 1 FROM invitations i WHERE i.id=m.invitation_id AND i.revoked_at IS NULL AND i.accepted_at IS NULL AND i.expires_at>?)))`,associationId,auth.user.email,now());
+ if(associationId&&await existingAccess.first())return json({status:'already_granted'});
  await rate(env,'access-request:'+auth.user.id,10);
  const id=crypto.randomUUID(),dedupe='access-request:'+id;
  const recipients=[...new Set((env.ACCESS_REQUEST_EMAIL||env.TEB_ADMIN_EMAILS||'').split(',').map(email=>email.trim().toLowerCase()).filter(Boolean))];
@@ -121,8 +125,12 @@ export async function requestAccess(env,auth,data){
  // Persist the request and its encrypted notification together. The newly
  // inserted request ID prevents duplicate submissions from queuing more mail.
  const [result]=await env.DB.batch([stmt(env,`INSERT OR IGNORE INTO access_requests(id,user_id,email,name,association_id,new_association_name,role_note,created_at)
- SELECT ?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM sessions WHERE hash=? AND expires_at>?)`,id,auth.user.id,auth.user.email,name,associationId,newName,note,now(),auth.sessionHash,now()),job]);
+ SELECT ?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM sessions WHERE hash=? AND user_id=? AND expires_at>?)
+ AND NOT EXISTS(SELECT 1 FROM memberships m WHERE m.association_id=? AND m.email=?
+ AND (m.status='active' OR (m.status='invited' AND EXISTS(
+ SELECT 1 FROM invitations i WHERE i.id=m.invitation_id AND i.revoked_at IS NULL AND i.accepted_at IS NULL AND i.expires_at>?))))`,id,auth.user.id,auth.user.email,name,associationId,newName,note,now(),auth.sessionHash,auth.user.id,now(),associationId,auth.user.email,now()),job]);
  if(!result.meta.changes){
+  if(associationId&&await existingAccess.first())return json({status:'already_granted'});
   const existing=await stmt(env,"SELECT id,status FROM access_requests WHERE user_id=? AND ifnull(association_id,'')=? AND new_association_name=? AND status='pending'",auth.user.id,associationId||'',newName).first();
   ensure(existing,401,'Log ind igen.');await deliverKeys(env,['access-request:'+existing.id]);return json(existing);
  }
@@ -141,7 +149,7 @@ export async function decideAccess(env,auth,id,data){
  if(status==='approved'){
   if(!row.association_id)operations.push(stmt(env,`INSERT INTO associations(id,name,created_at,updated_at) SELECT ?,?,?,? WHERE ${condition}`,associationId,row.new_association_name,stamp,stamp,...args));
   // Association is created in the same batch; invitation text uses request name.
-  invitation=await invitationStatements(env,{associationId,email:row.email,name:row.name,role:'manager',g,replaceRole:true,associationName:row.new_association_name,condition,args});operations.push(...invitation.statements);
+  invitation=await invitationStatements(env,{associationId,email:row.email,name:row.name,role:'manager',g,associationName:row.new_association_name,condition,args});operations.push(...invitation.statements);
   operations.push(stmt(env,`UPDATE access_requests SET association_id=? WHERE id=? AND decision_key=?`,associationId,id,decision));
  }
  const results=await env.DB.batch(operations);ensure(results[0].meta.changes===1,409,'Anmodningen er allerede behandlet, eller din adgang er ophørt.');
