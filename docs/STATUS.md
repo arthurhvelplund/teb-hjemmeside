@@ -1,5 +1,10 @@
 # Samlet status for TEB hjemmesiden
 
+## Profilbilleder for foreninger med kompakte id'er den 9. november 2026
+
+- Billedfunktionen genkender nu også forenings-id'er med 32 hextegn uden bindestreger. Hjemmesiden kan vise uploadens forhåndsvisning, og API'et kan gemme billedadressen på profilen og levere billedet. Eksisterende UUID-adresser understøttes fortsat.
+- Lokal kontrol brugte en billedadresse fra det berørte spejdercenter. Begge tjek afviste adressen før rettelsen og accepterede den efter. Ugyldigt id, filendelse og sti bliver fortsat afvist.
+
 Opdateret 25. oktober 2026. Den nye portal er live på teb-tistrup.dk. Dette er projektets fælles status og afleveringssted.
 Status ved oprettelsen: 25 tråde, heraf 17 hovedtråde og 8 undertråde. Foreningsleverancen er samlet i `53cc3c0`. Kalenderens visuelle udtryk afventer brugerens designvalg.
 

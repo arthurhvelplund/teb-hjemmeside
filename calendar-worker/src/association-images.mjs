@@ -4,7 +4,8 @@ import { requireAccess } from './auth.mjs';
 
 export const maxImageBytes=2*1024*1024;
 const uuid='[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
-export const storedImagePath=new RegExp('^/api/kalender/association-images/('+uuid+')/('+uuid+'\\.(?:jpg|png|webp))$');
+const associationId='(?:'+uuid+'|[a-f0-9]{32})';
+export const storedImagePath=new RegExp('^/api/kalender/association-images/('+associationId+')/('+uuid+'\\.(?:jpg|png|webp))$');
 export const imageTypes={jpg:'image/jpeg',png:'image/png',webp:'image/webp'};
 const types=imageTypes;
 export function extension(bytes){
