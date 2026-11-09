@@ -206,7 +206,7 @@ async function directoryPage() {
 function associationImage(value) {
   if (!value || /[\\\u0000-\u0020]/.test(value)) return null;
   if (value.startsWith('/images/') && !value.includes('..') && !/[?#]/.test(value)) return value;
-  if (/^\/api\/kalender\/association-images\/[a-f0-9-]{36}\/[a-f0-9-]{36}\.(jpg|png|webp)$/.test(value)) return value;
+  if (/^\/api\/kalender\/association-images\/(?:[a-f0-9-]{36}|[a-f0-9]{32})\/[a-f0-9-]{36}\.(jpg|png|webp)$/.test(value)) return value;
   try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password ? url.href : null; } catch { return null; }
 }
 function associationPhoto(a, className = '', compact = false) {
