@@ -1,5 +1,29 @@
 # Samlet status for TEB hjemmesiden
 
+## Facebook-statistik og adgang til Arthur den 11. november 2026
+
+- Kodecommit: `81ca256`. Læsecollector i `scripts/facebook-analytics.mjs`,
+  eksplicit API-/metric-konfiguration, private JSON-snapshots og skabelon til
+  daglig launchd-kørsel. Adgangsnøgle læses fra miljø eller macOS Keychain;
+  output i repoet afvises. Seneste gode snapshot bevares ved fejl.
+- Kontroller: 11 fokuserede tests inklusive rigtig CLI-runner med simuleret API,
+  pagination, forkert Page, tokenbeskyttelse, fejl, lås og symlink til websitet.
+  Credentialfri konfigurationskontrol, JavaScript-syntaks, plist-lint og
+  `git diff --check` består. CI har fået collector-testen uden eksterne kald.
+- Arthurs Insights-invitation til Marinus er accepteret efter udtrykkelig
+  brugergodkendelse. Meta bekræftede Invite Accepted og viste TEB-statistik.
+  B&F - Reporting App er livekontrolleret: Advanced Access til read_insights,
+  pages_read_engagement og pages_show_list. Ingen TEB-token er oprettet, og
+  TEB er ikke forbundet til denne app som del af arbejdet.
+- Brugeren har fravalgt manuel eksport og overvejer en egen Composio-opsætning.
+  Den aktuelle kode bruger Meta direkte; Composio-adapter er ikke implementeret.
+  Anbefalet første opsætning: brugeren ejer/kører forbindelsen og giver Arthur
+  adgang til data. Direkte deling kræver særskilt afgrænsning af konto og handlinger.
+- Åbent: valg/opsætning af forbindelse, sikker credentiallagring, første rigtige
+  API-kørsel med bekræftet Page-id og metrics, værtsmaskine/tidsplan og privat
+  dataadgang til Arthur. Ingen scheduler, deling, automatisk overførsel eller
+  produktionsdeploy er aktiveret. Se [opsætning og begrænsninger](FACEBOOK_ANALYTICS.md).
+
 ## GitHub-synkronisering den 10. november 2026
 
 - Den aktive Projects-kopi på `local/teb-pilot-ready` er fast-forwardet fra
