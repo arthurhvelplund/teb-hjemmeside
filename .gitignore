@@ -48,3 +48,7 @@ skills-lock.json
 
 # Lokale Worker-variabler
 .dev.vars
+
+# Private Facebook analytics configuration and collected data
+config/facebook-analytics.local.json
+private-data/
