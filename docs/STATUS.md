@@ -1,5 +1,21 @@
 # Samlet status for TEB hjemmesiden
 
+## GitHub-synkronisering den 10. november 2026
+
+- Den aktive Projects-kopi på `local/teb-pilot-ready` er fast-forwardet fra
+  `4e6bc48` til GitHubs `main`, commit
+  `6f7561c4eabf799737e9e906b7f9b9a0d93e7790`. Det samler 72 commits.
+- Kontroller: HEAD svarede efter synkroniseringen til den hentede `origin/main`;
+  119 backendtests, fælles layout på 16 sider og `git diff --check` består.
+  SHA-256-kontrol bekræfter, at alle 17 eksisterende lokale outputændringer
+  er bevaret uændret. Desktop-kopi, databaser og tidligere worktrees er urørte.
+- Denne status gemmes i et særskilt dokumentationscommit på integrationsgrenen.
+  Ingen push til `main` eller produktionsudgivelse indgår i synkroniseringen.
+- Næste emne er Facebook-data til Arthur. Den eksisterende hjemmeside viser
+  TEBs Facebook-feed via indlejring; der er ingen analytics-importer i den
+  gennemgåede backend. Side, ønskede data og adgang til automatiseret hentning
+  skal afklares. Ingen Facebook-data er hentet eller adgangsnøgler oprettet.
+
 ## Profilbilleder for foreninger med kompakte id'er den 9. november 2026
 
 - Billedfunktionen genkender nu også forenings-id'er med 32 hextegn uden bindestreger. Hjemmesiden kan vise uploadens forhåndsvisning, og API'et kan gemme billedadressen på profilen og levere billedet. Eksisterende UUID-adresser understøttes fortsat.
