@@ -1,5 +1,9 @@
 # Automatisk Facebook-statistik til TEB og Arthur
 
+Den aktive, liveverificerede løsning bruger nu Composio. Følg
+[Facebook gennem Composio](FACEBOOK_COMPOSIO.md) for opsætning på begge computere.
+Denne vejledning bevarer baggrund og det tidligere direkte Graph API-alternativ.
+
 ## Status den 11. november 2026
 
 Arthur havde inviteret Marinus Hvelplund til TEB-siden med opgaven **Insights**.
@@ -10,11 +14,11 @@ Brugeren ønsker en automatisering eller et script. Manuel Business Suite-ekspor
 er derfor fravalgt. To rapporter blev startet under undersøgelsen, men de bruges
 ikke som datagrundlag for løsningen. En download blev forsøgt uden en verificeret
 lokal fil. Den offentlige profiladresse bruger `61594168058446`, mens Meta Business
-Suite identificerede siden med `asset_id=1360070047179461`. API-identiteten skal
-verificeres ved første rigtige kørsel; scriptet stopper ved forkert id eller navn.
+Suite identificerede siden med `asset_id=1360070047179461`. Dette id er nu også
+bekræftet i Composios API sammen med navnet og Insights-opgaven.
 
-Collector og scheduler-skabelon er implementeret. Ingen API-token er oprettet,
-ingen live API-kørsel er verificeret, og ingen tidsplan er installeret endnu.
+Composio-collectoren har nu gennemført en historisk livekørsel. En særskilt
+rå Meta-token er ikke oprettet, og ingen tidsplan er installeret endnu.
 
 ## En eksisterende eller delt Meta-app kan bruges
 
@@ -40,9 +44,9 @@ anmodes ikke om publicering, beskeder eller annonceændringer af collector-scrip
 
 ## Kør scriptet
 
-Den nuværende implementering bruger Meta Graph API direkte. Composio er
-undersøgt som alternativ, men er endnu ikke koblet på scriptet. Ingen
-Composio-konto, forbindelse eller deling er oprettet i denne leverance.
+Kommandoerne i dette afsnit gælder kun det direkte Graph API-alternativ.
+Den anbefalede Composio-collector har sin egen vejledning ovenfor og kræver
+ingen rå Meta-token. Ingen Composio-forbindelse er delt med Arthur.
 
 Kræver Node.js 24 eller nyere. Der er ingen ekstra npm-afhængigheder.
 
@@ -130,8 +134,8 @@ og de nødvendige scopes skal kontrolleres på samtykkeskærmen. Composio
 erstatter forbindelses- og tokenhåndtering; en scheduler skal stadig køre
 de deterministiske datakald uden et sprogmodel-loop.
 
-Anbefalet første version: brugeren ejer en særskilt TEB-forbindelse og kører
-collectoren på sin egen maskine eller server. Arthur får kun de indsamlede
+Et alternativ til egen Composio-opsætning på Arthurs maskine er, at brugeren
+ejer/kører forbindelsen, og Arthur kun får de indsamlede
 JSON-data gennem en aftalt privat filoverførsel eller læse-API. Dermed skal
 han ikke have brugerens Facebook-login, Meta-token eller Composio-projektnøgle.
 Automatisk levering til Arthur er ikke implementeret eller aktiveret endnu.

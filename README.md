@@ -5,6 +5,11 @@ Læs [den fælles projektstatus](docs/STATUS.md) for tråde, worktrees, commits,
 Den aktive lokale kopi er `/Users/marinushvelplund/Projects/teb-kalender-faerdig` på `local/teb-pilot-ready`.
 Hjemmesiden ligger i `site/`, og portalens backend i `calendar-worker/`.
 
+Facebook-statistik hentes lokalt gennem Composio. Se
+[opsætningen til Marinus og Arthur](docs/FACEBOOK_COMPOSIO.md).
+Fra repoets rod: `sh scripts/setup-facebook-composio.sh`, derefter
+`node scripts/facebook-composio.mjs pull`. Credentials og data gemmes uden for Git.
+
 Start den lokale pilot med `cd calendar-worker && npm run dev:pilot`.
 Følg [pilotvejledningen](docs/PILOT_KLAR.md) for øveadgang og gennemgang.
 Login bruger en lokal testpostkasse. Der sendes ingen rigtig mail.

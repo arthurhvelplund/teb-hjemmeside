@@ -54,7 +54,7 @@ test('collects Page daily and post lifetime data, preserves raw end_time and saf
   assert.equal(snapshot.posts[0].id, postId);
   assert.equal(snapshot.posts[0].insights[0].series[0].period, 'lifetime');
   assert.equal(snapshot.pageMetrics[0].series[0].values[0].end_time, '2026-10-26T07:00:00+0000');
-  assert.deepEqual(snapshot.posts[0].insights[2].series[0].values[0].value, {like: 4});
+  assert.equal(snapshot.posts[0].insights[1].series[0].values[0].value, 12);
   assert.equal(JSON.stringify(snapshot).includes(token), false);
   assert.equal(JSON.stringify(snapshot).includes('paging'), false);
   assert.equal(requests.filter(request => request.url.includes('/published_posts')).length, 2);

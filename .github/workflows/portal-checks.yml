@@ -30,7 +30,7 @@ jobs:
       - name: Backend checks
         run: npm test
       - name: Facebook analytics collector without external requests
-        run: node --test ../scripts/facebook-analytics.test.mjs
+        run: node --test ../scripts/facebook-analytics.test.mjs ../scripts/facebook-composio.test.mjs
       - name: Repeatable local pilot setup
         run: npm run test:pilot
       - name: Browser for integration tests

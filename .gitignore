@@ -51,4 +51,5 @@ skills-lock.json
 
 # Private Facebook analytics configuration and collected data
 config/facebook-analytics.local.json
+config/facebook-composio.local.json
 private-data/
