@@ -1,5 +1,24 @@
 # Samlet status for TEB hjemmesiden
 
+## Kompakt Facebookoverblik den 11. november 2026
+
+- Kodecommit: `57fb1af`. Rapportens store introduktion og gentagne forklaringer
+  er fjernet. Seks nøgletal, tre korte indsigter, dagsgraf og top fem opslag
+  samles i ét overblik. Alle opslag, dagsdata og definitioner er foldet sammen
+  som udgangspunkt. Topopslag kan åbnes direkte for tekst og flere tal.
+- Seneste private snapshot er genbrugt uden nye API-kald. Generatoren og
+  automatisk rapportopdatering ved `pull` bruger det nye layout. Page-perioder,
+  lifetime-opslagstal, gennemsnitlige unikke viewers og manglende tal behandles
+  som før. Ingen private data eller HTML-rapporter er lagt i Git.
+- Browserkontrol: hele overblikket slutter ved ca. 625 px på 1280 × 720.
+  1366 × 768, 390 og 320 px er også kontrolleret. Mobil prioriterer nøgletal
+  og indsigter først; ingen vandret side-overflow eller overlappende KPI-labels.
+  Periodevalg, topopslag, foldbar opslagsliste, søgning, sortering, udgivelsesfilter
+  og graf/piletaster virker. Privat screenshot ved rapporten er opdateret.
+- Kontroller: alle 27 eksisterende collector-/rapporttests, JavaScript-syntaks
+  og `git diff --check` består. SHA-256 bekræfter de 17 eksisterende outputfiler
+  uændrede. Leveret på pilotgrenen; ingen produktion, scheduler eller deling.
+
 ## Privat Facebook-rapport den 11. november 2026
 
 - Kodecommit: `6bcb6ec`. `scripts/facebook-report.mjs` bygger en selvstændig
