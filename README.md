@@ -21,8 +21,11 @@ node scripts/facebook-report.mjs --email
 
 Det opdaterer data og browserrapport samt bygger HTML-mailen. Åbn filerne i
 `~/Library/Application Support/TEB/facebook-composio/data/`. Kommandoerne sender
-ingen mail. Mailudsendelse og fast tidsplan er endnu ikke koblet til scriptet;
-PNG-previews er manuelt gemte skærmbilleder og opdateres ikke af `pull`.
+ingen mail. Arthur står for en tilbagevendende opgave i ChatGPT, der sender
+gennem hans almindelige Gmail-connector. Repoet skal ikke have en Gmail-CLI,
+SMTP-login eller egen mailtransport. Opgaven skal have adgang til friske data
+eller HTML gennem en tilgængelig kilde; Gmail-connectoren giver ikke adgang til
+denne Macs lokale filer. PNG-previews er manuelle og opdateres ikke af `pull`.
 Arthur kører setup-helperen med eget Composio-login. Følg den aktuelle
 [Composio-vejledning](docs/FACEBOOK_COMPOSIO.md); den direkte Meta-guide er et alternativ.
 

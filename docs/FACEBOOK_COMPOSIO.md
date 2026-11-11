@@ -103,8 +103,14 @@ brugerens egen Gmail-konto efter udtrykkeligt valg af modtager; readback bekræf
 INBOX, samme HTML-body og ingen vedhæftninger.
 
 Kommandoen genererer kun filen. Hverken den eller `pull` sender mails automatisk.
-Modtagere og en eventuel løbende udsendelse skal aftales særskilt. Mail-login og
-private mailfiler gemmes ikke i repoet.
+Brugeren har valgt, at Arthur står for en tilbagevendende opgave i ChatGPT og
+udsender rapporten gennem sin almindelige Gmail-connector. Der skal derfor
+ikke bygges Gmail-CLI, SMTP-opsætning eller anden mailtransport i dette repo.
+Arthurs opgave skal have adgang til friske data eller den genererede HTML gennem
+en tilgængelig kilde; den skal ikke baseres på en filsti, der kun findes på
+Marinus' Mac. Datakildens tilgængelighed, modtagere og tidsplan sættes op af Arthur.
+Ingen tilbagevendende opgave er oprettet i denne leverance. Mail-login og private
+mailfiler gemmes ikke i repoet.
 
 ## Arthur sætter sin egen computer op
 

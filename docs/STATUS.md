@@ -19,11 +19,16 @@
 - README viser nu den normale tokommando-arbejdsgang. Aktiv vejledning er
   `docs/FACEBOOK_COMPOSIO.md`; den direkte Meta-collector er et bevaret alternativ.
   Browserrapporten genbygges af pull. HTML-mailen bygges særskilt med --email.
-- Udestår for fuld drift: Arthurs eget login, valg af værtsmaskine/tidsplan og
-  en mailtransport i scriptet. Testmailen blev sendt via chatforbindelsen til
-  Gmail. PNG-filer er manuelle previews. Ingen mailudsendelse eller schedule
-  er aktiveret. CI indeholder testene, men pilot-push matcher ikke workflowets
-  nuværende branchfilter; denne audits grønne kontroller er kørt lokalt.
+- Brugeren har præciseret driftsmodellen: Arthur opsætter en tilbagevendende
+  opgave i ChatGPT og sender gennem egen almindelig Gmail-connector. En
+  Gmail-CLI eller mailtransport i repoet er derfor ikke en manglende leverance.
+  Hans opgave skal have adgang til friske data/HTML via en tilgængelig kilde;
+  Gmail giver ikke adgang til Marinus' lokale filer. Dette data-handoff og
+  Arthurs eget login, modtagere og tidsplan håndteres i hans opsætning.
+- Testmailen blev sendt via chatforbindelsen til Gmail. PNG-filer er manuelle
+  previews. Ingen tilbagevendende opgave er aktiveret her. CI indeholder testene,
+  men pilot-push matcher ikke workflowets nuværende branchfilter; denne audits
+  grønne kontroller er kørt lokalt.
 
 ## Facebookrapport som HTML-mail den 11. november 2026
 
