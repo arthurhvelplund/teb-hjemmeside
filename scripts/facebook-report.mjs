@@ -3,7 +3,7 @@ import {homedir} from 'node:os';
 import {join, dirname, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {randomUUID} from 'node:crypto';
-import {CollectorError, assertPrivateOutput} from './facebook-analytics.mjs';
+import {CollectorError, assertPrivateOutput} from './facebook-storage.mjs';
 import {renderFacebookReport} from './facebook-report-template.mjs';
 import {renderFacebookEmail} from './facebook-report-email.mjs';
 

@@ -4,7 +4,7 @@ import {promisify} from 'node:util';
 import {homedir} from 'node:os';
 import {resolve, join} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
-import {CollectorError, assertPrivateOutput, saveSnapshot} from './facebook-analytics.mjs';
+import {CollectorError, assertPrivateOutput, saveSnapshot} from './facebook-storage.mjs';
 import {writeFacebookReport} from './facebook-report.mjs';
 import {createComposioClient, readComposioLogin, ComposioToolError, redactPayload} from './composio-consumer.mjs';
 
@@ -236,9 +236,14 @@ export async function main(args = process.argv.slice(2)) {
     const path = await saveSnapshot(output, clean);
     console.log(`Saved ${snapshot.posts.length} TEB posts and ${snapshot.pageMetrics.length} Page metric histories to ${path}`);
     let report;
-    try { report = await writeFacebookReport(clean, join(output, 'report.html')); }
-    catch { throw new CollectorError('Analytics snapshot saved, but the HTML report could not be generated. Run node scripts/facebook-report.mjs to retry without API calls.'); }
+    let email;
+    try {
+      report = await writeFacebookReport(clean, join(output, 'report.html'));
+      email = await writeFacebookReport(clean, join(output, 'report-email.html'), {email: true});
+    }
+    catch { throw new CollectorError('Analytics snapshot saved, but report generation failed. Retry node scripts/facebook-report.mjs and node scripts/facebook-report.mjs --email without new API calls.'); }
     console.log(`HTML report saved to ${report}`);
+    console.log(`Email body saved to ${email}. Send its contents through your Gmail connector; this script does not send email.`);
   } finally {
     if (sessionId) await client.closeSession(sessionId).catch(() => {});
     await rm(lock, {recursive: true, force: true});

@@ -163,6 +163,11 @@ test('real runner preserves latest on token failure, closes sessions, and never 
     await main(args);
     const good = await readFile(join(output, 'latest.json'), 'utf8');
     const report = await readFile(join(output, 'report.html'), 'utf8');
+    const email = await readFile(join(output, 'report-email.html'), 'utf8');
+    assert.match(email, /Facebookoverblik/);
+    assert.doesNotMatch(email, /<script|<svg/i);
+    assert.equal(email.includes(key), false);
+    assert.equal((await stat(join(output, 'report-email.html'))).mode & 0o777, 0o600);
     assert.match(report, /Facebookrapport/);
     assert.equal(report.includes(key), false);
     assert.equal((await stat(join(output, 'report.html'))).mode & 0o777, 0o600);
@@ -172,6 +177,7 @@ test('real runner preserves latest on token failure, closes sessions, and never 
     await assert.rejects(main(args), error => error.code === 190 && !error.message.includes(key));
     assert.equal(await readFile(join(output, 'latest.json'), 'utf8'), good);
     assert.equal(await readFile(join(output, 'report.html'), 'utf8'), report);
+    assert.equal(await readFile(join(output, 'report-email.html'), 'utf8'), email);
     assert.equal((await readdir(output)).includes('.collector-lock'), false);
     assert.equal(deletions, 2);
   } finally {

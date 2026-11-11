@@ -5,29 +5,19 @@ Læs [den fælles projektstatus](docs/STATUS.md) for tråde, worktrees, commits,
 Den aktive lokale kopi er `/Users/marinushvelplund/Projects/teb-kalender-faerdig` på `local/teb-pilot-ready`.
 Hjemmesiden ligger i `site/`, og portalens backend i `calendar-worker/`.
 
-Facebook-statistik hentes lokalt gennem Composio. Se
-[opsætningen til Marinus og Arthur](docs/FACEBOOK_COMPOSIO.md).
-Fra repoets rod: `sh scripts/setup-facebook-composio.sh`, derefter
-`node scripts/facebook-composio.mjs pull`. Credentials og data gemmes uden for Git.
-Hver kørsel opdaterer også den private `data/report.html`. Genbyg rapporten fra
-seneste snapshot uden API-kald med `node scripts/facebook-report.mjs`.
-
-Efter opsætning er den normale Facebook-arbejdsgang:
+Facebook-rapporten har én arbejdsgang. Se [Arthurs korte guide](docs/FACEBOOK_COMPOSIO.md).
 
 ```sh
+# Kun første gang, med eget Composio/Facebook-login:
+sh scripts/setup-facebook-composio.sh
+# Hver gang der skal laves en frisk rapport:
 node scripts/facebook-composio.mjs pull
-node scripts/facebook-report.mjs --email
 ```
 
-Det opdaterer data og browserrapport samt bygger HTML-mailen. Åbn filerne i
-`~/Library/Application Support/TEB/facebook-composio/data/`. Kommandoerne sender
-ingen mail. Arthur står for en tilbagevendende opgave i ChatGPT, der sender
-gennem hans almindelige Gmail-connector. Repoet skal ikke have en Gmail-CLI,
-SMTP-login eller egen mailtransport. Opgaven skal have adgang til friske data
-eller HTML gennem en tilgængelig kilde; Gmail-connectoren giver ikke adgang til
-denne Macs lokale filer. PNG-previews er manuelle og opdateres ikke af `pull`.
-Arthur kører setup-helperen med eget Composio-login. Følg den aktuelle
-[Composio-vejledning](docs/FACEBOOK_COMPOSIO.md); den direkte Meta-guide er et alternativ.
+Pull gemmer data, browserrapport og HTML-mail privat uden for Git.
+Arthur sender mailen gennem sin almindelige Gmail-connector i ChatGPT.
+Hans tilbagevendende opgave skal have adgang til frisk HTML/data.
+Der er ingen Gmail-CLI, SMTP-opsætning eller lokal scheduler i løsningen.
 
 Start den lokale pilot med `cd calendar-worker && npm run dev:pilot`.
 Følg [pilotvejledningen](docs/PILOT_KLAR.md) for øveadgang og gennemgang.

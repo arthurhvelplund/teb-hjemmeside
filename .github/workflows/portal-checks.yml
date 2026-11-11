@@ -29,8 +29,8 @@ jobs:
         run: node ../scripts/sync-site.mjs --check && node ../scripts/site-layout-check.mjs
       - name: Backend checks
         run: npm test
-      - name: Facebook analytics collectors and report without external requests
-        run: node --test ../scripts/facebook-analytics.test.mjs ../scripts/facebook-composio.test.mjs ../scripts/facebook-report.test.mjs
+      - name: Facebook collection, private storage and reports without external requests
+        run: node --test ../scripts/facebook-storage.test.mjs ../scripts/facebook-composio.test.mjs ../scripts/facebook-report.test.mjs
       - name: Repeatable local pilot setup
         run: npm run test:pilot
       - name: Browser for integration tests

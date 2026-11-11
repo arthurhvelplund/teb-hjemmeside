@@ -1,250 +1,106 @@
-# Facebook-statistik gennem Composio
+# Facebookrapport til Arthur
 
-## Virker lokalt den 11. november 2026
+Én forbindelse, ét pull, færdig browserrapport og HTML-mail. Gmail-udsendelse
+håndteres af Arthurs almindelige connector i ChatGPT. Der er ingen SMTP,
+Gmail-CLI, lokal scheduler, database eller npm-pakker i rapportløsningen.
 
-Composio CLI 0.6.0 er installeret på Marinus' Mac. Hans eksisterende Facebook-
-forbindelse i **For You** er genbrugt. Det lokale CLI-login er godkendt af
-brugeren, og TEBs Page-id `1360070047179461`, navn og `ANALYZE`-opgave er
-bekræftet med API-kald. Der er ikke oprettet en ny Meta-app.
+## Første gang
 
-Et rigtigt historisk scriptkald hentede ni Page-metrics med hver 730 daglige
-observationer for forespørgselsperioden 11. november 2024 til 11. november 2026.
-Slutdatoen er eksklusive ved midnat UTC. Desuden kom 25 publicerede opslag
-fra 22. september til 7. november 2026 med performance og engagementstal.
-Det er de opslag, som API'et returnerede; det er ikke et løfte om hele sidens
-historiske arkiv eller alle tal, der findes i Business Suite.
+Kræver Node.js 24+, egen Composio-konto og en Facebook-konto med accepteret
+Insights-adgang til Tistrup Erhvervs- og Borgerforening.
 
-Ingen metrics blev meldt unsupported i denne kørsel. API'et kan returnere nul
-også før sidens aktivitet begyndte; disse værdier er beholdt som leveret.
-Der er ikke publiceret eller ændret Facebook-indhold. Ingen adgang er delt
-med Arthur. En daglig scheduler er ikke aktiveret.
-
-## Kør igen på denne Mac
-
-Fra repoets rod:
+Hent repoets `local/teb-pilot-ready`-gren. Kør fra repoets rod:
 
 ```sh
-node scripts/facebook-composio.mjs pull
+sh scripts/setup-facebook-composio.sh
 ```
 
-Det gentager hele indsamlingen. For en kortere Page-periode, mens alle
-publicerede opslag stadig genmåles:
+Helperen finder eller installerer Composios officielle CLI og åbner browserlogin
+efter behov. Forbind Facebook, hvis det ikke allerede er gjort. Den verificerer
+TEBs Page-id, navn og ANALYZE-adgang og gemmer konfigurationen lokalt.
+Der skal ikke oprettes en ny Meta-app eller kopieres nøgler fra Marinus.
 
-```sh
-node scripts/facebook-composio.mjs pull --days 28
-```
-
-En fast periode vælges med `--since YYYY-MM-DD --until YYYY-MM-DD`.
-Perioden må være op til 730 afsluttede UTC-dage. Scriptet deler forespørgslerne
-i vinduer på højst 90 dage. `check` validerer kun den lokale konfiguration
-uden at kontakte Composio eller læse credentials.
-
-## HTML-rapport efter hver kørsel
-
-`pull` gemmer nu også `data/report.html` ved siden af `latest.json`.
-Åbn filen i en browser. Den indeholder perioderne 7, 28 og 90 målte døgn samt
-aktiv periode, sammenligning med foregående periode, en interaktiv dagsgraf
-og alle opslag med søgning, sortering, fuld tekst og links til Facebook.
-Første skærmbillede samler seks nøgletal, ugens udvikling, følgertilgang,
-mest reagerede opslag, dagsgraf og top fem i kompakt form. Hele opslagslisten,
-dagsdata og definitioner ligger i lukkede, foldbare sektioner. Klik et topopslag
-for at læse teksten. På en 1280 × 720-skærm vises hele overblikket uden rulning.
-
-Gendan rapporten fra allerede hentede data uden login eller nye API-kald:
-
-```sh
-node scripts/facebook-report.mjs
-```
-
-Andre snapshot- og outputstier kan vælges med `--input` og `--output`:
-
-```sh
-node scripts/facebook-report.mjs --input /privat/mappe/snapshot.json --output /privat/mappe/rapport.html
-```
-
-Rapporten er én selvstændig HTML-fil med indlejrede data og uden netværkskald,
-eksterne billeder, biblioteker eller skrifttyper. Den kan åbnes offline og gives
-til Arthur uden at give ham credentials. Den indeholder stadig sidens private
-analysedata og skal opbevares privat. Generatoren ligger i Git; rapporten gør ikke.
-
-Page-tal og opslagstal holdes særskilt: førstnævnte gælder valgt periode,
-sidstnævnte er lifetime-tal ved hentningen. Opslagsfilteret gælder udgivelsesdatoen.
-Daglige unikke viewers vises som gennemsnit, aldrig som summeret perioderækkevidde.
-Følgerbeholdning summeres ikke. Manglende tal vises som en tankestreg;
-berørte totaler beregnes ikke. Datoerne viser Metas døgnslut, ikke danske kalenderdøgn.
-Hele manglende døgn eller modstridende duplikater afvises, så perioderne ikke forskydes.
-
-Ved en kort `--days`-kørsel forkortes rapportens periode ligesom `latest.json`.
-En procentændring vises kun med en fuld foregående periode og en positiv baseline.
-Fejler HTML-genereringen efter gemt snapshot, siger collectoren det særskilt;
-JSON-data er stadig gemt, og sidste gode HTML-rapport bevares. Gentag da kun generatoren.
-
-## Rapport som HTML-mail
-
-Byg en statisk mailversion fra seneste snapshot:
-
-```sh
-node scripts/facebook-report.mjs --email
-```
-
-Det gemmer `data/report-email.html` privat ved siden af browserrapporten.
-Mailversionen bruger tabeller og inline-CSS, seks nøgletal, korte indsigter,
-top fem opslag med links og visninger i blokke af højst syv målte døgn.
-Der er ingen JavaScript, eksterne billeder eller vedhæftninger i mailindholdet.
-[Gmails CSS-reference](https://developers.google.com/workspace/gmail/design/css)
-er brugt til layoutet. Outlooks klassiske renderer har en fast tabelbredde
-via betinget markup. Browserkontrol erstatter ikke test i den konkrete mailklient.
-
-`renderFacebookEmail(model)` fra `scripts/facebook-report-email.mjs` returnerer
-`{subject, html, text}`. En mailintegration sender HTML som `text/html` i selve
-beskeden og eventuelt `text` som `text/plain` i en `multipart/alternative`.
-HTML-filen skal ikke tilføjes som attachment. Et faktisk testbrev er sendt til
-brugerens egen Gmail-konto efter udtrykkeligt valg af modtager; readback bekræftede
-INBOX, samme HTML-body og ingen vedhæftninger.
-
-Kommandoen genererer kun filen. Hverken den eller `pull` sender mails automatisk.
-Brugeren har valgt, at Arthur står for en tilbagevendende opgave i ChatGPT og
-udsender rapporten gennem sin almindelige Gmail-connector. Der skal derfor
-ikke bygges Gmail-CLI, SMTP-opsætning eller anden mailtransport i dette repo.
-Arthurs opgave skal have adgang til friske data eller den genererede HTML gennem
-en tilgængelig kilde; den skal ikke baseres på en filsti, der kun findes på
-Marinus' Mac. Datakildens tilgængelighed, modtagere og tidsplan sættes op af Arthur.
-Ingen tilbagevendende opgave er oprettet i denne leverance. Mail-login og private
-mailfiler gemmes ikke i repoet.
-
-## Arthur sætter sin egen computer op
-
-1. Hent repoet og checkout `local/teb-pilot-ready`. Kræver Node.js 24 eller nyere.
-2. Kør opsætningen fra repoets rod:
-
-   ```sh
-   sh scripts/setup-facebook-composio.sh
-   ```
-
-3. Log ind på **sin egen** Composio-konto i browseren. Hvis Facebook ikke er
-   forbundet, åbner helperen forbindelsesflowet. Vælg en Facebook-konto med
-   Insights-adgang til TEB. En eksisterende Insights-invitation skal være accepteret.
-4. Kør indsamlingen:
-
-   ```sh
-   node scripts/facebook-composio.mjs pull
-   ```
-
-Helperen installerer om nødvendigt CLI fra Composios officielle installer,
-som verificerer releasearkivets checksum. Den installerer ingen agent-plugin
-og ændrer ikke shellens opstartsfiler. CLI-login gemmes af Composio under
-`~/.composio/`, uden for repoet. Browseren viser adgangens omfang, før login
-godkendes. Der bruges ingen npm-pakker til selve collectoren.
-
-Har man flere aktive Facebook-forbindelser, skal man vælge en konkret:
+Hvis der er flere aktive Facebook-forbindelser, vælg en konkret:
 
 ```sh
 ~/.local/bin/composio connections list --toolkit facebook
 sh scripts/setup-facebook-composio.sh --account ca_CONNECTION_ID
 ```
 
-Helperen genbruger eksisterende login. Den vil ikke selv vælge mellem flere
-Facebook-konti. `TEB_COMPOSIO_CLI` kan pege på en anden CLI-installation.
-På andre operativsystemer skal Node og Composio CLI installeres, før `setup`
-køres. Node-collectoren kan køre på macOS og Linux; Windows kræver en shell
-til helperen eller de tilsvarende manuelle CLI-kommandoer.
-
-Manuel opsætning uden shell-helper:
+## Hver rapport
 
 ```sh
-composio login --no-skill-install --yes
-composio link facebook
-node scripts/facebook-composio.mjs setup
+node scripts/facebook-composio.mjs pull
 ```
 
-Spring `link facebook` over, hvis kontoen allerede er forbundet. Der skal
-ikke kopieres loginfiler, Composio-nøgler eller Marinus' private konfiguration
-til Arthur. Han får sin egen forbindelse og sine egne lokale filer.
-
-## Hvor data og konfiguration ligger
-
-Standardmappe:
+Det henter data og bygger begge rapporter. Intet ekstra build-trin er nødvendigt.
+Resultatet ligger privat i:
 
 ```text
 ~/Library/Application Support/TEB/facebook-composio/
   config.json
   data/latest.json
+  data/snapshot-<tidspunkt>-<uuid>.json
   data/report.html
   data/report-email.html
-  data/snapshot-<tidspunkt>-<uuid>.json
 ```
 
-`config.json` indeholder Page-id, ønskede metrics og Composios konto-/projekt-id'er,
-men ingen credentials. Den oprettes lokalt af `setup`; den deles ikke gennem Git.
-På Linux bruges samme relative mappe under brugerens hjemmemappe, eller vælg
-eksplicitte stier med `--config` og `--output`.
+Åbn `report.html` for det interaktive overblik. `report-email.html` er den
+færdige, statiske mailbody. HTML-mailen bruger tabeller og inline-CSS med
+nøgletal, indsigter, top fem opslag og en enkel graf. Der er ingen scripts
+eller eksterne billeder i mailen. Browserrapporten fungerer også offline.
 
-Hvert `snapshot` indeholder Page-profil, historikvinduer, rå metricnavne og
-`end_time`, samt hvert opslags id, tekst, publiceringstid, permalink, billed-URL,
-reaktioner, kommentarer, delinger og lifetime-statistik for views og viewers.
-Kommentarernes tekst og personer hentes ikke; kun samlet antal.
-Reaktioner, kommentarer eller delinger, som API'et ikke leverer, bliver `null`.
-Tomme og unsupported metrics markeres, og unikke viewers summeres ikke.
+## Send gennem ChatGPTs Gmail-connector
 
-Snapshot-filer er observationer fra den pågældende kørsel. Lifetime-tal kan
-ændre sig mellem kørsler, og billed-URL'er kan udløbe. Billeder downloades ikke.
-En kort `--days`-kørsel gør `latest.json` kortere, mens tidligere fulde snapshots
-bevares. Der flettes ikke automatisk en historisk database på tværs af snapshots.
+Giv ChatGPT adgang til den friske `report-email.html`, og brug fx:
 
-Mapper får 0700, filer 0600. Output inde i repoet eller websitet afvises, også
-via en symlink. `latest.json` erstattes atomisk efter en gennemført indsamling.
-Fejler adgang, pagination, API eller disk, bevares sidste gode snapshot.
-En `.collector-lock` forhindrer parallelle kørsler i samme outputmappe. Fjern
-kun en efterladt lås, når det er kontrolleret, at ingen collector stadig kører.
+> Læs report-email.html, og send hele dens HTML som mailens text/html-body
+> gennem min Gmail-connector til [modtager]. Brug emnet TEB Facebookoverblik
+> med rapportens dato. Rapporten skal stå i beskeden, ikke som vedhæftning.
 
-## Adgangsgrænser og livekontrol
+Arthur vælger selv modtagere og tidsplan. En tilbagevendende opgave skal have
+en tilgængelig kilde til frisk HTML/data. En lokal filsti alene giver ikke
+ChatGPT adgang til filen. Denne overdragelse opsættes sammen med hans schedule.
+Scriptet sender aldrig mail. En enkelt test til Marinus' egen konto er tidligere
+sendt gennem Gmail-connectoren og læst tilbage med korrekt HTML og ingen attachments.
 
-CLI-login er en bred, lokal brugernøgle til brugerens Composio-organisationer
-og projekter. Den er ikke en TEB-specifik læsenøgle. Den må ikke deles med
-Arthur eller lægges i Git. Forbindelsen omfatter også andre Facebook-sider,
-så collectoren verificerer TEBs id, navn og Insights-opgave før indsamling.
-Hvert opslags-id kontrolleres mod samme Page-id.
+## Ved behov
 
-Collectoren kalder kun fem faste Facebook-læseværktøjer. Den bruger ikke en
-sprogmodel eller vilkårlig agentkode. Klienten afviser andre tool-slugs lokalt
-og sender en sessionkonfiguration med kun disse værktøjer, fast forbindelse,
-Instant slået fra, ingen proxy og intet workbench.
+Kortere Page-historik: `node scripts/facebook-composio.mjs pull --days 90`.
+Det måler stadig alle publicerede opslag, som API'et returnerer. Standard er
+op til 730 afsluttede UTC-dage. En kort kørsel forkorter latest og rapporterne;
+tidligere snapshots bevares. Historik flettes ikke til en database.
 
-En ekstra livekontrol viste imidlertid, at sessionens execute-endpoint kunne
-udføre et read-only identitetsværktøj uden for den konfigurerede værktøjsliste.
-Derfor behandles Composios værktøjsliste **ikke som en verificeret sikkerhedsgrænse**
-mod nogen, der har brugernøglen og kan sende egne API-kald. En publicationstest
-med tomme argumenter blev afvist på manglende input og beviser ikke, at en
-gyldig skrivehandling ville blive afvist. Ingen gyldig publicering blev forsøgt.
-
-Denne leverance giver derfor ikke Arthur en session eller nøgle fra Marinus.
-Egen loginforbindelse på Arthurs maskine er det understøttede setup. Hvis han
-senere skal have adgang til Marinus' indsamling, bør det være gennem et særskilt
-privat data-endpoint eller filadgang, uden provider- eller Composio-credentials.
-TEB-forbindelsens egen Page-opgave er `ANALYZE`, men det erstatter ikke behovet
-for at beskytte den bredere Composio-nøgle og andre tilknyttede konti.
-
-## Scheduler og kontroller
-
-`scripts/facebook-composio.launchd.example.plist` er en skabelon til kl. 07.15
-i Mac'ens lokale tidszone. Erstat pladsholderne med absolut Node-sti, repo-sti
-og en eksisterende privat logmappe. Installer den kun, når den ønskede tid og
-værtsmaskine er aftalt. På en server kan samme `pull`-kommando kaldes af systemd
-eller cron. Scriptet kræver ikke, at en chat er åben.
+Genbyg uden API-kald efter en templateændring eller en rapportfejl:
 
 ```sh
-node --test scripts/facebook-composio.test.mjs scripts/facebook-analytics.test.mjs scripts/facebook-report.test.mjs
-sh -n scripts/setup-facebook-composio.sh
-plutil -lint scripts/facebook-composio.launchd.example.plist
+node scripts/facebook-report.mjs
+node scripts/facebook-report.mjs --email
 ```
 
-Primære kilder undersøgt 11. november 2026:
+Hvis Facebook-adgangen udløber, forbind kontoen igen og kør setup-helperen.
+`node scripts/facebook-composio.mjs check` validerer kun lokal konfiguration.
 
-- [Composio CLI og lokal login](https://docs.composio.dev/docs/cli).
-- [For You og consumer-projekter](https://docs.composio.dev/docs/consumer-agents).
-- [Facebook-værktøjernes aktuelle felter og metrics](https://docs.composio.dev/toolkits/facebook).
-- [Session-API](https://docs.composio.dev/reference/api-reference/tool-router/postToolRouterSession).
+## Data og adgang
 
-Den tidligere direkte Graph API-collector er bevaret som alternativ i
-`scripts/facebook-analytics.mjs`. Dens rå Page-token-opsætning bruges ikke af
-Composio-løsningen.
+- Page-tal gælder den valgte periode. Opslagstal er lifetime-tal ved hentningen.
+- Daglige unikke viewers vises som gennemsnit. Følgerbeholdninger summeres ikke.
+- Manglende tal bliver ikke til nul. Metas døgnslut bevares.
+- API'ets publicerede opslag er ikke et løfte om hele arkivet eller alle Business Suite-tal.
+- Seneste fulde livekørsel på Marinus' Mac gav ni historikker á 730 observationer og 25 opslag.
+- Hver person bruger eget login. Composios lokale nøgle er bredere end dette script;
+  scriptets læseliste er ikke en sikkerhedsgrænse for andre, der får nøglen.
+- Credentials, konfiguration og resultater ligger uden for Git. Mapper er 0700,
+  filer 0600. Output i repoet afvises, også via symlink. API-fejl bevarer seneste
+  gode snapshot, og samtidige pull i samme mappe afvises.
+- PNG-filer fra den visuelle gennemgang er manuelle previews og er ikke del af pull.
+
+## Kontrol
+
+```sh
+node --test scripts/facebook-storage.test.mjs scripts/facebook-composio.test.mjs scripts/facebook-report.test.mjs
+```
+
+Kun seks runtime-moduler, en setup-helper, en konfigurationsskabelon og tests.
+Composio er den eneste dataforbindelse. Ingen alternativ Meta-collector eller
+lokal scheduler skal vælges eller vedligeholdes.

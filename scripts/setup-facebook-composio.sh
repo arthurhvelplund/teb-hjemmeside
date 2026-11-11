@@ -39,5 +39,5 @@ if [ "$TEB_ACTIVE_ACCOUNTS" -eq 0 ]; then
 fi
 
 TEB_COMPOSIO_CLI="$TEB_COMPOSIO_BIN" node "$TEB_REPO_ROOT/scripts/facebook-composio.mjs" setup "$@"
-echo 'Setup complete. From the repository, collect analytics with:'
+echo 'Setup complete. From the repository, collect data and build both reports with:'
 echo 'node scripts/facebook-composio.mjs pull'

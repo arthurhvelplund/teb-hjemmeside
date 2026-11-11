@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {homedir} from 'node:os';
 import {join} from 'node:path';
-import {CollectorError} from './facebook-analytics.mjs';
+import {CollectorError} from './facebook-storage.mjs';
 
 export const FACEBOOK_READ_TOOLS = Object.freeze([
   'FACEBOOK_LIST_MANAGED_PAGES', 'FACEBOOK_GET_PAGE_DETAILS',
