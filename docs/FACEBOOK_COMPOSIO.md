@@ -45,6 +45,10 @@ uden at kontakte Composio eller læse credentials.
 Åbn filen i en browser. Den indeholder perioderne 7, 28 og 90 målte døgn samt
 aktiv periode, sammenligning med foregående periode, en interaktiv dagsgraf
 og alle opslag med søgning, sortering, fuld tekst og links til Facebook.
+Første skærmbillede samler seks nøgletal, ugens udvikling, følgertilgang,
+mest reagerede opslag, dagsgraf og top fem i kompakt form. Hele opslagslisten,
+dagsdata og definitioner ligger i lukkede, foldbare sektioner. Klik et topopslag
+for at læse teksten. På en 1280 × 720-skærm vises hele overblikket uden rulning.
 
 Gendan rapporten fra allerede hentede data uden login eller nye API-kald:
 
