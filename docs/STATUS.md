@@ -1,5 +1,34 @@
 # Samlet status for TEB hjemmesiden
 
+## Minimal Facebook-arbejdsgang til Arthur den 11. november 2026
+
+- Kodecommit: `415e801`. Én aktiv forbindelse gennem Composio. Efter setup
+  henter `node scripts/facebook-composio.mjs pull` data og genererer både
+  browserrapport og færdig HTML-mail. Det særskilte email-build er kun nødvendigt
+  ved genbygning fra eksisterende snapshot, fx efter en templateændring.
+- Den ubrugte direkte Meta-collector med egen konfiguration, vejledning og
+  tests er fjernet. Begge lokale launchd-skabeloner er fjernet, da Arthur
+  vælger ChatGPT-scheduling. De kan fortsat findes i Git-historikken.
+  Fælles snapshot-/privatlagring er udskilt i facebook-storage.mjs uden Graph API.
+- Tilbage er seks runtime-moduler, én setup-helper, én config-skabelon,
+  tre testfiler og én kort guide. Ingen npm-pakker, database, SMTP, Gmail-CLI
+  eller lokal scheduler. README viser kun setup og derefter ét pull.
+- Arthurs guide indeholder et konkret prompt til Gmail-connectoren, så HTML
+  sendes som mailbody. Hans tilbagevendende opgave skal fortsat have adgang til
+  en frisk datakilde/HTML; det er en del af hans setup, ikke løst af en lokal filsti.
+- Kontroller: alle 20 tests for den tilbageværende løsning består. De pensionerede
+  direkte Meta-tests er erstattet af tre tests af fælles lagring. Den faktiske
+  CLI-runner med simuleret API kontrollerer nu begge rapporter og bevarer dem
+  ved API-fejl. CI peger på de tre aktuelle testfiler.
+- Begge rigtige rapporter er genbygget fra seneste snapshot og er byte-identiske
+  med før oprydningen. Ingen nye Facebook-kald eller mails er sendt. Lokal
+  konfigurationskontrol, shell-/JavaScript-syntaks og git diff --check består.
+  Credentials og private output er ikke staged. De 17 gamle outputændringer
+  er SHA-256-verificeret uændrede. Leverancen pushes kun til pilotgrenen.
+
+De følgende afsnit er afleveringshistorik. Den aktuelle arbejdsgang står i
+[Arthurs guide](FACEBOOK_COMPOSIO.md).
+
 ## Samlet Facebook-handoff og driftskontrol den 11. november 2026
 
 - Funktionsleverancen til og med `b2d9ac3` er genkontrolleret. Pilotgrenen
@@ -152,7 +181,8 @@
 - Åbent: valg/opsætning af forbindelse, sikker credentiallagring, første rigtige
   API-kørsel med bekræftet Page-id og metrics, værtsmaskine/tidsplan og privat
   dataadgang til Arthur. Ingen scheduler, deling, automatisk overførsel eller
-  produktionsdeploy er aktiveret. Se [opsætning og begrænsninger](FACEBOOK_ANALYTICS.md).
+  produktionsdeploy er aktiveret. Den oprindelige vejledning er bevaret i
+  Git-historikken for commit `81ca256`.
 
 ## GitHub-synkronisering den 10. november 2026
 
