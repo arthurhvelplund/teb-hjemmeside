@@ -1,5 +1,30 @@
 # Samlet status for TEB hjemmesiden
 
+## Samlet Facebook-handoff og driftskontrol den 11. november 2026
+
+- Funktionsleverancen til og med `b2d9ac3` er genkontrolleret. Pilotgrenen
+  matcher efter frisk fetch `origin/local/teb-pilot-ready`; alle 11 commits
+  siden `6f7561c` er på GitHub. Ingen commits fra origin/main mangler lokalt.
+  Der er ingen ikke-committede ændringer i Facebook-kode, konfiguration eller docs.
+- Arbejdstræet er ikke helt rent: 17 allerede eksisterende outputfiler under
+  kalender-flytning og portal-integreret er ændrede. SHA-256-kontrol viser
+  dem uændrede siden arbejdets start. De bevares og indgår ikke i denne leverance.
+- Alle 28 fokuserede tests består igen. Lokal Composio-konfiguration validerer,
+  Node 24 er til rådighed, shell-syntaks og launchd-skabelon består. Frisk
+  Facebook-adgang er ikke gentestet i denne audit; seneste live-snapshot er
+  fra samme morgen med 25 opslag og ni historikker á 730 observationer.
+- Credentialkontrol af samtlige leverancecommits finder ikke brugerens
+  Composio-nøgle. Konfiguration, login, snapshots, HTML og PNG ligger uden for
+  Git med 0600-filrettigheder. Desktop-kopien er fortsat historik.
+- README viser nu den normale tokommando-arbejdsgang. Aktiv vejledning er
+  `docs/FACEBOOK_COMPOSIO.md`; den direkte Meta-collector er et bevaret alternativ.
+  Browserrapporten genbygges af pull. HTML-mailen bygges særskilt med --email.
+- Udestår for fuld drift: Arthurs eget login, valg af værtsmaskine/tidsplan og
+  en mailtransport i scriptet. Testmailen blev sendt via chatforbindelsen til
+  Gmail. PNG-filer er manuelle previews. Ingen mailudsendelse eller schedule
+  er aktiveret. CI indeholder testene, men pilot-push matcher ikke workflowets
+  nuværende branchfilter; denne audits grønne kontroller er kørt lokalt.
+
 ## Facebookrapport som HTML-mail den 11. november 2026
 
 - Kodecommit: `9925186`. `node scripts/facebook-report.mjs --email` genererer
