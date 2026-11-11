@@ -79,6 +79,33 @@ En procentændring vises kun med en fuld foregående periode og en positiv basel
 Fejler HTML-genereringen efter gemt snapshot, siger collectoren det særskilt;
 JSON-data er stadig gemt, og sidste gode HTML-rapport bevares. Gentag da kun generatoren.
 
+## Rapport som HTML-mail
+
+Byg en statisk mailversion fra seneste snapshot:
+
+```sh
+node scripts/facebook-report.mjs --email
+```
+
+Det gemmer `data/report-email.html` privat ved siden af browserrapporten.
+Mailversionen bruger tabeller og inline-CSS, seks nøgletal, korte indsigter,
+top fem opslag med links og visninger i blokke af højst syv målte døgn.
+Der er ingen JavaScript, eksterne billeder eller vedhæftninger i mailindholdet.
+[Gmails CSS-reference](https://developers.google.com/workspace/gmail/design/css)
+er brugt til layoutet. Outlooks klassiske renderer har en fast tabelbredde
+via betinget markup. Browserkontrol erstatter ikke test i den konkrete mailklient.
+
+`renderFacebookEmail(model)` fra `scripts/facebook-report-email.mjs` returnerer
+`{subject, html, text}`. En mailintegration sender HTML som `text/html` i selve
+beskeden og eventuelt `text` som `text/plain` i en `multipart/alternative`.
+HTML-filen skal ikke tilføjes som attachment. Et faktisk testbrev er sendt til
+brugerens egen Gmail-konto efter udtrykkeligt valg af modtager; readback bekræftede
+INBOX, samme HTML-body og ingen vedhæftninger.
+
+Kommandoen genererer kun filen. Hverken den eller `pull` sender mails automatisk.
+Modtagere og en eventuel løbende udsendelse skal aftales særskilt. Mail-login og
+private mailfiler gemmes ikke i repoet.
+
 ## Arthur sætter sin egen computer op
 
 1. Hent repoet og checkout `local/teb-pilot-ready`. Kræver Node.js 24 eller nyere.
@@ -137,6 +164,7 @@ Standardmappe:
   config.json
   data/latest.json
   data/report.html
+  data/report-email.html
   data/snapshot-<tidspunkt>-<uuid>.json
 ```
 

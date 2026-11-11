@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {buildFacebookReportModel, percentChange, writeFacebookReport} from './facebook-report.mjs';
 import {renderFacebookReport} from './facebook-report-template.mjs';
+import {renderFacebookEmail} from './facebook-report-email.mjs';
 
 function fixture() {
   const metrics = {
@@ -128,4 +129,20 @@ test('writes an offline private report atomically outside the repo and rejects s
     await symlink(repository, join(directory, 'linked'));
     await assert.rejects(writeFacebookReport(fixture(), join(directory, 'linked/report.html')), /outside/);
   } finally { await rm(directory, {recursive: true, force: true}); }
+});
+
+test('email contains static readable numbers, escaped content and safe links, without active code or attachments', () => {
+  const snapshot = fixture();
+  snapshot.posts[0].message = '<script>alert(1)</script> & Report';
+  snapshot.posts[0].permalink_url = 'javascript:alert(1)';
+  const {html, text, subject} = renderFacebookEmail(buildFacebookReportModel(snapshot));
+  assert.match(html, /560/);
+  assert.match(html, /900/);
+  assert.match(html, /Livstid/);
+  assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<script|<svg|<img|<iframe|<input|<button|javascript:|display:grid|display:flex/i);
+  assert.match(text, /Visninger: 560/);
+  assert.match(text, /dagligt gennemsnit/i);
+  assert.match(subject, /TEB/);
+  assert.equal(Buffer.byteLength(html) < 90000, true);
 });

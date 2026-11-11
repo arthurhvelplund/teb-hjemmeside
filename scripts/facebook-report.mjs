@@ -5,6 +5,7 @@ import {pathToFileURL} from 'node:url';
 import {randomUUID} from 'node:crypto';
 import {CollectorError, assertPrivateOutput} from './facebook-analytics.mjs';
 import {renderFacebookReport} from './facebook-report-template.mjs';
+import {renderFacebookEmail} from './facebook-report-email.mjs';
 
 const defaultInput = join(homedir(), 'Library/Application Support/TEB/facebook-composio/data/latest.json');
 const counterNames = {
@@ -113,7 +114,7 @@ export function buildFacebookReportModel(snapshot) {
   return model;
 }
 
-export async function writeFacebookReport(snapshot, output) {
+export async function writeFacebookReport(snapshot, output, {email = false} = {}) {
   const destination = resolve(output);
   assertPrivateOutput(destination);
   const directory = dirname(destination);
@@ -121,7 +122,8 @@ export async function writeFacebookReport(snapshot, output) {
   await mkdir(directory, {recursive: true, mode: 0o700});
   assertPrivateOutput(await realpath(directory));
   await chmod(directory, 0o700);
-  const html = renderFacebookReport(buildFacebookReportModel(snapshot));
+  const model = buildFacebookReportModel(snapshot);
+  const html = email ? renderFacebookEmail(model).html : renderFacebookReport(model);
   const temporary = join(directory, `.report-${randomUUID()}.tmp`);
   try {
     await writeFile(temporary, html, {mode: 0o600, flag: 'wx'});
@@ -133,7 +135,8 @@ export async function writeFacebookReport(snapshot, output) {
 export async function main(args = process.argv.slice(2)) {
   const options = {};
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--help') { console.log('node scripts/facebook-report.mjs [--input snapshot.json] [--output private-report.html]'); return; }
+    if (args[i] === '--help') { console.log('node scripts/facebook-report.mjs [--email] [--input snapshot.json] [--output private-report.html]'); return; }
+    if (args[i] === '--email') { options.email = true; continue; }
     if (!['--input', '--output'].includes(args[i]) || !args[i + 1] || args[i + 1].startsWith('--')) throw new CollectorError('Unknown report option. Use --help.');
     options[args[i].slice(2)] = args[++i];
   }
@@ -141,7 +144,7 @@ export async function main(args = process.argv.slice(2)) {
   let snapshot;
   try { snapshot = JSON.parse(await readFile(input, 'utf8')); }
   catch { throw new CollectorError('Cannot read the analytics snapshot. Run the collector first.'); }
-  const output = await writeFacebookReport(snapshot, options.output || join(dirname(input), 'report.html'));
+  const output = await writeFacebookReport(snapshot, options.output || join(dirname(input), options.email ? 'report-email.html' : 'report.html'), {email: options.email});
   console.log(`HTML report saved to ${output}`);
 }
 
