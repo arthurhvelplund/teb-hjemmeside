@@ -9,6 +9,8 @@ Facebook-statistik hentes lokalt gennem Composio. Se
 [opsætningen til Marinus og Arthur](docs/FACEBOOK_COMPOSIO.md).
 Fra repoets rod: `sh scripts/setup-facebook-composio.sh`, derefter
 `node scripts/facebook-composio.mjs pull`. Credentials og data gemmes uden for Git.
+Hver kørsel opdaterer også den private `data/report.html`. Genbyg rapporten fra
+seneste snapshot uden API-kald med `node scripts/facebook-report.mjs`.
 
 Start den lokale pilot med `cd calendar-worker && npm run dev:pilot`.
 Følg [pilotvejledningen](docs/PILOT_KLAR.md) for øveadgang og gennemgang.

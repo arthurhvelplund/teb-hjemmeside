@@ -5,6 +5,7 @@ import {homedir} from 'node:os';
 import {resolve, join} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {CollectorError, assertPrivateOutput, saveSnapshot} from './facebook-analytics.mjs';
+import {writeFacebookReport} from './facebook-report.mjs';
 import {createComposioClient, readComposioLogin, ComposioToolError, redactPayload} from './composio-consumer.mjs';
 
 const runFile = promisify(execFile);
@@ -231,8 +232,13 @@ export async function main(args = process.argv.slice(2)) {
     sessionId = await client.createSession(config);
     const snapshot = await collectComposio(config, {...options,
       execute: (slug, params) => client.execute(sessionId, slug, params, config.connectedAccountId), progress: line => console.log(line)});
-    const path = await saveSnapshot(output, redactPayload(snapshot, login.userApiKey));
+    const clean = redactPayload(snapshot, login.userApiKey);
+    const path = await saveSnapshot(output, clean);
     console.log(`Saved ${snapshot.posts.length} TEB posts and ${snapshot.pageMetrics.length} Page metric histories to ${path}`);
+    let report;
+    try { report = await writeFacebookReport(clean, join(output, 'report.html')); }
+    catch { throw new CollectorError('Analytics snapshot saved, but the HTML report could not be generated. Run node scripts/facebook-report.mjs to retry without API calls.'); }
+    console.log(`HTML report saved to ${report}`);
   } finally {
     if (sessionId) await client.closeSession(sessionId).catch(() => {});
     await rm(lock, {recursive: true, force: true});

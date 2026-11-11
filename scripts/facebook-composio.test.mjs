@@ -162,11 +162,16 @@ test('real runner preserves latest on token failure, closes sessions, and never 
     const args = ['pull', '--config', configPath, '--output', output, '--since', '2026-11-01', '--until', '2026-11-10'];
     await main(args);
     const good = await readFile(join(output, 'latest.json'), 'utf8');
+    const report = await readFile(join(output, 'report.html'), 'utf8');
+    assert.match(report, /Facebookrapport/);
+    assert.equal(report.includes(key), false);
+    assert.equal((await stat(join(output, 'report.html'))).mode & 0o777, 0o600);
     assert.equal(good.includes(key), false);
     assert.equal((await stat(join(output, 'latest.json'))).mode & 0o777, 0o600);
     failed = true;
     await assert.rejects(main(args), error => error.code === 190 && !error.message.includes(key));
     assert.equal(await readFile(join(output, 'latest.json'), 'utf8'), good);
+    assert.equal(await readFile(join(output, 'report.html'), 'utf8'), report);
     assert.equal((await readdir(output)).includes('.collector-lock'), false);
     assert.equal(deletions, 2);
   } finally {

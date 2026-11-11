@@ -39,6 +39,42 @@ Perioden må være op til 730 afsluttede UTC-dage. Scriptet deler forespørgsler
 i vinduer på højst 90 dage. `check` validerer kun den lokale konfiguration
 uden at kontakte Composio eller læse credentials.
 
+## HTML-rapport efter hver kørsel
+
+`pull` gemmer nu også `data/report.html` ved siden af `latest.json`.
+Åbn filen i en browser. Den indeholder perioderne 7, 28 og 90 målte døgn samt
+aktiv periode, sammenligning med foregående periode, en interaktiv dagsgraf
+og alle opslag med søgning, sortering, fuld tekst og links til Facebook.
+
+Gendan rapporten fra allerede hentede data uden login eller nye API-kald:
+
+```sh
+node scripts/facebook-report.mjs
+```
+
+Andre snapshot- og outputstier kan vælges med `--input` og `--output`:
+
+```sh
+node scripts/facebook-report.mjs --input /privat/mappe/snapshot.json --output /privat/mappe/rapport.html
+```
+
+Rapporten er én selvstændig HTML-fil med indlejrede data og uden netværkskald,
+eksterne billeder, biblioteker eller skrifttyper. Den kan åbnes offline og gives
+til Arthur uden at give ham credentials. Den indeholder stadig sidens private
+analysedata og skal opbevares privat. Generatoren ligger i Git; rapporten gør ikke.
+
+Page-tal og opslagstal holdes særskilt: førstnævnte gælder valgt periode,
+sidstnævnte er lifetime-tal ved hentningen. Opslagsfilteret gælder udgivelsesdatoen.
+Daglige unikke viewers vises som gennemsnit, aldrig som summeret perioderækkevidde.
+Følgerbeholdning summeres ikke. Manglende tal vises som en tankestreg;
+berørte totaler beregnes ikke. Datoerne viser Metas døgnslut, ikke danske kalenderdøgn.
+Hele manglende døgn eller modstridende duplikater afvises, så perioderne ikke forskydes.
+
+Ved en kort `--days`-kørsel forkortes rapportens periode ligesom `latest.json`.
+En procentændring vises kun med en fuld foregående periode og en positiv baseline.
+Fejler HTML-genereringen efter gemt snapshot, siger collectoren det særskilt;
+JSON-data er stadig gemt, og sidste gode HTML-rapport bevares. Gentag da kun generatoren.
+
 ## Arthur sætter sin egen computer op
 
 1. Hent repoet og checkout `local/teb-pilot-ready`. Kræver Node.js 24 eller nyere.
@@ -96,6 +132,7 @@ Standardmappe:
 ~/Library/Application Support/TEB/facebook-composio/
   config.json
   data/latest.json
+  data/report.html
   data/snapshot-<tidspunkt>-<uuid>.json
 ```
 
@@ -158,7 +195,7 @@ værtsmaskine er aftalt. På en server kan samme `pull`-kommando kaldes af syste
 eller cron. Scriptet kræver ikke, at en chat er åben.
 
 ```sh
-node --test scripts/facebook-composio.test.mjs scripts/facebook-analytics.test.mjs
+node --test scripts/facebook-composio.test.mjs scripts/facebook-analytics.test.mjs scripts/facebook-report.test.mjs
 sh -n scripts/setup-facebook-composio.sh
 plutil -lint scripts/facebook-composio.launchd.example.plist
 ```
