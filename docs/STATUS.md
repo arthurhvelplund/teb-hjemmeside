@@ -1,5 +1,39 @@
 # Samlet status for TEB hjemmesiden
 
+## Composio virker lokalt og kan sættes op hos Arthur den 11. november 2026
+
+- Kodecommit: `dfb0108`. Den aktive collector er nu
+  `scripts/facebook-composio.mjs`, med `scripts/setup-facebook-composio.sh` til
+  egen opsætning på begge computere. [Fuld vejledning](FACEBOOK_COMPOSIO.md).
+  Tidligere direkte Meta-collector er bevaret som alternativ.
+- Composio CLI 0.6.0 er installeret lokalt uden agent-plugin eller ændringer i
+  shellens opstartsfiler. Brugeren har udtrykkeligt godkendt det brede lokale
+  CLI-login. Hans eksisterende For You/Facebook-forbindelse er genbrugt.
+  TEBs API-id `1360070047179461`, navn og ANALYZE-opgave er liveverificeret.
+- Historisk livekørsel: ni Page-metrics med hver 730 daglige observationer,
+  forespurgt fra 2024-11-11 til eksklusive 2026-11-11. Alle 25 publicerede
+  opslag returneret af endpointet er gennemløbet med lifetime-performance
+  samt reaktions-, kommentar- og delingstal. Ingen unsupported metrics i kørslen.
+  Rå metricnavne, kildeværdier og tidszoner er bevaret. Manglende tal er null,
+  ikke opfundne nuller. Se vejledningen for API'ets dækningsgrænser.
+- Data og lokal konfiguration ligger under brugerens Library/Application
+  Support/TEB/facebook-composio uden for Git. Mapper er 0700, filer 0600.
+  Snapshots er kontrolleret for korrekt Page, unikke opslag og fravær af
+  Composio-nøglen og access-token-felter. Ingen credentials er kopieret til repoet.
+- 20 fokuserede tests, credentialfri config-kontroller, shell-syntaks, plist-lint,
+  faktisk setup-helper, JavaScript-syntaks og git diff --check består.
+  CI kører nu begge collector-tests uden eksterne API-kald. De 17 eksisterende
+  lokale outputændringer er verificeret uændrede og udeladt fra commit.
+- Adgangsbegrænsning: sessionens konfiguration viste fem læseværktøjer, men
+  en særskilt livekontrol kunne kalde et read-only identitetsværktøj uden for
+  denne liste. Sessionlisten regnes derfor ikke som en verificeret sikkerhedsgrænse.
+  Collectoren håndhæver sin egen faste læseliste og TEB-identitet. Arthur skal
+  bruge eget login; Marinus' brede CLI-nøgle/forbindelse er ikke delt.
+- Ingen gyldig publicering eller ændring af Facebook-indhold er forsøgt.
+  Ingen scheduler, dataoverførsel til Arthur, main-push eller produktionsdeploy.
+  Udestår kun Arthurs egen loginopsætning på hans computer og eventuel senere
+  aftale om fast køretid/værtsmaskine. Scripts og vejledning afleveres på pilotgrenen.
+
 ## Facebook-statistik og adgang til Arthur den 11. november 2026
 
 - Kodecommit: `81ca256`. Læsecollector i `scripts/facebook-analytics.mjs`,
