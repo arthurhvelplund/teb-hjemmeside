@@ -1,5 +1,32 @@
 # Samlet status for TEB hjemmesiden
 
+## Privat Facebook-rapport den 11. november 2026
+
+- Kodecommit: `6bcb6ec`. `scripts/facebook-report.mjs` bygger en selvstændig
+  dansk HTML-rapport fra Composio-snapshot schema 2. `pull` opdaterer nu også
+  `data/report.html`; generatoren kan køres uden API-kald fra eksisterende data.
+  [Brug og beregninger](FACEBOOK_COMPOSIO.md#html-rapport-efter-hver-kørsel).
+- Rapporten er genereret fra brugerens seneste rigtige kørsel. Den viser
+  perioder, foregående periode, daglig graf, udvikling i seneste uge samt
+  søgning/sortering i alle 25 opslag og foldbar opslagstekst. Page-perioder og
+  lifetime-opslagstal holdes særskilt. Viewers vises som dagligt gennemsnit;
+  hverken unikke personer på tværs af døgn eller følgerbeholdninger summeres.
+- Manglende værdier bliver ikke til nul. Modstridende observationer og hele
+  manglende døgn afvises. Metas originale døgnslut bevares. Rapporten henter
+  ingen eksterne ressourcer; snapshot og HTML ligger privat uden for Git,
+  med 0600-filrettigheder. Ingen nøgle eller Facebook-forbindelse er delt.
+- Kontroller: 27 tests for collectorer og rapport består. Herunder korrekt
+  periodesammenligning, DST, manglende tal, HTML-injektion, forkert Page,
+  privat atomisk skrivning, symlink-afvisning og rapport fra den rigtige CLI-runner.
+  CI omfatter rapporttesten. JavaScript-syntaks og `git diff --check` består.
+- Browserkontrol ved 1440, 390 og 320 px: periodevalg, grafvalg/piletaster,
+  søgning, sortering, opslagstekst, alle opslag og udgivelsesfilter virker.
+  Ingen vandret side-overflow på mobil. Privat screenshot er gemt ved rapporten.
+  De 17 eksisterende outputændringer er SHA-256-verificeret uændrede og ikke committet.
+- Leveret på `local/teb-pilot-ready`. Ingen produktionsudgivelse, scheduler
+  eller dataoverførsel til Arthur. Han kan bruge generatoren efter eget setup
+  eller få HTML-filen særskilt uden credentials. Hans opsætning udestår fortsat.
+
 ## Composio virker lokalt og kan sættes op hos Arthur den 11. november 2026
 
 - Kodecommit: `dfb0108`. Den aktive collector er nu
