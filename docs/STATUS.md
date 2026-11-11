@@ -1,5 +1,25 @@
 # Samlet status for TEB hjemmesiden
 
+## Facebookrapport som HTML-mail den 11. november 2026
+
+- Kodecommit: `9925186`. `node scripts/facebook-report.mjs --email` genererer
+  privat `data/report-email.html` fra eksisterende snapshot. Statisk tabelbaseret
+  HTML med inline-CSS, seks nøgletal, korte indsigter, top fem og en enkel
+  tabelgraf. Renderer returnerer også emne og tilsvarende plain text-indhold.
+- Brugeren valgte udtrykkeligt en test til egen konto. Testmail er sendt med
+  Gmail-connectoren som multipart/alternative med text/plain og text/html.
+  Readback bekræfter INBOX og SENT, nøjagtigt samme HTML-body som preview samt
+  ingen attachments. Der er ikke sendt noget til Arthur eller andre modtagere.
+- Mailversionen er browserkontrolleret ved 1000 px og på 390 px mobil uden
+  vandret side-overflow. Privat PNG-preview ligger ved rapporten. Modtagelse
+  og korrekt MIME er verificeret; den enkelte mailklients visuelle rendering
+  er ikke dokumenteret gennem Gmail-webgrænsefladen eller Outlook.
+- 28 tests, JavaScript-syntaks og git diff --check består. De 17 tidligere
+  outputændringer er SHA-256-verificeret uændrede. Kun kode og vejledning
+  afleveres på pilotgrenen; snapshots, mailindhold og credentials er uden for Git.
+- Ingen automatisk udsendelse eller tidsplan er slået til. Generatoren sender
+  ikke mail; modtagere og eventuel gentagen udsendelse kræver en konkret aftale.
+
 ## Kompakt Facebookoverblik den 11. november 2026
 
 - Kodecommit: `57fb1af`. Rapportens store introduktion og gentagne forklaringer
